@@ -8,3 +8,5 @@ dist/
 build/
 .venv/
 venv/
+android/local.properties
+android/app/google-services.json
