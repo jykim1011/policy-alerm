@@ -1,14 +1,18 @@
 package com.policyalarm.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.policyalarm.ui.screens.detail.DetailScreen
+import com.policyalarm.ui.screens.detail.DetailViewModelFactory
 import com.policyalarm.ui.screens.history.HistoryScreen
 import com.policyalarm.ui.screens.home.HomeScreen
+import com.policyalarm.ui.screens.home.HomeViewModelFactory
 import com.policyalarm.ui.screens.login.LoginScreen
 import com.policyalarm.ui.screens.onboarding.OnboardingScreen
 import com.policyalarm.ui.screens.settings.SettingsScreen
@@ -29,6 +33,7 @@ object Routes {
 @Composable
 fun AppNavigation(startPolicyId: String? = null) {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
     NavHost(navController = navController, startDestination = Routes.SPLASH) {
         composable(Routes.SPLASH) {
@@ -70,10 +75,14 @@ fun AppNavigation(startPolicyId: String? = null) {
             )
         }
         composable(Routes.HOME) {
+            val vm = viewModel<com.policyalarm.ui.screens.home.HomeViewModel>(
+                factory = HomeViewModelFactory(context)
+            )
             HomeScreen(
                 onPolicyClick = { policyId -> navController.navigate(Routes.detail(policyId)) },
                 onHistoryClick = { navController.navigate(Routes.HISTORY) },
                 onSettingsClick = { navController.navigate(Routes.SETTINGS) },
+                vm = vm,
             )
         }
         composable(
@@ -81,7 +90,14 @@ fun AppNavigation(startPolicyId: String? = null) {
             arguments = listOf(navArgument("policyId") { type = NavType.StringType })
         ) { backStack ->
             val policyId = backStack.arguments?.getString("policyId") ?: return@composable
-            DetailScreen(policyId = policyId, onBack = { navController.popBackStack() })
+            val vm = viewModel<com.policyalarm.ui.screens.detail.DetailViewModel>(
+                factory = DetailViewModelFactory(context)
+            )
+            DetailScreen(
+                policyId = policyId,
+                onBack = { navController.popBackStack() },
+                vm = vm,
+            )
         }
         composable(Routes.HISTORY) {
             HistoryScreen(
