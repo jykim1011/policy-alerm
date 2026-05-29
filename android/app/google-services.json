@@ -1,19 +1,23 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "policy-alarm-placeholder",
-    "storage_bucket": "policy-alarm-placeholder.appspot.com"
+    "project_number": "249888568978",
+    "project_id": "policy-alerm",
+    "storage_bucket": "policy-alerm.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+        "mobilesdk_app_id": "1:249888568978:android:38d587fc8683945c7a984b",
         "android_client_info": {
           "package_name": "com.policyalarm"
         }
       },
       "oauth_client": [],
-      "api_key": [{"current_key": "placeholder"}],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRTRj2gu_-vXTgako8nJB9QhFbskTIv4g"
+        }
+      ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": []
@@ -23,3 +27,4 @@
   ],
   "configuration_version": "1"
 }
+
