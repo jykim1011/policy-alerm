@@ -1,9 +1,7 @@
 import hashlib
 import json
-import os
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Optional
 
 from pipeline.models import PolicyItem, PolicySummary
 
@@ -14,8 +12,8 @@ KST = timezone(timedelta(hours=9))
 def build_policy_id(source: str, published_at: str, url: str) -> str:
     date_part = published_at[:10]
     url_short = hashlib.md5(url.encode()).hexdigest()[:8]
-    safe_source = source.replace(" ", "_")[:10]
-    return f"{safe_source}-{date_part}-{url_short}"
+    source_part = source[:10]
+    return f"{source_part}-{date_part}-{url_short}"
 
 
 def publish_policy(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
