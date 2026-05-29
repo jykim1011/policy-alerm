@@ -4,15 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import com.policyalarm.ui.navigation.AppNavigation
+import com.policyalarm.ui.theme.PolicyAlarmTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val policyId = intent.getStringExtra("policy_id")
         setContent {
-            Text("Policy Alarm")
+            PolicyAlarmTheme {
+                AppNavigation(startPolicyId = policyId)
+            }
         }
     }
 }
