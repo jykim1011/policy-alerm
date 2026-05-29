@@ -1,0 +1,7 @@
+requests==2.32.3
+beautifulsoup4==4.12.3
+lxml==5.3.0
+hwp5==0.1.0
+pymupdf==1.25.1
+anthropic==0.40.0
+firebase-admin==6.6.0
