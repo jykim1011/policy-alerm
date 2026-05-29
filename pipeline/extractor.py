@@ -4,8 +4,8 @@ import subprocess
 import tempfile
 import zipfile
 import xml.etree.ElementTree as ET
-from typing import Optional
 
+import pymupdf
 from bs4 import BeautifulSoup
 
 
@@ -50,6 +50,8 @@ def _extract_hwp(content: bytes) -> str:
             ["hwp5txt", tmp_path],
             capture_output=True, text=True, timeout=30
         )
+        if result.returncode != 0:
+            raise subprocess.SubprocessError(f"hwp5txt failed: {result.stderr}")
         return result.stdout
     finally:
         os.unlink(tmp_path)
@@ -57,7 +59,6 @@ def _extract_hwp(content: bytes) -> str:
 
 def _extract_pdf(content: bytes) -> str:
     """PDF에서 텍스트 추출"""
-    import pymupdf
     doc = pymupdf.open(stream=content, filetype="pdf")
     return "\n".join(page.get_text() for page in doc)
 
