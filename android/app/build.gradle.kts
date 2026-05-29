@@ -18,7 +18,7 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "CDN_BASE_URL",
-            "\"https://YOUR_GITHUB_USERNAME.github.io/policy-alarm/\"")
+            "\"https://jykim1011.github.io/policy-alerm/\"")
     }
 
     buildTypes {
