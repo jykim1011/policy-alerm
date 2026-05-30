@@ -42,7 +42,7 @@ jobs:
           fi
 
       - name: Run pipeline
-        run: python pipeline/main.py
+        run: python -m pipeline.main
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
