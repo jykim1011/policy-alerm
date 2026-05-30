@@ -1,6 +1,7 @@
 import json
+import os
 from typing import Optional
-import anthropic
+import google.generativeai as genai
 from pipeline.models import PolicySummary
 
 _PROMPT_TEMPLATE = """다음 정책 문서를 분석하여 JSON 형식으로만 응답하세요. 설명 없이 JSON만 출력하세요.
@@ -22,21 +23,17 @@ _PROMPT_TEMPLATE = """다음 정책 문서를 분석하여 JSON 형식으로만 
 def summarize_policy(
     title: str,
     text: str,
-    client: Optional[anthropic.Anthropic] = None,
+    model=None,
 ) -> PolicySummary:
-    if client is None:
-        client = anthropic.Anthropic()
+    if model is None:
+        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+        model = genai.GenerativeModel("gemini-2.0-flash")
 
     truncated = text[:8000]
     prompt = _PROMPT_TEMPLATE.format(title=title, text=truncated)
 
-    message = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    raw = json.loads(message.content[0].text)
+    response = model.generate_content(prompt)
+    raw = json.loads(response.text)
     return PolicySummary(
         what_changed=raw["what_changed"],
         who_is_affected=raw["who_is_affected"],
