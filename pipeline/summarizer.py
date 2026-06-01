@@ -53,7 +53,9 @@ def summarize_policy(
     truncated = text[:8000]
     prompt = _PROMPT_TEMPLATE.format(title=title, text=truncated)
 
-    response = model.generate_content(prompt)
+    # 2.5-flash는 호출당 지연이 길 수 있어 타임아웃을 둔다. 초과/실패 건은
+    # 호출부(main.py)에서 seen에 넣지 않고 건너뛰어 다음 실행에서 재시도한다.
+    response = model.generate_content(prompt, request_options={"timeout": 40})
     raw = _parse_json(response.text)
     return PolicySummary(
         what_changed=raw["what_changed"],

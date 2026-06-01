@@ -64,7 +64,7 @@ class PolicyBriefingApiCrawler:
 
     # API는 한 번에 최대 3일(시작·종료일 차이 2일)까지만 조회 가능하므로
     # lookback_days를 3일 윈도우로 나눠 순회하며 백로그를 채운다.
-    def __init__(self, lookback_days: int = 45, num_rows: int = 200, max_pages: int = 5):
+    def __init__(self, lookback_days: int = 14, num_rows: int = 200, max_pages: int = 5):
         self.lookback_days = lookback_days
         self.num_rows = num_rows
         self.max_pages = max_pages
