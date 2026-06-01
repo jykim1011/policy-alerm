@@ -1,5 +1,6 @@
+import json
 from unittest.mock import MagicMock, patch
-from pipeline.notifier import notify_new_policy
+from pipeline.notifier import notify_new_policy, _load_service_account
 from pipeline.models import PolicyItem, PolicySummary
 
 def _make_item() -> PolicyItem:
@@ -12,6 +13,18 @@ def _make_item() -> PolicyItem:
         published_at="2026-05-29T09:00:00+09:00",
         summary=PolicySummary("변경사항", "대상자", "7월부터", ["포인트"])
     )
+
+def test_load_service_account_strips_utf8_bom():
+    """FIREBASE_SERVICE_ACCOUNT 시크릿에 UTF-8 BOM이 붙어도 파싱돼야 한다."""
+    payload = {"type": "service_account", "project_id": "policy-alerm"}
+    raw = "﻿" + json.dumps(payload)
+    assert _load_service_account(raw) == payload
+
+
+def test_load_service_account_handles_surrounding_whitespace():
+    payload = {"type": "service_account"}
+    assert _load_service_account("  \n" + json.dumps(payload) + "\n  ") == payload
+
 
 def test_notify_new_policy_writes_to_firestore():
     mock_db = MagicMock()
