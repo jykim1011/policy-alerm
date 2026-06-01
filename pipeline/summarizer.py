@@ -47,7 +47,9 @@ def summarize_policy(
     model=None,
 ) -> PolicySummary:
     if model is None:
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+        # 키에 줄바꿈/공백이 섞이면 gRPC 인증 헤더가 깨져("Illegal header value")
+        # 클라이언트가 무한 재시도하므로 반드시 strip 한다.
+        genai.configure(api_key=os.environ["GEMINI_API_KEY"].strip())
         model = genai.GenerativeModel("gemini-2.5-flash")
 
     truncated = text[:8000]

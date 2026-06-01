@@ -70,7 +70,7 @@ class PolicyBriefingApiCrawler:
         self.max_pages = max_pages
 
     def fetch(self) -> list[RawPolicy]:
-        key = os.environ.get("DATA_GO_KR_KEY")
+        key = (os.environ.get("DATA_GO_KR_KEY") or "").strip()
         if not key:
             raise RuntimeError("DATA_GO_KR_KEY 환경변수가 설정되지 않았습니다")
 
