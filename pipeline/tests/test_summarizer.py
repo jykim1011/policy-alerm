@@ -17,6 +17,24 @@ def test_summarize_policy_returns_policy_summary():
     assert result.what_changed == "청약 가점 우대 폭 확대"
     assert len(result.key_points) == 2
 
+def test_summarize_policy_handles_markdown_code_fence():
+    """Gemini가 ```json 펜스로 감싸 응답해도 파싱되어야 한다."""
+    mock_model = MagicMock()
+    mock_model.generate_content.return_value.text = "```json\n" + MOCK_RESPONSE_JSON + "\n```"
+    result = summarize_policy("청약 제도 개편", "내용", model=mock_model)
+    assert result.what_changed == "청약 가점 우대 폭 확대"
+
+
+def test_summarize_policy_handles_surrounding_text():
+    """JSON 앞뒤에 설명이 붙어도 {...} 블록을 추출해야 한다."""
+    mock_model = MagicMock()
+    mock_model.generate_content.return_value.text = (
+        "다음은 분석 결과입니다:\n" + MOCK_RESPONSE_JSON + "\n이상입니다."
+    )
+    result = summarize_policy("청약 제도 개편", "내용", model=mock_model)
+    assert len(result.key_points) == 2
+
+
 def test_summarize_policy_truncates_long_text():
     mock_model = MagicMock()
     mock_model.generate_content.return_value.text = MOCK_RESPONSE_JSON

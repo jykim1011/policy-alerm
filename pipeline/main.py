@@ -53,8 +53,8 @@ def run(batch: str) -> None:
             try:
                 summary = summarize_policy(raw.title, text)
             except Exception as e:
-                print(f"  요약 실패, 건너뜀: {e}", file=sys.stderr)
-                seen.add(raw.url_hash)
+                # 요약 실패(일시적 할당량/네트워크 등)는 seen에 넣지 않아 다음 실행에서 재시도한다.
+                print(f"  요약 실패, 다음 실행에서 재시도: {e}", file=sys.stderr)
                 continue
 
             policy_id = build_policy_id(raw.source, raw.published_at, raw.url)

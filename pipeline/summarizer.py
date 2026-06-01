@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Optional
 import google.generativeai as genai
 from pipeline.models import PolicySummary
@@ -20,6 +21,26 @@ _PROMPT_TEMPLATE = """다음 정책 문서를 분석하여 JSON 형식으로만 
 }}"""
 
 
+def _parse_json(text: str) -> dict:
+    """Gemini 응답에서 JSON을 견고하게 추출한다.
+
+    모델이 ```json ... ``` 코드펜스로 감싸거나 앞뒤에 설명을 붙이는 경우가 있어
+    그대로 json.loads하면 실패한다. 펜스를 벗기고, 실패 시 첫 번째 {...} 블록을 추출한다.
+    """
+    cleaned = text.strip()
+    # ```json ... ``` 또는 ``` ... ``` 펜스 제거
+    fence = re.match(r"^```(?:json)?\s*(.*?)\s*```$", cleaned, re.DOTALL)
+    if fence:
+        cleaned = fence.group(1).strip()
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        raise
+
+
 def summarize_policy(
     title: str,
     text: str,
@@ -33,7 +54,7 @@ def summarize_policy(
     prompt = _PROMPT_TEMPLATE.format(title=title, text=truncated)
 
     response = model.generate_content(prompt)
-    raw = json.loads(response.text)
+    raw = _parse_json(response.text)
     return PolicySummary(
         what_changed=raw["what_changed"],
         who_is_affected=raw["who_is_affected"],

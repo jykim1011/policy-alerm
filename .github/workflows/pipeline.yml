@@ -46,6 +46,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           BATCH: ${{ steps.batch.outputs.batch }}
 
       - name: Commit and push updated data
