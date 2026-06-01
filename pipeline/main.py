@@ -38,9 +38,11 @@ def run(batch: str) -> None:
 
             print(f"  신규 정책 발견: {raw.title}")
 
-            # 텍스트 추출
+            # 텍스트 추출: 본문이 이미 있으면 그대로 사용한다.
+            # (정책브리핑 OpenAPI는 본문을 inline으로 제공하며, 첨부파일 호스트
+            #  korea.kr은 GitHub Actions IP를 차단하므로 다운로드는 항상 실패·지연된다.)
             text = raw.html_content
-            if raw.file_url and raw.file_type:
+            if not text.strip() and raw.file_url and raw.file_type:
                 try:
                     file_bytes = download_file(raw.file_url)
                     extracted = extract_text(file_bytes, raw.file_type)
