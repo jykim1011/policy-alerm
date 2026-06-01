@@ -1,0 +1,23 @@
+{
+  "id": "국토교통부-2026-05-29-5030bb0a",
+  "category": "부동산",
+  "subcategory": "부동산",
+  "title": "'25년 말 기준 외국인 토지·주택 보유통계",
+  "source": "국토교통부",
+  "source_url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156764183&call_from=openData",
+  "file_url": "https://www.korea.kr/common/download.do?tblKey=GMN&fileId=198476832",
+  "file_type": "hwpx",
+  "published_at": "2026-05-29T06:00:00+09:00",
+  "crawled_at": "2026-06-01T23:45:18.119315+09:00",
+  "summary": {
+    "what_changed": "2025년 말 기준 외국인 토지 및 주택 보유 현황에 대한 새로운 통계 자료가 발표됩니다.",
+    "who_is_affected": "외국 국적을 가진 개인 및 법인의 국내 토지·주택 보유 현황이 보고될 예정입니다.",
+    "when_effective": "2025년 말 기준",
+    "key_points": [
+      "외국인의 토지 및 주택 보유 현황 통계입니다.",
+      "통계의 기준 시점은 2025년 말입니다.",
+      "보도자료 형식으로 제공됩니다.",
+      "상세 내용은 첨부파일을 통해 확인할 수 있습니다."
+    ]
+  }
+}
