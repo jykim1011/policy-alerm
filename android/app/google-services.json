@@ -12,7 +12,28 @@
           "package_name": "com.policyalarm"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "249888568978-mr45jgcjj23vmkngigfe93pllngfblk3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.policyalarm",
+            "certificate_hash": "8b0ab0b16aeb85809f47b403abc10a43b60fbee9"
+          }
+        },
+        {
+          "client_id": "249888568978-pnl6o7f65gcpsokc8b95n8jjec317sme.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.policyalarm",
+            "certificate_hash": "4e24c7961a2f7983264c50f021dc8377f5bdae47"
+          }
+        },
+        {
+          "client_id": "249888568978-b3vob3duik45sq3uki6lm47fdc63ljgg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCRTRj2gu_-vXTgako8nJB9QhFbskTIv4g"
@@ -20,11 +41,15 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "249888568978-b3vob3duik45sq3uki6lm47fdc63ljgg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
   ],
   "configuration_version": "1"
 }
-

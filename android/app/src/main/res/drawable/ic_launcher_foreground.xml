@@ -4,7 +4,26 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,20c-11.05,0-20,8.95-20,20 0,8.55 5.35,15.85 12.9,18.8L44,72h20l-2.9-13.2C68.65,55.85 74,48.55 74,40 74,28.95 65.05,20 54,20zM47,76v4c0,3.87 3.13,7 7,7s7,-3.13 7,-7v-4H47z"/>
+    <!-- White bell + amber alert dot, centred in the adaptive-icon safe zone.
+         Matches the in-app PolicyAppIcon brand mark. -->
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:scaleX="1.9"
+        android:scaleY="1.9"
+        android:translateX="42"
+        android:translateY="42">
+        <!-- bell -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32L13.5,4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5l0,0.68C7.63,5.36 6,7.92 6,11l0,5l-2,2v1h16v-1l-2,-2z"/>
+        <!-- white ring behind the alert dot -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M14.2,5 a4.3,4.3 0 1,0 8.6,0 a4.3,4.3 0 1,0 -8.6,0 Z"/>
+        <!-- amber alert dot -->
+        <path
+            android:fillColor="#FFFBBF24"
+            android:pathData="M15.7,5 a2.8,2.8 0 1,0 5.6,0 a2.8,2.8 0 1,0 -5.6,0 Z"/>
+    </group>
 </vector>

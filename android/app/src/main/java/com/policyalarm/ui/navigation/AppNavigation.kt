@@ -10,22 +10,17 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.policyalarm.ui.screens.detail.DetailScreen
 import com.policyalarm.ui.screens.detail.DetailViewModelFactory
-import com.policyalarm.ui.screens.history.HistoryScreen
-import com.policyalarm.ui.screens.home.HomeScreen
-import com.policyalarm.ui.screens.home.HomeViewModelFactory
 import com.policyalarm.ui.screens.login.LoginScreen
+import com.policyalarm.ui.screens.main.MainScaffold
 import com.policyalarm.ui.screens.onboarding.OnboardingScreen
-import com.policyalarm.ui.screens.settings.SettingsScreen
 import com.policyalarm.ui.screens.splash.SplashScreen
 
 object Routes {
     const val SPLASH = "splash"
     const val LOGIN = "login"
     const val ONBOARDING = "onboarding"
-    const val HOME = "home"
+    const val MAIN = "main"
     const val DETAIL = "detail/{policyId}"
-    const val HISTORY = "history"
-    const val SETTINGS = "settings"
 
     fun detail(policyId: String) = "detail/$policyId"
 }
@@ -39,7 +34,7 @@ fun AppNavigation(startPolicyId: String? = null) {
         composable(Routes.SPLASH) {
             SplashScreen(
                 onLoggedIn = {
-                    navController.navigate(Routes.HOME) {
+                    navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
                 },
@@ -53,14 +48,9 @@ fun AppNavigation(startPolicyId: String? = null) {
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginSuccess = { isNewUser ->
-                    if (isNewUser) {
-                        navController.navigate(Routes.ONBOARDING) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
+                    val dest = if (isNewUser) Routes.ONBOARDING else Routes.MAIN
+                    navController.navigate(dest) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 }
             )
@@ -68,21 +58,20 @@ fun AppNavigation(startPolicyId: String? = null) {
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
                 onComplete = {
-                    navController.navigate(Routes.HOME) {
+                    navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.ONBOARDING) { inclusive = true }
                     }
                 }
             )
         }
-        composable(Routes.HOME) {
-            val vm = viewModel<com.policyalarm.ui.screens.home.HomeViewModel>(
-                factory = HomeViewModelFactory(context)
-            )
-            HomeScreen(
+        composable(Routes.MAIN) {
+            MainScaffold(
                 onPolicyClick = { policyId -> navController.navigate(Routes.detail(policyId)) },
-                onHistoryClick = { navController.navigate(Routes.HISTORY) },
-                onSettingsClick = { navController.navigate(Routes.SETTINGS) },
-                vm = vm,
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.MAIN) { inclusive = true }
+                    }
+                },
             )
         }
         composable(
@@ -98,15 +87,6 @@ fun AppNavigation(startPolicyId: String? = null) {
                 onBack = { navController.popBackStack() },
                 vm = vm,
             )
-        }
-        composable(Routes.HISTORY) {
-            HistoryScreen(
-                onPolicyClick = { policyId -> navController.navigate(Routes.detail(policyId)) },
-                onBack = { navController.popBackStack() },
-            )
-        }
-        composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }

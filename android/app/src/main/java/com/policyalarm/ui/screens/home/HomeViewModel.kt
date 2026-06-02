@@ -10,12 +10,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
-    val policies: List<PolicyItem> = emptyList(),
+    val allPolicies: List<PolicyItem> = emptyList(),
     val readIds: Set<String> = emptySet(),
     val selectedCategory: String = "전체",
     val isLoading: Boolean = false,
     val error: String? = null,
-)
+) {
+    /** 화면에 표시할 목록: 선택된 카테고리(subcategory)로 로컬 필터링한다. */
+    val policies: List<PolicyItem>
+        get() = if (selectedCategory == "전체") allPolicies
+        else allPolicies.filter { it.subcategory == selectedCategory }
+}
 
 class HomeViewModel(
     private val repo: PolicyRepository,
@@ -38,7 +43,7 @@ class HomeViewModel(
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val index = repo.getPolicyIndex()
-                _uiState.update { it.copy(policies = index.items, isLoading = false) }
+                _uiState.update { it.copy(allPolicies = index.items, isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = "불러오기 실패") }
             }
@@ -46,16 +51,7 @@ class HomeViewModel(
     }
 
     fun selectCategory(category: String) {
+        // 메인 인덱스를 로컬 필터링하므로 추가 네트워크 호출이 없다.
         _uiState.update { it.copy(selectedCategory = category) }
-        if (category == "전체") {
-            loadPolicies()
-        } else {
-            viewModelScope.launch {
-                try {
-                    val index = repo.getCategoryIndex(category)
-                    _uiState.update { it.copy(policies = index.items) }
-                } catch (_: Exception) {}
-            }
-        }
     }
 }

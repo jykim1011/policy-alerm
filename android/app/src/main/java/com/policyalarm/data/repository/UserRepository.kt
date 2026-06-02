@@ -59,5 +59,15 @@ class UserRepository(
             .collection("bookmarks").document(policyId)
             .get().await().exists()
 
+    suspend fun countBookmarks(): Int =
+        db.collection("users").document(uid)
+            .collection("bookmarks").get().await().size()
+
     fun isLoggedIn(): Boolean = auth.currentUser != null
+
+    fun displayName(): String? = auth.currentUser?.displayName
+
+    fun email(): String? = auth.currentUser?.email
+
+    fun logout() = auth.signOut()
 }

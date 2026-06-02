@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#1976D2"/>
-</shape>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Brand mark background: deep-blue government gradient (matches PolicyAppIcon). -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108">
+                <item android:offset="0" android:color="#FF2F63F0"/>
+                <item android:offset="0.5" android:color="#FF1D4ED8"/>
+                <item android:offset="1" android:color="#FF1E3A8A"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

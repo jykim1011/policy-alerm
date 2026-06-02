@@ -16,6 +16,9 @@ class OnboardingViewModel(
     private val _selected = MutableStateFlow(setOf("청약", "대출", "세금"))
     val selected: StateFlow<Set<String>> = _selected
 
+    private val _schedule = MutableStateFlow("both")
+    val schedule: StateFlow<String> = _schedule
+
     private val _done = MutableStateFlow(false)
     val done: StateFlow<Boolean> = _done
 
@@ -26,9 +29,12 @@ class OnboardingViewModel(
             _selected.value + category
     }
 
+    fun setSchedule(value: String) { _schedule.value = value }
+
     fun confirm() {
         viewModelScope.launch {
             userRepo.updateSubscribedCategories(_selected.value.toList())
+            userRepo.updateNotificationSchedule(_schedule.value)
             _done.value = true
         }
     }

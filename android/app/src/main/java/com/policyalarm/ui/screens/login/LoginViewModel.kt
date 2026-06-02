@@ -3,6 +3,8 @@ package com.policyalarm.ui.screens.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
+import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.messaging.FirebaseMessaging
@@ -50,6 +52,23 @@ class LoginViewModel(
             } catch (e: Exception) {
                 _uiState.value = LoginUiState.Error(e.message ?: "로그인 실패")
             }
+        }
+    }
+
+    /** Handle a Google Sign-In failure surfaced from the activity result. */
+    fun onSignInError(statusCode: Int) {
+        _uiState.value = when (statusCode) {
+            GoogleSignInStatusCodes.SIGN_IN_CANCELLED ->
+                // User backed out of the account picker; not an error worth showing.
+                LoginUiState.Idle
+            CommonStatusCodes.DEVELOPER_ERROR -> LoginUiState.Error(
+                "로그인 설정 오류 (코드 10): Firebase에 앱의 SHA-1 지문과 " +
+                    "Google 로그인 설정이 등록되어 있는지 확인하세요."
+            )
+            CommonStatusCodes.NETWORK_ERROR ->
+                LoginUiState.Error("네트워크 오류로 로그인에 실패했습니다.")
+            else ->
+                LoginUiState.Error("로그인 실패 (코드 $statusCode)")
         }
     }
 }

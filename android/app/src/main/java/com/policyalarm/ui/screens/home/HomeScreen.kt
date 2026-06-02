@@ -1,6 +1,8 @@
 package com.policyalarm.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,98 +12,143 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.policyalarm.data.model.PolicyItem
+import com.policyalarm.ui.components.CATEGORY_LIST
+import com.policyalarm.ui.components.CategoryChip
+import com.policyalarm.ui.components.PolicyAppIcon
+import com.policyalarm.ui.components.SubcatChip
+import com.policyalarm.ui.theme.LocalAppColors
 
-val CATEGORIES = listOf("전체", "청약", "대출", "세금", "재개발", "전월세")
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onPolicyClick: (String) -> Unit,
-    onHistoryClick: () -> Unit,
-    onSettingsClick: () -> Unit,
     vm: HomeViewModel,
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
+    val c = LocalAppColors.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("정책 알림") },
-                actions = {
-                    IconButton(onClick = onHistoryClick) {
-                        Icon(Icons.Default.History, "알림 기록")
-                    }
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, "설정")
-                    }
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(c.bgApp),
+    ) {
+        // top bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(c.bgSurface)
+                .statusBarsPadding()
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            PolicyAppIcon(size = 30, corner = 8)
+            Spacer(Modifier.width(12.dp))
+            Text(
+                "정책 알리미",
+                modifier = Modifier.weight(1f),
+                color = c.fgStrong,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
             )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .clickable { vm.loadPolicies() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Refresh, "새로고침", tint = c.fgMuted, modifier = Modifier.size(21.dp))
+            }
         }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-                items(CATEGORIES) { category ->
-                    FilterChip(
-                        selected = state.selectedCategory == category,
-                        onClick = { vm.selectCategory(category) },
-                        label = { Text(category) },
-                        modifier = Modifier.padding(end = 8.dp),
+
+        // category chip row
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(c.bgSurface)
+                .border(width = 1.dp, color = c.border),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(CATEGORY_LIST) { cat ->
+                CategoryChip(
+                    label = cat.key,
+                    emoji = if (cat.key == "전체") null else cat.emoji,
+                    selected = state.selectedCategory == cat.key,
+                    onClick = { vm.selectCategory(cat.key) },
+                )
+            }
+        }
+
+        when {
+            state.isLoading && state.policies.isEmpty() -> Box(
+                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator(color = c.accent) }
+
+            state.error != null && state.policies.isEmpty() -> Box(
+                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(state.error!!, color = c.fgMuted)
+                    Spacer(Modifier.height(12.dp))
+                    com.policyalarm.ui.components.PrimaryButton(
+                        text = "다시 시도",
+                        onClick = vm::loadPolicies,
+                        modifier = Modifier.width(160.dp),
+                        height = 44,
                     )
                 }
             }
 
-            when {
-                state.isLoading -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
-
-                state.error != null -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(state.error!!)
-                        Spacer(Modifier.height(8.dp))
-                        Button(onClick = vm::loadPolicies) { Text("다시 시도") }
-                    }
+            else -> LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                items(state.policies, key = { it.id }) { policy ->
+                    PolicyCard(
+                        policy = policy,
+                        isRead = policy.id in state.readIds,
+                        onClick = { onPolicyClick(policy.id) },
+                    )
                 }
-
-                else -> LazyColumn(contentPadding = PaddingValues(16.dp)) {
-                    items(state.policies, key = { it.id }) { policy ->
-                        PolicyCard(
-                            policy = policy,
-                            isRead = policy.id in state.readIds,
-                            onClick = { onPolicyClick(policy.id) },
-                        )
-                        Spacer(Modifier.height(8.dp))
-                    }
+                item {
+                    Text(
+                        "정책브리핑·국토교통부 등에서 자동 수집 · 매일 오전 9시·오후 6시 업데이트",
+                        color = c.fgFaint,
+                        fontSize = 11.5.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 18.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
                 }
             }
         }
@@ -110,36 +157,60 @@ fun HomeScreen(
 
 @Composable
 fun PolicyCard(policy: PolicyItem, isRead: Boolean, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isRead) MaterialTheme.colorScheme.surfaceVariant
-            else MaterialTheme.colorScheme.surface
-        )
+    val c = LocalAppColors.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(c.bgSurface)
+            .border(1.dp, c.border, RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .alpha(if (isRead) 0.62f else 1f)
+            .padding(16.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row {
-                AssistChip(
-                    onClick = {},
-                    label = { Text(policy.subcategory, style = MaterialTheme.typography.labelSmall) },
-                )
-                Spacer(Modifier.weight(1f))
-                Text(policy.publishedAt.take(10), style = MaterialTheme.typography.labelSmall)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SubcatChip(policy.category)
+            if (!isRead) {
+                Spacer(Modifier.width(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier.size(6.dp).clip(CircleShape).background(c.danger)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text("NEW", color = c.danger, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
             }
-            Spacer(Modifier.height(4.dp))
-            Text(policy.title, style = MaterialTheme.typography.titleSmall, maxLines = 2)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                policy.summaryPreview,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 2,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                policy.source,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
+            Spacer(Modifier.weight(1f))
+            Text(policy.publishedAt.take(10), color = c.fgSubtle, fontSize = 12.sp)
+        }
+        Spacer(Modifier.height(9.dp))
+        Text(
+            policy.title,
+            color = c.fgStrong,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            lineHeight = 22.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            policy.summaryPreview,
+            color = c.fgMuted,
+            fontSize = 13.5.sp,
+            lineHeight = 21.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(11.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(policy.source, color = c.fgDefault, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.weight(1f))
+            Icon(
+                Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = c.fgFaint,
+                modifier = Modifier.size(18.dp),
             )
         }
     }
