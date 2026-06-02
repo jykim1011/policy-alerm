@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>정책 알리미 — 스크린샷 생성기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; padding: 32px 20px; font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; }
+  h1 { color: #fff; font-size: 1.1rem; margin-bottom: 28px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 28px; }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .label { color: #aaa; font-size: 0.8rem; }
+  canvas { border-radius: 36px; box-shadow: 0 12px 48px rgba(0,0,0,.6); display: block; }
+  button {
+    background: #1D4ED8; color: #fff; border: none;
+    padding: 8px 18px; border-radius: 8px; font-size: 0.82rem; cursor: pointer;
+  }
+  button:hover { background: #1e3a8a; }
+</style>
+</head>
+<body>
+<h1>정책 알리미 — Play Console 스크린샷</h1>
+<div class="grid" id="grid"></div>
+
+<script>
+/* ── design tokens ── */
+const C = {
+  bgApp:    '#F4F6FB',
+  bgSurf:   '#FFFFFF',
+  bgSurf2:  '#F4F6FB',
+  bgMuted:  '#F3F4F6',
+  fgStrong: '#111827',
+  fgDef:    '#374151',
+  fgMuted:  '#4B5563',
+  fgSubtle: '#6B7280',
+  fgFaint:  '#9CA3AF',
+  border:   '#E5E7EB',
+  borderSt: '#D1D5DB',
+  accent:   '#1D4ED8',
+  govTint:  '#EFF6FF',
+  danger:   '#EF4444',
+  amber:    '#FBBF24',
+  white:    '#FFFFFF',
+};
+
+const W = 390, H = 844;
+const SCALE = 1;
+
+/* ── helpers ── */
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
+function chip(ctx, x, y, text, bg, fg, r=12) {
+  ctx.font = '600 11px -apple-system';
+  const tw = ctx.measureText(text).width;
+  const pw = 10, ph = 5;
+  roundRect(ctx, x, y, tw + pw*2, 22, r, bg);
+  ctx.fillStyle = fg; ctx.font = '600 11px -apple-system';
+  ctx.fillText(text, x + pw, y + 15);
+  return tw + pw*2;
+}
+
+function statusBar(ctx) {
+  // minimal status bar
+  ctx.fillStyle = C.bgSurf;
+  ctx.fillRect(0, 0, W, 44);
+  ctx.fillStyle = C.fgStrong;
+  ctx.font = '600 13px -apple-system';
+  ctx.fillText('9:41', 16, 30);
+  // battery + signal icons (simple shapes)
+  ctx.fillStyle = C.fgStrong;
+  roundRect(ctx, W-50, 18, 22, 11, 3, C.fgStrong);
+  roundRect(ctx, W-27, 21, 3, 5, 1, C.fgStrong);
+  roundRect(ctx, W-72, 19, 8, 9, 2, null, C.fgSubtle);
+  ctx.fillStyle = C.fgSubtle; ctx.fillRect(W-71, 20, 5, 7);
+  roundRect(ctx, W-86, 19, 8, 9, 2, null, C.fgSubtle);
+  ctx.fillRect(W-85, 20, 7, 7);
+}
+
+function topBar(ctx, title, hasBack=false, hasBookmark=false) {
+  ctx.fillStyle = C.bgSurf;
+  ctx.fillRect(0, 44, W, 56);
+  ctx.strokeStyle = C.border; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, 100); ctx.lineTo(W, 100); ctx.stroke();
+
+  if (hasBack) {
+    // back arrow
+    ctx.strokeStyle = C.fgMuted; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(32, 66); ctx.lineTo(22, 72); ctx.lineTo(32, 78); ctx.stroke();
+  } else {
+    // app icon mini
+    const grd = ctx.createLinearGradient(16, 58, 42, 84);
+    grd.addColorStop(0, '#2F63F0'); grd.addColorStop(1, '#1E3A8A');
+    roundRect(ctx, 16, 58, 28, 28, 7, null);
+    ctx.fillStyle = grd; ctx.fill();
+    // mini bell
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 16px serif'; ctx.fillText('🔔', 17, 81);
+  }
+
+  ctx.fillStyle = C.fgStrong;
+  ctx.font = hasBack ? '600 15px -apple-system' : 'bold 18px -apple-system';
+  ctx.fillText(title, hasBack ? 50 : 52, 76);
+
+  if (hasBookmark) {
+    ctx.strokeStyle = C.fgMuted; ctx.lineWidth = 1.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(W-36, 60); ctx.lineTo(W-36, 82); ctx.lineTo(W-26, 76); ctx.lineTo(W-16, 82);
+    ctx.lineTo(W-16, 60); ctx.closePath(); ctx.stroke();
+  }
+}
+
+function bottomNav(ctx, active='home') {
+  const navH = 64;
+  ctx.fillStyle = C.bgSurf;
+  ctx.fillRect(0, H - navH, W, navH);
+  ctx.strokeStyle = C.border; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, H - navH); ctx.lineTo(W, H - navH); ctx.stroke();
+
+  const tabs = [
+    { id:'home', icon:'🏠', label:'홈' },
+    { id:'history', icon:'🕐', label:'기록' },
+    { id:'settings', icon:'⚙️', label:'설정' },
+  ];
+  const tabW = W / tabs.length;
+  tabs.forEach((tab, i) => {
+    const cx = tabW * i + tabW / 2;
+    const isActive = tab.id === active;
+    ctx.font = '20px serif';
+    ctx.globalAlpha = isActive ? 1 : 0.45;
+    ctx.fillText(tab.icon, cx - 11, H - 38);
+    ctx.font = isActive ? '600 11px -apple-system' : '400 11px -apple-system';
+    ctx.fillStyle = isActive ? C.accent : C.fgSubtle;
+    ctx.globalAlpha = 1;
+    const lw = ctx.measureText(tab.label).width;
+    ctx.fillText(tab.label, cx - lw/2, H - 18);
+  });
+}
+
+/* ── Screen 1: 홈 (정책 목록) ── */
+function drawHome(ctx) {
+  ctx.fillStyle = C.bgApp; ctx.fillRect(0, 0, W, H);
+  statusBar(ctx);
+  topBar(ctx, '정책 알리미');
+
+  // category chips row
+  ctx.fillStyle = C.bgSurf;
+  ctx.fillRect(0, 100, W, 52);
+  ctx.strokeStyle = C.border; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, 152); ctx.lineTo(W, 152); ctx.stroke();
+
+  const cats = [['전체', null], ['청약', '🏠'], ['대출', '💳'], ['세금', '💰'], ['재개발', '🏗']];
+  let cx = 16;
+  cats.forEach(([name, emoji], i) => {
+    const label = emoji ? `${emoji} ${name}` : name;
+    const isSelected = i === 0;
+    const bg = isSelected ? C.accent : C.bgApp;
+    const fg = isSelected ? '#fff' : C.fgMuted;
+    ctx.font = '600 12px -apple-system';
+    const tw = ctx.measureText(label).width;
+    const chipW = tw + 20;
+    roundRect(ctx, cx, 114, chipW, 28, 14, bg, isSelected ? null : C.border);
+    ctx.fillStyle = fg; ctx.fillText(label, cx + 10, 132);
+    cx += chipW + 8;
+  });
+
+  // policy cards
+  const cards = [
+    {
+      cat: '청약', badge: 'NEW',
+      title: '2026년 하반기 공공분양 사전청약 일정 발표',
+      summary: '수도권 5만 세대 규모의 공공분양 사전청약 일정이 확정됐습니다. 3기 신도시 중심으로 배정.',
+      source: '국토교통부', date: '2026-06-02',
+    },
+    {
+      cat: '대출', badge: 'NEW',
+      title: 'DSR 3단계 시행 — 비은행권 대출한도 강화',
+      summary: '2026년 7월부터 비은행 대출에도 DSR 40% 규제가 적용됩니다. 보험사·캐피탈 포함.',
+      source: '금융위원회', date: '2026-06-01',
+    },
+    {
+      cat: '세금',
+      title: '종합부동산세 개편안 입법예고',
+      summary: '1주택자 기본공제 12억 유지, 다주택자 중과세율 단계적 완화를 담은 개편안.',
+      source: '기획재정부', date: '2026-05-30',
+    },
+  ];
+
+  let cy = 164;
+  cards.forEach(card => {
+    roundRect(ctx, 16, cy, W-32, 118, 14, C.bgSurf, C.border);
+
+    // top row
+    const catColors = { '청약': ['#DBEAFE','#1E40AF'], '대출': ['#FEF3C7','#92400E'], '세금': ['#D1FAE5','#065F46'], '재개발': ['#EDE9FE','#5B21B6'] };
+    const [catBg, catFg] = catColors[card.cat] || [C.govTint, C.accent];
+    chip(ctx, 28, cy+12, card.cat, catBg, catFg, 8);
+
+    if (card.badge) {
+      ctx.fillStyle = C.danger;
+      ctx.beginPath(); ctx.arc(28+chip.length+18, cy+12+5, 3, 0, Math.PI*2); ctx.fill();
+      ctx.font = 'bold 10px -apple-system'; ctx.fillStyle = C.danger;
+      ctx.fillText('NEW', 28+52, cy+22);
+    }
+
+    ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+    const dw = ctx.measureText(card.date).width;
+    ctx.fillText(card.date, W-16-dw-12, cy+22);
+
+    // title
+    ctx.font = 'bold 14.5px -apple-system'; ctx.fillStyle = C.fgStrong;
+    // simple wrap
+    const words = card.title;
+    if (ctx.measureText(words).width > W-64) {
+      const mid = Math.floor(words.length * 0.55);
+      ctx.fillText(words.slice(0, mid), 28, cy+44);
+      ctx.fillText(words.slice(mid), 28, cy+62);
+    } else {
+      ctx.fillText(words, 28, cy+44);
+    }
+
+    // summary
+    ctx.font = '12.5px -apple-system'; ctx.fillStyle = C.fgMuted;
+    const sum = card.summary.length > 48 ? card.summary.slice(0, 48) + '…' : card.summary;
+    ctx.fillText(sum, 28, cy+78);
+
+    // source
+    ctx.font = '600 11px -apple-system'; ctx.fillStyle = C.fgDef;
+    ctx.fillText(card.source, 28, cy+104);
+
+    // chevron
+    ctx.strokeStyle = C.fgFaint; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(W-36, cy+96); ctx.lineTo(W-28, cy+104); ctx.lineTo(W-36, cy+112); ctx.stroke();
+
+    cy += 128;
+  });
+
+  // footer note
+  ctx.font = '11px -apple-system'; ctx.fillStyle = C.fgFaint;
+  ctx.textAlign = 'center';
+  ctx.fillText('정책브리핑·국토교통부 등에서 자동 수집 · 매일 오전 9시·오후 6시 업데이트', W/2, cy+12);
+  ctx.textAlign = 'left';
+
+  bottomNav(ctx, 'home');
+}
+
+/* ── Screen 2: 정책 상세 (AI 요약) ── */
+function drawDetail(ctx) {
+  ctx.fillStyle = C.bgApp; ctx.fillRect(0, 0, W, H);
+  statusBar(ctx);
+  topBar(ctx, '정책 상세', true, true);
+
+  let cy = 116;
+
+  // meta row
+  chip(ctx, 18, cy, '청약', '#DBEAFE', '#1E40AF', 8);
+  ctx.font = '600 12px -apple-system'; ctx.fillStyle = C.fgDef;
+  ctx.fillText('국토교통부', 18+52, cy+15);
+  chip(ctx, 18+52+72, cy, 'PDF', '#FEE2E2', '#991B1B', 8);
+
+  cy += 32;
+  // title
+  ctx.font = 'bold 20px -apple-system'; ctx.fillStyle = C.fgStrong;
+  ctx.fillText('2026년 하반기 공공분양', 18, cy + 24);
+  ctx.fillText('사전청약 일정 발표', 18, cy + 50);
+  cy += 62;
+  ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+  ctx.fillText('2026-06-02 발표', 18, cy);
+  cy += 24;
+
+  // summary cards
+  const summaries = [
+    { icon:'🔄', label:'무엇이 바뀌었나', body:'수도권 3기 신도시 5만 세대 규모 공공분양 사전청약 일정이 공식 확정됐습니다.' },
+    { icon:'👥', label:'누가 대상인가', body:'무주택 세대구성원으로 소득·자산 기준을 충족하는 청약통장 가입자.' },
+    { icon:'📅', label:'언제부터 적용되나', body:'2026년 8월 첫 번째 단지를 시작으로 12월까지 순차적으로 청약 접수 진행.' },
+  ];
+
+  summaries.forEach(s => {
+    roundRect(ctx, 16, cy, W-32, 80, 14, C.bgSurf, C.border);
+    ctx.font = '16px serif'; ctx.fillText(s.icon, 28, cy+28);
+    ctx.font = 'bold 11.5px -apple-system'; ctx.fillStyle = C.accent;
+    ctx.fillText(s.label, 50, cy+26);
+    ctx.font = '13.5px -apple-system'; ctx.fillStyle = C.fgDef;
+    const body = s.body.length > 44 ? s.body.slice(0,44)+'…' : s.body;
+    ctx.fillText(body, 28, cy+52);
+    cy += 92;
+  });
+
+  // key points card
+  roundRect(ctx, 16, cy, W-32, 106, 14, C.bgSurf, C.border);
+  ctx.font = 'bold 13px -apple-system'; ctx.fillStyle = C.fgStrong;
+  ctx.fillText('핵심 포인트', 28, cy+22);
+  const kps = ['분양가 상한제 적용 단지 우선 공급', '추첨제 비율 확대 (30% → 40%)', '청약통장 납입 인정 금액 상향'];
+  kps.forEach((kp, i) => {
+    const ky = cy + 42 + i * 28;
+    roundRect(ctx, 28, ky-14, 22, 22, 11, C.govTint);
+    ctx.font = 'bold 11px -apple-system'; ctx.fillStyle = C.accent;
+    ctx.fillText(`${i+1}`, 35, ky+2);
+    ctx.font = '13px -apple-system'; ctx.fillStyle = C.fgDef;
+    ctx.fillText(kp, 58, ky+2);
+  });
+  cy += 118;
+
+  // AI disclaimer
+  roundRect(ctx, 16, cy, W-32, 40, 8, C.bgSurf2, C.borderSt);
+  ctx.font = '15px serif'; ctx.fillText('🤖', 26, cy+26);
+  ctx.font = '11.5px -apple-system'; ctx.fillStyle = C.fgSubtle;
+  ctx.fillText('AI가 원문을 요약했어요. 정확한 내용은 원문을 확인하세요.', 50, cy+24);
+
+  // bottom action bar
+  const barY = H - 84;
+  ctx.fillStyle = C.bgApp; ctx.fillRect(0, barY, W, 84);
+  ctx.strokeStyle = C.border; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, barY); ctx.lineTo(W, barY); ctx.stroke();
+
+  roundRect(ctx, 18, barY+10, 52, 48, 8, C.bgSurf, C.borderSt);
+  ctx.strokeStyle = C.fgMuted; ctx.lineWidth = 1.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(38, barY+18); ctx.lineTo(38, barY+50); ctx.lineTo(50, barY+43); ctx.lineTo(62, barY+50);
+  ctx.lineTo(62, barY+18); ctx.closePath(); ctx.stroke();
+
+  roundRect(ctx, 80, barY+10, W-98, 48, 10, C.accent);
+  ctx.font = '600 15px -apple-system'; ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.fillText('원문 보기', W/2 + 16, barY+38);
+  ctx.textAlign = 'left';
+}
+
+/* ── Screen 3: 온보딩 (카테고리 선택) ── */
+function drawOnboarding(ctx) {
+  ctx.fillStyle = C.bgApp; ctx.fillRect(0, 0, W, H);
+  statusBar(ctx);
+
+  let cy = 60;
+  ctx.font = 'bold 22px -apple-system'; ctx.fillStyle = C.fgStrong;
+  ctx.fillText('관심 있는 정책을', 24, cy + 24);
+  ctx.fillText('선택하세요', 24, cy + 52);
+  cy += 68;
+  ctx.font = '13px -apple-system'; ctx.fillStyle = C.fgMuted;
+  ctx.fillText('선택한 분야의 새 정책만 알림으로 보내드려요.', 24, cy);
+  ctx.fillText('나중에 설정에서 바꿀 수 있어요.', 24, cy+20);
+  cy += 44;
+
+  const cats2 = [
+    { emoji:'🏠', name:'청약', desc:'공공·민간 분양 청약', on:true },
+    { emoji:'💳', name:'대출', desc:'주택담보·전세자금 대출', on:true },
+    { emoji:'💰', name:'세금', desc:'양도세·취득세·종부세', on:true },
+    { emoji:'🏗', name:'재개발', desc:'재개발·재건축·리모델링', on:false },
+    { emoji:'🏘', name:'전월세', desc:'임대차·전세사기 대책', on:false },
+  ];
+
+  cats2.forEach(cat => {
+    const selected = cat.on;
+    roundRect(ctx, 16, cy, W-32, 64, 14,
+      selected ? C.govTint : C.bgSurf,
+      selected ? C.accent : C.border);
+
+    ctx.font = '22px serif'; ctx.fillText(cat.emoji, 28, cy+40);
+    ctx.font = 'bold 15px -apple-system';
+    ctx.fillStyle = selected ? C.accent : C.fgStrong;
+    ctx.fillText(cat.name, 62, cy+28);
+    ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+    ctx.fillText(cat.desc, 62, cy+48);
+
+    // check circle
+    if (selected) {
+      ctx.beginPath(); ctx.arc(W-34, cy+32, 12, 0, Math.PI*2);
+      ctx.fillStyle = C.accent; ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(W-40, cy+32); ctx.lineTo(W-35, cy+38); ctx.lineTo(W-27, cy+26); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.arc(W-34, cy+32, 12, 0, Math.PI*2);
+      ctx.strokeStyle = C.border; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    cy += 74;
+  });
+
+  // 알림 시간 선택
+  cy += 4;
+  ctx.font = 'bold 15px -apple-system'; ctx.fillStyle = C.fgStrong;
+  ctx.fillText('알림 시간', 24, cy);
+  cy += 18;
+  ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+  ctx.fillText('새 정책이 생겼을 때 알림을 받을 시간대를 선택하세요.', 24, cy);
+  cy += 22;
+
+  const times = [['morning','오전 (9시)'], ['evening','오후 (18시)'], ['both','모두']];
+  times.forEach(([id, label], i) => {
+    const x = 16 + i * ((W-32-16) / 3 + 8/3);
+    const tw = (W-32-16) / 3;
+    const sel = id === 'both';
+    roundRect(ctx, x, cy, tw, 38, 10, sel ? C.accent : C.bgSurf, sel ? null : C.border);
+    ctx.font = '600 13px -apple-system'; ctx.fillStyle = sel ? '#fff' : C.fgMuted;
+    ctx.textAlign = 'center'; ctx.fillText(label, x + tw/2, cy+23); ctx.textAlign = 'left';
+  });
+  cy += 52;
+
+  // start button
+  roundRect(ctx, 16, cy, W-32, 52, 14, C.accent);
+  ctx.font = 'bold 16px -apple-system'; ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center'; ctx.fillText('시작하기', W/2, cy+33); ctx.textAlign = 'left';
+}
+
+/* ── Screen 4: 설정 ── */
+function drawSettings(ctx) {
+  ctx.fillStyle = C.bgApp; ctx.fillRect(0, 0, W, H);
+  statusBar(ctx);
+
+  ctx.fillStyle = C.bgSurf; ctx.fillRect(0, 44, W, 56);
+  ctx.strokeStyle = C.border; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, 100); ctx.lineTo(W, 100); ctx.stroke();
+  ctx.font = 'bold 18px -apple-system'; ctx.fillStyle = C.fgStrong;
+  ctx.fillText('설정', 16, 76);
+
+  // user card
+  let cy = 112;
+  roundRect(ctx, 16, cy, W-32, 72, 14, C.bgSurf, C.border);
+  ctx.beginPath(); ctx.arc(52, cy+36, 22, 0, Math.PI*2);
+  const grd2 = ctx.createLinearGradient(30, cy+14, 74, cy+58);
+  grd2.addColorStop(0,'#2F63F0'); grd2.addColorStop(1,'#1E3A8A');
+  ctx.fillStyle = grd2; ctx.fill();
+  ctx.font = '20px serif'; ctx.fillText('😊', 33, cy+46);
+  ctx.font = 'bold 15px -apple-system'; ctx.fillStyle = C.fgStrong;
+  ctx.fillText('jysm8689@gmail.com', 84, cy+30);
+  ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+  ctx.fillText('Google 계정으로 로그인 중', 84, cy+50);
+  cy += 84;
+
+  // sections
+  const sections = [
+    { title:'알림 설정', items:[
+      { label:'알림 받기', sub:'새 정책 알림 활성화', toggle:true },
+      { label:'알림 시간', sub:'오전·오후 모두', arrow:true },
+    ]},
+    { title:'구독 카테고리', items:[
+      { label:'청약', sub:'구독 중', check:true },
+      { label:'대출', sub:'구독 중', check:true },
+      { label:'세금', sub:'구독 중', check:true },
+    ]},
+    { title:'앱 정보', items:[
+      { label:'버전', sub:'1.0.0' },
+      { label:'개인정보처리방침', sub:'', link:true },
+    ]},
+  ];
+
+  sections.forEach(sec => {
+    ctx.font = '600 12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+    ctx.fillText(sec.title.toUpperCase(), 24, cy+4);
+    cy += 14;
+    roundRect(ctx, 16, cy, W-32, sec.items.length * 56, 14, C.bgSurf, C.border);
+
+    sec.items.forEach((item, i) => {
+      const iy = cy + i * 56;
+      if (i > 0) {
+        ctx.strokeStyle = C.border; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(16, iy); ctx.lineTo(W-16, iy); ctx.stroke();
+      }
+      ctx.font = '15px -apple-system'; ctx.fillStyle = C.fgStrong;
+      ctx.fillText(item.label, 28, iy+24);
+      if (item.sub) {
+        ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+        ctx.fillText(item.sub, 28, iy+42);
+      }
+
+      if (item.toggle) {
+        // toggle switch ON
+        roundRect(ctx, W-64, iy+20, 44, 24, 12, C.accent);
+        ctx.beginPath(); ctx.arc(W-28, iy+32, 10, 0, Math.PI*2);
+        ctx.fillStyle = '#fff'; ctx.fill();
+      } else if (item.arrow || item.link) {
+        ctx.strokeStyle = C.fgFaint; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(W-36, iy+24); ctx.lineTo(W-26, iy+32); ctx.lineTo(W-36, iy+40); ctx.stroke();
+      } else if (item.check) {
+        ctx.beginPath(); ctx.arc(W-34, iy+32, 10, 0, Math.PI*2);
+        ctx.fillStyle = C.accent; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(W-40, iy+32); ctx.lineTo(W-35, iy+38); ctx.lineTo(W-27, iy+26); ctx.stroke();
+      }
+    });
+    cy += sec.items.length * 56 + 24;
+  });
+
+  bottomNav(ctx, 'settings');
+}
+
+/* ── render & export ── */
+const screens = [
+  { id:'s1', label:'화면 1 — 홈 (정책 목록)', fn: drawHome },
+  { id:'s2', label:'화면 2 — 상세 (AI 요약)', fn: drawDetail },
+  { id:'s3', label:'화면 3 — 온보딩 (카테고리)', fn: drawOnboarding },
+  { id:'s4', label:'화면 4 — 설정', fn: drawSettings },
+];
+
+const grid = document.getElementById('grid');
+screens.forEach(({ id, label, fn }, idx) => {
+  const item = document.createElement('div');
+  item.className = 'item';
+
+  const c = document.createElement('canvas');
+  c.id = id; c.width = W; c.height = H;
+  c.style.width = W * 0.55 + 'px';
+  c.style.height = H * 0.55 + 'px';
+  const ctx = c.getContext('2d');
+  fn(ctx);
+
+  const btn = document.createElement('button');
+  btn.textContent = 'PNG 다운로드';
+  btn.onclick = () => {
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = `screenshot-${idx+1}-${id}.png`;
+    a.click();
+  };
+
+  item.appendChild(c);
+  item.appendChild(document.createElement('div')).className = 'label';
+  item.children[1].textContent = label;
+  item.appendChild(btn);
+  grid.appendChild(item);
+});
+</script>
+</body>
+</html>
