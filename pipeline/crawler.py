@@ -36,7 +36,7 @@ def load_seen(path: str = SEEN_FILE) -> set[str]:
 
 def save_seen(seen: set[str], path: str = SEEN_FILE) -> None:
     with open(path, "w", encoding="utf-8") as f:
-        json.dump({"seen": list(seen)}, f, ensure_ascii=False)
+        json.dump({"seen": sorted(seen)}, f, ensure_ascii=False)
 
 
 def is_new_policy(url_hash: str, seen: set[str]) -> bool:
@@ -100,7 +100,9 @@ class PolicyBriefingApiCrawler:
                 nodes = soup.find_all("NewsItem")
                 if not nodes:
                     break
-                for p in self._parse_nodes(nodes):
+                parsed = self._parse_nodes(nodes)
+                print(f"  [{start.strftime('%m/%d')}~{end.strftime('%m/%d')}] p{page}: API {len(nodes)}건 → 키워드 매칭 {len(parsed)}건")
+                for p in parsed:
                     if p.url in seen_urls:
                         continue
                     seen_urls.add(p.url)

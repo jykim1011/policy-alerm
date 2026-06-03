@@ -32,10 +32,10 @@ def run(batch: str) -> None:
             print(f"[{crawler.SOURCE}] 크롤링 실패: {e}", file=sys.stderr)
             continue
 
-        for raw in raw_policies:
-            if not is_new_policy(raw.url_hash, seen):
-                continue
+        new_in_source = [r for r in raw_policies if is_new_policy(r.url_hash, seen)]
+        print(f"[{crawler.SOURCE}] 수집 {len(raw_policies)}건 → seen 필터 후 {len(new_in_source)}건 신규")
 
+        for raw in new_in_source:
             print(f"  신규 정책 발견: {raw.title}")
 
             # 텍스트 추출: 본문이 이미 있으면 그대로 사용한다.
