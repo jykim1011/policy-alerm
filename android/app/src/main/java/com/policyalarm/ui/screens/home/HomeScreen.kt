@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.policyalarm.data.model.PolicyItem
+import java.time.Instant
+import java.time.OffsetDateTime
 import com.policyalarm.ui.components.CATEGORY_LIST
 import com.policyalarm.ui.components.CategoryChip
 import com.policyalarm.ui.components.PolicyAppIcon
@@ -155,9 +157,20 @@ fun HomeScreen(
     }
 }
 
+/** 발행 3일 이내이고 아직 읽지 않은 정책에만 NEW 뱃지를 표시한다. */
+private fun isNewPolicy(publishedAt: String, isRead: Boolean): Boolean {
+    if (isRead) return false
+    return runCatching {
+        val published = OffsetDateTime.parse(publishedAt).toInstant()
+        val cutoff = Instant.now().minusSeconds(3L * 24 * 3600)
+        published.isAfter(cutoff)
+    }.getOrDefault(false)
+}
+
 @Composable
 fun PolicyCard(policy: PolicyItem, isRead: Boolean, onClick: () -> Unit) {
     val c = LocalAppColors.current
+    val isNew = isNewPolicy(policy.publishedAt, isRead)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -170,7 +183,7 @@ fun PolicyCard(policy: PolicyItem, isRead: Boolean, onClick: () -> Unit) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             SubcatChip(policy.category)
-            if (!isRead) {
+            if (isNew) {
                 Spacer(Modifier.width(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
