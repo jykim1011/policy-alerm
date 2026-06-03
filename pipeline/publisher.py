@@ -62,8 +62,9 @@ def update_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "summary_preview": (item.summary.what_changed[:100] + "...") if item.summary else "",
     }
 
-    index["items"] = [entry] + [i for i in index["items"] if i["id"] != item.id]
-    index["items"] = index["items"][:50]
+    all_items = [entry] + [i for i in index["items"] if i["id"] != item.id]
+    all_items.sort(key=lambda x: x["published_at"], reverse=True)
+    index["items"] = all_items[:50]
     index["total"] = len(index["items"])
     index["updated_at"] = datetime.now(KST).isoformat()
 
