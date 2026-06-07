@@ -17,16 +17,48 @@ KST = timezone(timedelta(hours=9))
 # 차단되지 않는 apis.data.go.kr 게이트웨이를 사용한다.
 PRESS_RELEASE_API = "http://apis.data.go.kr/1371000/pressReleaseService/pressReleaseList"
 
-# 부동산 관련성 판단 키워드. 제목에서만 검색해 정밀도를 높인다
-# (국토교통부는 철도·자동차·항공 등도 다루므로 부처만으로는 판단하지 않는다).
-REAL_ESTATE_KEYWORDS = (
-    "부동산", "주택", "청약", "분양", "전세", "월세", "임대주택", "임대차",
-    "재개발", "재건축", "정비사업", "LTV", "DSR", "종부세", "양도세", "취득세",
-    "주담대", "분양가", "공시가격", "그린벨트", "신도시", "택지", "주거",
-    "아파트", "주택담보", "다주택", "1주택", "보금자리", "공공주택",
-)
-# 한국어 부분문자열 오탐 방지: "전세계"(전세), "인재개발"(재개발), "씨닭 분양" 등.
-EXCLUDE_TERMS = ("전세계", "인재개발", "씨닭", "닭 분양")
+# 카테고리별 매칭 키워드. 순서가 우선순위 — 창업은 복지보다 앞에 있어야
+# "소상공인 지원금" 같은 중의적 제목이 창업으로 분류된다.
+CATEGORY_KEYWORDS: dict[str, dict] = {
+    "부동산": {
+        "keywords": (
+            "부동산", "주택", "청약", "분양", "전세", "월세", "임대주택", "임대차",
+            "재개발", "재건축", "정비사업", "LTV", "DSR", "종부세", "양도세", "취득세",
+            "주담대", "분양가", "공시가격", "그린벨트", "신도시", "택지", "주거",
+            "아파트", "주택담보", "다주택", "1주택", "보금자리", "공공주택",
+        ),
+        "exclude": ("전세계", "인재개발", "씨닭", "닭 분양"),
+    },
+    "고용": {
+        "keywords": (
+            "고용", "취업", "일자리", "실업급여", "채용", "고용보험",
+            "고용지원", "청년취업", "취업지원", "구직",
+        ),
+        "exclude": (),
+    },
+    "창업": {
+        "keywords": ("창업", "소상공인", "자영업", "중소기업", "폐업지원", "소기업"),
+        "exclude": (),
+    },
+    "육아": {
+        "keywords": (
+            "출산", "육아", "보육", "아이돌봄", "어린이집", "임신", "산후",
+            "육아휴직", "유아",
+        ),
+        "exclude": (),
+    },
+    "교육": {
+        "keywords": ("장학금", "학자금", "교육비", "등록금", "학비", "교육지원"),
+        "exclude": (),
+    },
+    "복지": {
+        "keywords": (
+            "복지", "지원금", "기초생활", "수당", "바우처", "의료급여",
+            "장애인 지원", "사회보장", "생계급여",
+        ),
+        "exclude": (),
+    },
+}
 
 
 def load_seen(path: str = SEEN_FILE) -> set[str]:
@@ -125,7 +157,8 @@ class PolicyBriefingApiCrawler:
         for node in nodes:
             title = _text(node, "Title")
             ministry = _text(node, "MinisterCode")
-            if not cls._is_real_estate(title):
+            category = cls._classify_category(title)
+            if category is None:
                 continue
 
             content = _strip_html(node.find("DataContents").get_text() if node.find("DataContents") else "")
@@ -147,16 +180,20 @@ class PolicyBriefingApiCrawler:
                     file_url=file_url or None,
                     file_type=cls._file_type(file_name),
                     html_content=content,
+                    category=category,
                 )
             )
 
         return out
 
     @staticmethod
-    def _is_real_estate(title: str) -> bool:
-        if any(bad in title for bad in EXCLUDE_TERMS):
-            return False
-        return any(kw in title for kw in REAL_ESTATE_KEYWORDS)
+    def _classify_category(title: str) -> str | None:
+        for category, cfg in CATEGORY_KEYWORDS.items():
+            if any(bad in title for bad in cfg["exclude"]):
+                continue
+            if any(kw in title for kw in cfg["keywords"]):
+                return category
+        return None
 
     @staticmethod
     def _file_type(file_name: str) -> str | None:
