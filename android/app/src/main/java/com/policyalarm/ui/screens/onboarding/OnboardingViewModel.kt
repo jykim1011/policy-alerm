@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-val ALL_CATEGORIES = listOf("청약", "대출", "세금", "재개발", "전월세")
-
 class OnboardingViewModel(
     private val userRepo: UserRepository = UserRepository(),
 ) : ViewModel() {

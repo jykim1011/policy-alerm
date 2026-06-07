@@ -89,10 +89,9 @@ def _strip_html(raw_html: str) -> str:
 
 
 class PolicyBriefingApiCrawler:
-    """정책브리핑 보도자료 OpenAPI 크롤러 — 부동산 관련 보도자료만 수집."""
+    """정책브리핑 보도자료 OpenAPI 크롤러 — 부동산, 고용, 창업, 육아, 교육, 복지 6개 카테고리 수집."""
 
     SOURCE = "정책브리핑"
-    CATEGORY = "부동산"
 
     # API는 한 번에 최대 3일(시작·종료일 차이 2일)까지만 조회 가능하므로
     # lookback_days를 3일 윈도우로 나눠 순회하며 백로그를 채운다.
