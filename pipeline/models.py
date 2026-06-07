@@ -11,6 +11,7 @@ class RawPolicy:
     file_url: Optional[str]
     file_type: Optional[str]  # "hwp" | "hwpx" | "pdf" | None
     html_content: str
+    category: str = ""
 
     @property
     def url_hash(self) -> str:
