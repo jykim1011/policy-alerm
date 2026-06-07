@@ -15,6 +15,11 @@ val CATEGORY_LIST = listOf(
     CategoryMeta("세금", "🧾", "세금 (취득세·종부세)"),
     CategoryMeta("재개발", "🏗️", "재개발 / 재건축"),
     CategoryMeta("전월세", "🏘️", "전·월세"),
+    CategoryMeta("고용", "💼", "고용 / 취업"),
+    CategoryMeta("복지", "🤝", "복지 / 지원금"),
+    CategoryMeta("창업", "🚀", "창업 / 소상공인"),
+    CategoryMeta("육아", "👶", "육아 / 보육"),
+    CategoryMeta("교육", "📚", "교육 / 장학"),
 )
 
 /** Subscribable categories (everything except the "전체" filter). */
