@@ -62,8 +62,8 @@ def run(batch: str) -> None:
             policy_id = build_policy_id(raw.source, raw.published_at, raw.url)
             item = PolicyItem(
                 id=policy_id,
-                category="부동산",
-                subcategory=_classify_subcategory(raw.title),
+                category=raw.category,
+                subcategory=_classify_subcategory(raw.title, raw.category),
                 title=raw.title,
                 source=raw.source,
                 source_url=raw.url,
@@ -92,7 +92,9 @@ def run(batch: str) -> None:
     print(f"완료: {len(new_items)}건 처리됨")
 
 
-def _classify_subcategory(title: str) -> str:
+def _classify_subcategory(title: str, category: str) -> str:
+    if category != "부동산":
+        return category
     if any(k in title for k in ["청약", "분양", "공급"]):
         return "청약"
     elif any(k in title for k in ["대출", "LTV", "DSR", "금리"]):
