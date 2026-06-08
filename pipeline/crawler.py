@@ -2,6 +2,7 @@ import html
 import json
 import os
 from datetime import datetime, timezone, timedelta
+from email.utils import parsedate_to_datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -11,6 +12,7 @@ from pipeline.models import RawPolicy
 SEEN_FILE = "pipeline/seen_policies.json"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PolicyBot/1.0)"}
 KST = timezone(timedelta(hours=9))
+RSS_URL = "https://www.korea.kr/rss/pressReleaseList.do"
 
 # 정책브리핑 보도자료 OpenAPI (공공데이터포털, 문화체육관광부 1371000).
 # 정부 사이트 직접 크롤링은 해외/데이터센터 IP를 차단(Connection reset)하므로
@@ -58,7 +60,24 @@ CATEGORY_KEYWORDS: dict[str, dict] = {
         ),
         "exclude": (),
     },
+    "금융": {
+        "keywords": (
+            "주식", "증권", "공매도", "금투세", "금융투자", "자본시장",
+            "펀드", "ETF", "ISA", "IRP", "코스피", "코스닥",
+            "배당소득세", "증권거래세", "기준금리", "상장",
+        ),
+        "exclude": (),
+    },
 }
+
+
+def _classify_category(title: str) -> str | None:
+    for category, cfg in CATEGORY_KEYWORDS.items():
+        if any(bad in title for bad in cfg["exclude"]):
+            continue
+        if any(kw in title for kw in cfg["keywords"]):
+            return category
+    return None
 
 
 def load_seen(path: str = SEEN_FILE) -> set[str]:
@@ -89,7 +108,7 @@ def _strip_html(raw_html: str) -> str:
 
 
 class PolicyBriefingApiCrawler:
-    """정책브리핑 보도자료 OpenAPI 크롤러 — 부동산, 고용, 창업, 육아, 교육, 복지 6개 카테고리 수집."""
+    """정책브리핑 보도자료 OpenAPI 크롤러 — 부동산, 고용, 창업, 육아, 교육, 복지, 금융 7개 카테고리 수집."""
 
     SOURCE = "정책브리핑"
 
@@ -156,7 +175,7 @@ class PolicyBriefingApiCrawler:
         for node in nodes:
             title = _text(node, "Title")
             ministry = _text(node, "MinisterCode")
-            category = cls._classify_category(title)
+            category = _classify_category(title)
             if category is None:
                 continue
 
@@ -186,15 +205,6 @@ class PolicyBriefingApiCrawler:
         return out
 
     @staticmethod
-    def _classify_category(title: str) -> str | None:
-        for category, cfg in CATEGORY_KEYWORDS.items():
-            if any(bad in title for bad in cfg["exclude"]):
-                continue
-            if any(kw in title for kw in cfg["keywords"]):
-                return category
-        return None
-
-    @staticmethod
     def _file_type(file_name: str) -> str | None:
         name = (file_name or "").lower()
         for ext in ("hwpx", "hwp", "pdf"):
@@ -212,7 +222,67 @@ class PolicyBriefingApiCrawler:
             return datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
 
 
+class RssPolicyBriefingCrawler:
+    """정책브리핑 RSS 크롤러 — OpenAPI보다 빠른 실시간 수집용."""
+
+    SOURCE = "정책브리핑"
+
+    def fetch(self) -> list[RawPolicy]:
+        resp = requests.get(RSS_URL, headers=HEADERS, timeout=30)
+        resp.raise_for_status()
+        return self._parse(resp.text)
+
+    @classmethod
+    def _parse(cls, xml_text: str) -> list[RawPolicy]:
+        soup = BeautifulSoup(xml_text, "xml")
+        out: list[RawPolicy] = []
+        for item in soup.find_all("item"):
+            title_el = item.find("title")
+            title = html.unescape(title_el.get_text(strip=True)) if title_el else ""
+            if not title:
+                continue
+            category = _classify_category(title)
+            if category is None:
+                continue
+
+            link_el = item.find("link")
+            url = link_el.get_text(strip=True) if link_el else ""
+            if not url:
+                continue
+
+            desc_el = item.find("description")
+            content = _strip_html(desc_el.get_text(strip=True)) if desc_el else ""
+
+            author_el = item.find("author") or item.find("dc:creator")
+            source = html.unescape(author_el.get_text(strip=True)) if author_el else cls.SOURCE
+
+            pub_el = item.find("pubDate")
+            published_at = cls._parse_date(pub_el.get_text(strip=True) if pub_el else "")
+
+            out.append(RawPolicy(
+                url=url,
+                title=title,
+                source=source,
+                published_at=published_at,
+                file_url=None,
+                file_type=None,
+                html_content=content,
+                category=category,
+            ))
+        return out
+
+    @staticmethod
+    def _parse_date(pub_date: str) -> str:
+        # RFC 2822: "Mon, 09 Jun 2026 09:00:00 +0900"
+        try:
+            dt = parsedate_to_datetime(pub_date)
+            return dt.strftime("%Y-%m-%dT%H:%M:%S+09:00")
+        except Exception:
+            return datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
+
+
 # 크롤러 레지스트리 — 새 소스 추가 시 여기에만 등록.
 CRAWLERS = [
-    PolicyBriefingApiCrawler(),
+    PolicyBriefingApiCrawler(),    # 14일 백로그, API 키 필요
+    RssPolicyBriefingCrawler(),    # 실시간, API 키 불필요
 ]

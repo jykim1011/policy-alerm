@@ -1,6 +1,7 @@
 import pytest
 from pipeline.crawler import (
     PolicyBriefingApiCrawler,
+    RssPolicyBriefingCrawler,
     load_seen,
     save_seen,
     is_new_policy,
@@ -92,3 +93,53 @@ def test_is_new_policy():
     seen = {"existing_hash"}
     assert is_new_policy("existing_hash", seen) is False
     assert is_new_policy("new_hash", seen) is True
+
+
+# ── RssPolicyBriefingCrawler ──────────────────────────────────────────────────
+
+SAMPLE_RSS = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>정책브리핑 보도자료</title>
+    <item>
+      <title><![CDATA[기준금리 0.25%p 인하 결정]]></title>
+      <link>https://www.korea.kr/briefing/pressReleaseView.do?newsId=200001</link>
+      <description><![CDATA[<p>한국은행이 기준금리를 0.25%p 인하했다.</p>]]></description>
+      <pubDate>Mon, 09 Jun 2026 09:00:00 +0900</pubDate>
+      <author>한국은행</author>
+    </item>
+    <item>
+      <title><![CDATA[인공지능 안전 국제협력 강화]]></title>
+      <link>https://www.korea.kr/briefing/pressReleaseView.do?newsId=200002</link>
+      <description><![CDATA[<p>AI 안전을 논의한다.</p>]]></description>
+      <pubDate>Mon, 09 Jun 2026 10:00:00 +0900</pubDate>
+      <author>과학기술정보통신부</author>
+    </item>
+  </channel>
+</rss>"""
+
+
+def test_rss_parse_filters_unmatched_category():
+    items = RssPolicyBriefingCrawler._parse(SAMPLE_RSS)
+    assert len(items) == 1
+    assert "기준금리" in items[0].title
+
+
+def test_rss_parse_extracts_fields():
+    item = RssPolicyBriefingCrawler._parse(SAMPLE_RSS)[0]
+    assert item.url == "https://www.korea.kr/briefing/pressReleaseView.do?newsId=200001"
+    assert item.source == "한국은행"
+    assert item.published_at == "2026-06-09T09:00:00+09:00"
+    assert item.category == "금융"
+    assert item.file_url is None
+    assert item.file_type is None
+    assert "한국은행이 기준금리를" in item.html_content
+
+
+def test_rss_parse_empty_feed():
+    xml = '<?xml version="1.0"?><rss version="2.0"><channel></channel></rss>'
+    assert RssPolicyBriefingCrawler._parse(xml) == []
+
+
+def test_rss_parse_date_fallback():
+    assert RssPolicyBriefingCrawler._parse_date("invalid") != ""  # 폴백 날짜 반환
