@@ -32,15 +32,15 @@ class SettingsViewModel(
             val categories = (settings?.get("subscribed_categories") as? List<String>)
                 ?.toSet() ?: emptySet()
             val schedule = settings?.get("notification_schedule") as? String ?: "both"
-            val count = runCatching { userRepo.countBookmarks() }.getOrDefault(0)
-            _uiState.value = SettingsUiState(
+            _uiState.value = _uiState.value.copy(
                 subscribedCategories = categories,
                 notificationSchedule = schedule,
                 userName = userRepo.displayName() ?: "사용자",
                 userEmail = userRepo.email() ?: "",
-                bookmarkCount = count,
                 isLoading = false,
             )
+            runCatching { userRepo.countBookmarks() }
+                .onSuccess { count -> _uiState.value = _uiState.value.copy(bookmarkCount = count) }
         }
     }
 
@@ -58,6 +58,13 @@ class SettingsViewModel(
         _uiState.value = _uiState.value.copy(notificationSchedule = schedule)
         viewModelScope.launch {
             runCatching { userRepo.updateNotificationSchedule(schedule) }
+        }
+    }
+
+    fun refreshBookmarkCount() {
+        viewModelScope.launch {
+            runCatching { userRepo.countBookmarks() }
+                .onSuccess { count -> _uiState.value = _uiState.value.copy(bookmarkCount = count) }
         }
     }
 

@@ -275,7 +275,7 @@ class RssPolicyBriefingCrawler:
     def _parse_date(pub_date: str) -> str:
         # RFC 2822: "Mon, 09 Jun 2026 09:00:00 +0900"
         try:
-            dt = parsedate_to_datetime(pub_date)
+            dt = parsedate_to_datetime(pub_date).astimezone(KST)
             return dt.strftime("%Y-%m-%dT%H:%M:%S+09:00")
         except Exception:
             return datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S+09:00")

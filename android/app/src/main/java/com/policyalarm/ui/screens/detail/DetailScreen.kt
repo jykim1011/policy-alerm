@@ -200,8 +200,10 @@ fun DetailScreen(
                     PrimaryButton(
                         text = "원문 보기",
                         onClick = {
-                            val url = detail.fileUrl ?: detail.sourceUrl
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                            val url = detail.sourceUrl.ifBlank { detail.fileUrl }
+                            if (url != null) {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                            }
                         },
                         modifier = Modifier.weight(1f),
                         height = 48,
