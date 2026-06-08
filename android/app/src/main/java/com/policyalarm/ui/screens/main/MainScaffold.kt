@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.policyalarm.ui.components.AdBanner
 import com.policyalarm.ui.screens.history.HistoryScreen
 import com.policyalarm.ui.screens.home.HomeScreen
 import com.policyalarm.ui.screens.home.HomeViewModel
@@ -71,7 +70,6 @@ fun MainScaffold(
                 Tab.SETTINGS -> SettingsScreen(onLogout = onLogout)
             }
         }
-        AdBanner(modifier = Modifier.fillMaxWidth())
         BottomTabs(active = tab, onSelect = { tab = it })
     }
 }

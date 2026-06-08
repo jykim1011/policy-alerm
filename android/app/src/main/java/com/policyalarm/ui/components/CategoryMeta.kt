@@ -20,6 +20,7 @@ val CATEGORY_LIST = listOf(
     CategoryMeta("창업", "🚀", "창업 / 소상공인"),
     CategoryMeta("육아", "👶", "육아 / 보육"),
     CategoryMeta("교육", "📚", "교육 / 장학"),
+    CategoryMeta("금융", "📈", "금융 / 투자"),
 )
 
 /** Subscribable categories (everything except the "전체" filter). */
