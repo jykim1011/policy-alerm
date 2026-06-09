@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -90,22 +91,50 @@ fun HomeScreen(
             }
         }
 
-        // category chip row
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(c.bgSurface)
-                .border(width = 1.dp, color = c.border),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(CATEGORY_LIST) { cat ->
-                CategoryChip(
-                    label = cat.key,
-                    emoji = if (cat.key == "전체") null else cat.emoji,
-                    selected = state.selectedCategory == cat.key,
-                    onClick = { vm.selectCategory(cat.key) },
+        if (state.showBookmarks) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(c.bgSurface)
+                    .border(width = 1.dp, color = c.border)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "🔖 저장한 북마크 ${state.bookmarkIds.size}개",
+                    color = c.fgStrong,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
                 )
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .clickable { vm.exitBookmarksMode() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.Close, "북마크 닫기", tint = c.fgMuted, modifier = Modifier.size(18.dp))
+                }
+            }
+        } else {
+            // category chip row
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(c.bgSurface)
+                    .border(width = 1.dp, color = c.border),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(CATEGORY_LIST) { cat ->
+                    CategoryChip(
+                        label = cat.key,
+                        emoji = if (cat.key == "전체") null else cat.emoji,
+                        selected = state.selectedCategory == cat.key,
+                        onClick = { vm.selectCategory(cat.key) },
+                    )
+                }
             }
         }
 
@@ -113,6 +142,10 @@ fun HomeScreen(
             state.isLoading && state.policies.isEmpty() -> Box(
                 Modifier.fillMaxSize(), contentAlignment = Alignment.Center
             ) { CircularProgressIndicator(color = c.accent) }
+
+            state.showBookmarks && !state.isLoading && state.policies.isEmpty() -> Box(
+                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            ) { Text("저장한 북마크가 없어요", color = c.fgMuted) }
 
             state.error != null && state.policies.isEmpty() -> Box(
                 Modifier.fillMaxSize(), contentAlignment = Alignment.Center

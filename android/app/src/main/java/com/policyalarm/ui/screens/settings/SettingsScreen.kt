@@ -44,13 +44,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.policyalarm.ui.components.AppSwitch
 import com.policyalarm.ui.components.Emoji
 import com.policyalarm.ui.components.SUBSCRIBABLE_CATEGORIES
-import com.policyalarm.ui.components.Segmented
 import com.policyalarm.ui.theme.LocalAppColors
 import com.policyalarm.ui.theme.LocalThemeController
 
 @Composable
 fun SettingsScreen(
     onLogout: () -> Unit,
+    onBookmarkClick: () -> Unit = {},
     vm: SettingsViewModel = viewModel(),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -147,24 +147,6 @@ fun SettingsScreen(
                 }
             }
 
-            // 알림 수신 시간
-            SettingsSection("알림 수신 시간") {
-                Column(Modifier.padding(14.dp)) {
-                    Segmented(
-                        value = state.notificationSchedule,
-                        options = listOf("morning" to "오전 9시", "evening" to "오후 6시", "both" to "둘 다"),
-                        onChange = vm::setSchedule,
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        "선택한 시간대에 발표된 정책만 알림으로 보내드려요.",
-                        color = c.fgSubtle,
-                        fontSize = 11.5.sp,
-                        lineHeight = 17.sp,
-                    )
-                }
-            }
-
             // 화면
             SettingsSection("화면") {
                 SettingRow(dividerBelow = true) {
@@ -173,7 +155,7 @@ fun SettingsScreen(
                     Text("다크 모드", color = c.fgStrong, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     AppSwitch(on = themeController.isDark) { themeController.setDarkMode(it) }
                 }
-                SettingRow {
+                SettingRow(onClick = onBookmarkClick) {
                     Emoji("🔖", 20)
                     Spacer(Modifier.width(12.dp))
                     Text("저장한 북마크", color = c.fgStrong, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))

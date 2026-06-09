@@ -63,6 +63,11 @@ class UserRepository(
         db.collection("users").document(uid)
             .collection("bookmarks").get().await().size()
 
+    suspend fun getBookmarkIds(): List<String> =
+        db.collection("users").document(uid)
+            .collection("bookmarks").get().await()
+            .documents.map { it.id }
+
     fun isLoggedIn(): Boolean = auth.currentUser != null
 
     fun displayName(): String? = auth.currentUser?.displayName

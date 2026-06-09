@@ -23,6 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +53,10 @@ fun OnboardingScreen(
     val schedule by vm.schedule.collectAsStateWithLifecycle()
     val done by vm.done.collectAsStateWithLifecycle()
     val c = LocalAppColors.current
+
+    val notifLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { vm.confirm() }
 
     LaunchedEffect(done) { if (done) onComplete() }
 
@@ -124,7 +132,13 @@ fun OnboardingScreen(
             PrimaryButton(
                 text = if (selected.isEmpty()) "한 개 이상 선택하세요"
                 else "${selected.size}개 분야로 시작하기",
-                onClick = vm::confirm,
+                onClick = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        vm.confirm()
+                    }
+                },
                 enabled = selected.isNotEmpty(),
             )
         }

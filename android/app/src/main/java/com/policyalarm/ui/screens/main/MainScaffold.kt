@@ -54,6 +54,7 @@ fun MainScaffold(
     val c = LocalAppColors.current
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     val context = LocalContext.current
+    val homeVm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))
 
     Column(
         modifier = Modifier
@@ -62,12 +63,15 @@ fun MainScaffold(
     ) {
         Box(modifier = Modifier.weight(1f)) {
             when (tab) {
-                Tab.HOME -> {
-                    val vm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))
-                    HomeScreen(onPolicyClick = onPolicyClick, vm = vm)
-                }
+                Tab.HOME -> HomeScreen(onPolicyClick = onPolicyClick, vm = homeVm)
                 Tab.HISTORY -> HistoryScreen(onPolicyClick = onPolicyClick)
-                Tab.SETTINGS -> SettingsScreen(onLogout = onLogout)
+                Tab.SETTINGS -> SettingsScreen(
+                    onLogout = onLogout,
+                    onBookmarkClick = {
+                        tab = Tab.HOME
+                        homeVm.loadAndShowBookmarks()
+                    },
+                )
             }
         }
         BottomTabs(active = tab, onSelect = { tab = it })
