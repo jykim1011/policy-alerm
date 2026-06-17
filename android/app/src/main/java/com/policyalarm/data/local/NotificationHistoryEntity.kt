@@ -9,4 +9,5 @@ data class NotificationHistoryEntity(
     val title: String,
     val category: String,
     val receivedAt: Long = System.currentTimeMillis(),
+    val isRead: Boolean = false,
 )

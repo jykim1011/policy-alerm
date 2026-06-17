@@ -1,7 +1,6 @@
 package com.policyalarm.repository
 
 import com.policyalarm.data.local.ReadPolicyDao
-import com.policyalarm.data.local.ReadPolicyEntity
 import com.policyalarm.data.model.PolicyIndex
 import com.policyalarm.data.model.PolicyItem
 import com.policyalarm.data.remote.PolicyApiService
@@ -40,6 +39,7 @@ class PolicyRepositoryTest {
     @Test
     fun `markAsRead calls dao`() = runTest {
         repo.markAsRead("id-001")
-        coVerify { mockDao.markAsRead(ReadPolicyEntity("id-001")) }
+        // readAt은 호출 시각 기반이라 동등 비교가 불안정하므로 policyId만 검증한다.
+        coVerify { mockDao.markAsRead(match { it.policyId == "id-001" }) }
     }
 }

@@ -12,7 +12,6 @@ exports.onNewPolicy = onDocumentCreated(
     const policyId = event.params.policyId;
     const db = getFirestore();
 
-    // 구독 카테고리가 일치하는 유저 조회
     const usersSnap = await db
       .collection("users")
       .where("subscribed_categories", "array-contains", policy.subcategory)
@@ -21,12 +20,8 @@ exports.onNewPolicy = onDocumentCreated(
     const tokens = [];
     usersSnap.forEach((doc) => {
       const user = doc.data();
-      const schedule = user.notification_schedule || "both";
-      // 유저의 알림 시간 설정과 배치 매칭
-      if (schedule === "both" || schedule === policy.batch) {
-        if (user.fcm_token) {
-          tokens.push(user.fcm_token);
-        }
+      if (user.fcm_token) {
+        tokens.push(user.fcm_token);
       }
     });
 
@@ -38,20 +33,24 @@ exports.onNewPolicy = onDocumentCreated(
       return;
     }
 
-    // FCM multicast 발송 (최대 500개씩)
     const chunkSize = 500;
     for (let i = 0; i < tokens.length; i += chunkSize) {
       const chunk = tokens.slice(i, i + chunkSize);
       const message = {
+        // notification: OS 레벨에서 앱이 종료/백그라운드여도 알림 표시 보장 (OEM 배터리 최적화 우회)
         notification: {
           title: `새 ${policy.category} 정책`,
           body: policy.title,
         },
+        // data: onMessageReceived(포그라운드) 및 탭 인텐트(백그라운드/종료)에서 DB 저장용
         data: {
           policy_id: policyId,
           category: policy.category,
           subcategory: policy.subcategory,
+          title: `새 ${policy.category} 정책`,
+          body: policy.title,
         },
+        android: { priority: "high" },
         tokens: chunk,
       };
 
@@ -60,7 +59,6 @@ exports.onNewPolicy = onDocumentCreated(
         `Sent ${response.successCount}/${chunk.length} notifications for ${policyId}`
       );
 
-      // 만료된 토큰 정리
       const expiredTokens = [];
       response.responses.forEach((resp, idx) => {
         if (

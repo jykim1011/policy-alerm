@@ -101,7 +101,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "🔖 저장한 북마크 ${state.bookmarkIds.size}개",
+                    "🔖 저장한 북마크 ${state.bookmarkPolicies.size}개",
                     color = c.fgStrong,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -143,10 +143,6 @@ fun HomeScreen(
                 Modifier.fillMaxSize(), contentAlignment = Alignment.Center
             ) { CircularProgressIndicator(color = c.accent) }
 
-            state.showBookmarks && !state.isLoading && state.policies.isEmpty() -> Box(
-                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-            ) { Text("저장한 북마크가 없어요", color = c.fgMuted) }
-
             state.error != null && state.policies.isEmpty() -> Box(
                 Modifier.fillMaxSize(), contentAlignment = Alignment.Center
             ) {
@@ -161,6 +157,10 @@ fun HomeScreen(
                     )
                 }
             }
+
+            state.showBookmarks && !state.isLoading && state.policies.isEmpty() -> Box(
+                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            ) { Text("저장한 북마크가 없어요", color = c.fgMuted) }
 
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),

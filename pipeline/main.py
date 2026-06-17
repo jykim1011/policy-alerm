@@ -1,7 +1,12 @@
+import json
 import os
 import sys
-import requests
+import time
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from urllib.parse import quote
+
+import requests
 
 from pipeline.crawler import CRAWLERS, load_seen, save_seen, is_new_policy
 from pipeline.extractor import extract_text
@@ -12,6 +17,12 @@ from pipeline.models import PolicyItem
 
 KST = timezone(timedelta(hours=9))
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PolicyBot/1.0)"}
+
+# 갓 발행한 정책의 상세 JSON이 GitHub Pages(CDN)에 반영되기 전에 FCM 푸시가 나가면
+# 사용자가 알림을 탭했을 때 "정책을 불러올 수 없습니다"가 뜬다. 그래서 크롤·발행(run)과
+# 알림(notify)을 분리해 CI가 docs/를 push한 뒤에만 알림을 보낸다.
+PENDING_FILE = Path("pipeline/pending_notify.json")
+CDN_BASE = "https://jykim1011.github.io/policy-alerm/"
 
 
 def download_file(url: str) -> bytes:
@@ -81,15 +92,72 @@ def run(batch: str) -> None:
 
     save_seen(seen)
 
-    # 모든 JSON 커밋 후 Firestore 알림
-    for item, b in new_items:
-        try:
-            notify_new_policy(item, batch=b)
-            print(f"  FCM 트리거 완료: {item.title}")
-        except Exception as e:
-            print(f"  FCM 트리거 실패: {e}", file=sys.stderr)
+    # 알림은 여기서 보내지 않는다. docs/가 CDN에 반영된 뒤 별도 단계(notify)에서 보낸다.
+    _write_pending(new_items)
 
-    print(f"완료: {len(new_items)}건 처리됨")
+    print(f"완료: {len(new_items)}건 처리됨 (알림은 push 후 notify 단계에서 발송)")
+
+
+def _write_pending(new_items: list[tuple[PolicyItem, str]]) -> None:
+    """발행은 됐지만 아직 알림을 보내지 않은 정책 목록을 파일로 남긴다."""
+    pending = [
+        {
+            "id": item.id,
+            "category": item.category,
+            "subcategory": item.subcategory,
+            "title": item.title,
+            "batch": b,
+        }
+        for item, b in new_items
+    ]
+    PENDING_FILE.write_text(json.dumps(pending, ensure_ascii=False), encoding="utf-8")
+
+
+def _wait_for_cdn(policy_id: str, timeout: int = 300, interval: int = 10) -> bool:
+    """상세 JSON이 CDN에 라이브될 때까지 폴링한다. timeout이면 False."""
+    url = f"{CDN_BASE}policies/{quote(policy_id)}.json"
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            if requests.get(url, headers=HEADERS, timeout=15).status_code == 200:
+                return True
+        except Exception:
+            pass
+        time.sleep(interval)
+    return False
+
+
+def notify_pending() -> None:
+    """docs/ push 이후 호출. CDN 반영을 확인한 뒤 FCM 알림을 보낸다."""
+    if not PENDING_FILE.exists():
+        print("대기 중인 알림 없음")
+        return
+    pending = json.loads(PENDING_FILE.read_text(encoding="utf-8"))
+    failures = []
+    for p in pending:
+        # CDN 반영을 기다린다. 끝내 안 보이면(타임아웃) 늦더라도 알림은 발송한다.
+        if not _wait_for_cdn(p["id"]):
+            print(f"  CDN 반영 확인 실패(타임아웃), 그래도 알림 발송: {p['title']}", file=sys.stderr)
+        item = PolicyItem(
+            id=p["id"], category=p["category"], subcategory=p["subcategory"],
+            title=p["title"], source="", source_url="",
+            file_url=None, file_type=None, published_at="",
+        )
+        try:
+            notify_new_policy(item, batch=p["batch"])
+            print(f"  FCM 트리거 완료: {p['title']}")
+        except Exception as e:
+            print(f"  FCM 트리거 실패: {p['title']} ({e})", file=sys.stderr)
+            failures.append(p)
+
+    if failures:
+        # 실패분만 pending에 다시 써 둔다. 그래야 `notify`를 수동 재실행해도
+        # 이미 보낸 항목이 중복 발송되지 않고 실패분만 재시도된다.
+        # 실패분은 이미 seen에 있어 자동 실행에서는 재시도되지 않으므로,
+        # 스텝을 실패로 표시해 유실을 드러낸다.
+        PENDING_FILE.write_text(json.dumps(failures, ensure_ascii=False), encoding="utf-8")
+        raise SystemExit(f"FCM 발송 실패 {len(failures)}건: {[p['id'] for p in failures]}")
+    PENDING_FILE.unlink(missing_ok=True)
 
 
 def _classify_subcategory(title: str, category: str) -> str:
@@ -109,5 +177,8 @@ def _classify_subcategory(title: str, category: str) -> str:
 
 
 if __name__ == "__main__":
-    batch = os.environ.get("BATCH", "morning")
-    run(batch)
+    if len(sys.argv) > 1 and sys.argv[1] == "notify":
+        notify_pending()
+    else:
+        batch = os.environ.get("BATCH", "morning")
+        run(batch)

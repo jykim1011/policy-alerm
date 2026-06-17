@@ -21,8 +21,8 @@ class PolicyFcmService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         val policyId = message.data["policy_id"] ?: return
-        val title = message.notification?.title ?: "새 정책"
-        val body = message.notification?.body ?: ""
+        val title = message.data["title"] ?: "새 정책"
+        val body = message.data["body"] ?: ""
         val category = message.data["category"] ?: ""
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -58,7 +58,7 @@ class PolicyFcmService : FirebaseMessagingService() {
             putExtra("policy_id", policyId)
         }
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
+            this, policyId.hashCode(), intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 

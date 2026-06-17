@@ -2,9 +2,13 @@ package com.policyalarm.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.policyalarm.data.model.PolicyDetail
 import com.policyalarm.data.model.PolicyItem
 import com.policyalarm.data.repository.PolicyRepository
 import com.policyalarm.data.repository.UserRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -17,11 +21,11 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val showBookmarks: Boolean = false,
-    val bookmarkIds: Set<String> = emptySet(),
+    val bookmarkPolicies: List<PolicyItem> = emptyList(),
 ) {
     val policies: List<PolicyItem>
         get() = when {
-            showBookmarks -> allPolicies.filter { it.id in bookmarkIds }
+            showBookmarks -> bookmarkPolicies
             selectedCategory == "전체" -> allPolicies
             else -> allPolicies.filter { it.subcategory == selectedCategory }
         }
@@ -46,7 +50,14 @@ class HomeViewModel(
 
     fun loadPolicies() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, showBookmarks = false, bookmarkIds = emptySet()) }
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
+                    showBookmarks = false,
+                    bookmarkPolicies = emptyList(),
+                )
+            }
             try {
                 val index = repo.getPolicyIndex()
                 _uiState.update { it.copy(allPolicies = index.items, isLoading = false) }
@@ -62,22 +73,44 @@ class HomeViewModel(
 
     fun loadAndShowBookmarks() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, showBookmarks = true) }
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
+                    showBookmarks = true,
+                    bookmarkPolicies = emptyList(),
+                )
+            }
             try {
-                val ids = userRepo.getBookmarkIds().toSet()
-                if (_uiState.value.allPolicies.isEmpty()) {
-                    val index = repo.getPolicyIndex()
-                    _uiState.update { it.copy(allPolicies = index.items, bookmarkIds = ids, isLoading = false) }
-                } else {
-                    _uiState.update { it.copy(bookmarkIds = ids, isLoading = false) }
-                }
+                val ids = userRepo.getBookmarkIds()
+                // 북마크한 정책은 50개짜리 index.json에 없을 수 있으므로 각 상세 JSON을
+                // 직접 받아온다. 일부 항목이 실패해도 나머지는 보여준다.
+                val policies = coroutineScope {
+                    ids.map { id ->
+                        async { runCatching { repo.getPolicyDetail(id).toItem() }.getOrNull() }
+                    }.awaitAll()
+                }.filterNotNull().sortedByDescending { it.publishedAt }
+                _uiState.update { it.copy(bookmarkPolicies = policies, isLoading = false) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, showBookmarks = false, error = "북마크 불러오기 실패") }
+                // showBookmarks를 유지해 북마크 화면에서 에러를 표시한다(무피드백 방지).
+                _uiState.update { it.copy(isLoading = false, error = "북마크 불러오기 실패") }
             }
         }
     }
 
     fun exitBookmarksMode() {
-        _uiState.update { it.copy(showBookmarks = false, bookmarkIds = emptySet()) }
+        _uiState.update {
+            it.copy(showBookmarks = false, error = null, bookmarkPolicies = emptyList())
+        }
     }
 }
+
+private fun PolicyDetail.toItem(): PolicyItem = PolicyItem(
+    id = id,
+    category = category,
+    subcategory = subcategory,
+    title = title,
+    source = source,
+    publishedAt = publishedAt,
+    summaryPreview = summary?.whatChanged?.take(100)?.plus("...") ?: "",
+)

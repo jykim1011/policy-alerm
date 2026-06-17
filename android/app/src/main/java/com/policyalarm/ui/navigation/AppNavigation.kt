@@ -1,6 +1,10 @@
 package com.policyalarm.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -29,6 +33,15 @@ object Routes {
 fun AppNavigation(startPolicyId: String? = null) {
     val navController = rememberNavController()
     val context = LocalContext.current
+    // rememberSaveable: 화면 회전 등 Activity 재생성 시 딥링크 중복 push 방지
+    var deepLinkConsumed by rememberSaveable { mutableStateOf(false) }
+
+    fun navigateToDeepLink() {
+        if (!deepLinkConsumed && startPolicyId != null) {
+            deepLinkConsumed = true
+            navController.navigate(Routes.detail(startPolicyId))
+        }
+    }
 
     NavHost(navController = navController, startDestination = Routes.SPLASH) {
         composable(Routes.SPLASH) {
@@ -37,6 +50,7 @@ fun AppNavigation(startPolicyId: String? = null) {
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
+                    navigateToDeepLink()
                 },
                 onNotLoggedIn = {
                     navController.navigate(Routes.LOGIN) {
@@ -52,6 +66,7 @@ fun AppNavigation(startPolicyId: String? = null) {
                     navController.navigate(dest) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
+                    if (!isNewUser) navigateToDeepLink()
                 }
             )
         }
@@ -61,6 +76,7 @@ fun AppNavigation(startPolicyId: String? = null) {
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.ONBOARDING) { inclusive = true }
                     }
+                    navigateToDeepLink()
                 }
             )
         }

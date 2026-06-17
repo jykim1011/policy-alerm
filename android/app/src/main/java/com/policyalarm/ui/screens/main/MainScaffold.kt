@@ -12,8 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
@@ -42,7 +43,9 @@ import com.policyalarm.ui.screens.home.HomeViewModelFactory
 import com.policyalarm.ui.screens.settings.SettingsScreen
 import com.policyalarm.ui.theme.LocalAppColors
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.policyalarm.data.local.AppDatabase
 
 private enum class Tab { HOME, HISTORY, SETTINGS }
 
@@ -55,6 +58,9 @@ fun MainScaffold(
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     val context = LocalContext.current
     val homeVm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))
+    val db = remember { AppDatabase.getInstance(context) }
+    val unreadCount by db.notificationHistoryDao().observeUnreadCount()
+        .collectAsStateWithLifecycle(initialValue = 0)
 
     Column(
         modifier = Modifier
@@ -74,7 +80,7 @@ fun MainScaffold(
                 )
             }
         }
-        BottomTabs(active = tab, onSelect = { tab = it })
+        BottomTabs(active = tab, onSelect = { tab = it }, badge = unreadCount)
     }
 }
 
@@ -135,17 +141,19 @@ private fun TabItem(
             )
         }
         if (badge > 0) {
+            val badgeText = if (badge > 99) "99+" else "$badge"
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 8.dp, start = 28.dp)
-                    .size(16.dp)
+                    .defaultMinSize(minWidth = 16.dp, minHeight = 16.dp)
                     .zIndex(1f)
-                    .clip(CircleShape)
-                    .background(c.danger),
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(c.danger)
+                    .padding(horizontal = 3.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("$badge", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(badgeText, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

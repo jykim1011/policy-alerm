@@ -8,6 +8,14 @@ dist/
 build/
 .venv/
 venv/
+pipeline/pending_notify.json
 android/local.properties
 android/app/google-services.json
 google-services.json
+
+# IDE / build / tooling artifacts
+.idea/
+.gradle/
+.playwright-mcp/
+node_modules/
+*.log

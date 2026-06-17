@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.policyalarm.data.local.AppDatabase
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.policyalarm.data.local.NotificationHistoryEntity
 import com.policyalarm.ui.components.Emoji
 import com.policyalarm.ui.components.catEmoji
@@ -43,19 +44,18 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun HistoryScreen(onPolicyClick: (String) -> Unit) {
-    val context = LocalContext.current
+fun HistoryScreen(
+    onPolicyClick: (String) -> Unit,
+    vm: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(LocalContext.current)),
+) {
     val c = LocalAppColors.current
-    val db = remember { AppDatabase.getInstance(context) }
-    val items by db.notificationHistoryDao().observeAll()
-        .collectAsStateWithLifecycle(initialValue = emptyList())
+    val items by vm.items.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(c.bgApp),
     ) {
-        // top bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,6 +66,16 @@ fun HistoryScreen(onPolicyClick: (String) -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("알림", color = c.fgStrong, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.weight(1f))
+            if (items.isNotEmpty()) {
+                Text(
+                    "모두 읽음",
+                    color = c.accent,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable { vm.clearAll() },
+                )
+            }
         }
 
         if (items.isEmpty()) {
@@ -90,7 +100,13 @@ fun HistoryScreen(onPolicyClick: (String) -> Unit) {
                     }
                     items(groupItems.size) { idx ->
                         val it = groupItems[idx]
-                        HistoryRow(it, onClick = { onPolicyClick(it.policyId) })
+                        HistoryRow(
+                            item = it,
+                            onClick = {
+                                vm.markRead(it.policyId)
+                                onPolicyClick(it.policyId)
+                            },
+                        )
                         Spacer(Modifier.height(8.dp))
                     }
                 }
@@ -144,6 +160,15 @@ private fun HistoryRow(item: NotificationHistoryEntity, onClick: () -> Unit) {
                 lineHeight = 20.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (!item.isRead) {
+            Spacer(Modifier.width(10.dp))
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(c.accent),
             )
         }
     }
