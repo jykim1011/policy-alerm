@@ -10,8 +10,6 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.policyalarm.MainActivity
 import com.policyalarm.R
-import com.policyalarm.data.local.AppDatabase
-import com.policyalarm.data.local.NotificationHistoryEntity
 import com.policyalarm.data.repository.UserRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,17 +18,11 @@ import kotlinx.coroutines.launch
 class PolicyFcmService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
+        // 포그라운드 수신 시 알림 표시만 담당한다. 알림 기록은 Cloud Function이 Firestore에
+        // 써 두는 것을 단일 소스로 사용하므로 여기서 DB에 저장하지 않는다.
         val policyId = message.data["policy_id"] ?: return
         val title = message.data["title"] ?: "새 정책"
         val body = message.data["body"] ?: ""
-        val category = message.data["category"] ?: ""
-
-        CoroutineScope(Dispatchers.IO).launch {
-            AppDatabase.getInstance(applicationContext)
-                .notificationHistoryDao()
-                .insert(NotificationHistoryEntity(policyId, body, category))
-        }
-
         showNotification(policyId, title, body)
     }
 

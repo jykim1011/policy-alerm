@@ -1,28 +1,20 @@
 package com.policyalarm.ui.screens.history
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.policyalarm.data.local.AppDatabase
-import com.policyalarm.data.local.NotificationHistoryEntity
+import com.policyalarm.data.repository.NotificationItem
+import com.policyalarm.data.repository.NotificationRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-class HistoryViewModel(context: Context) : ViewModel() {
-    private val dao = AppDatabase.getInstance(context.applicationContext).notificationHistoryDao()
+class HistoryViewModel(
+    private val repo: NotificationRepository = NotificationRepository(),
+) : ViewModel() {
 
-    val items: Flow<List<NotificationHistoryEntity>> = dao.observeAll()
+    val items: Flow<List<NotificationItem>> = repo.observeNotifications()
 
-    fun markRead(policyId: String) = viewModelScope.launch { dao.markRead(policyId) }
+    fun markRead(policyId: String) = viewModelScope.launch { repo.markRead(policyId) }
 
     /** "모두 읽음": 받은 알림 목록을 전부 제거한다(내용이 모두 사라짐). */
-    fun clearAll() = viewModelScope.launch { dao.deleteAll() }
-}
-
-class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        @Suppress("UNCHECKED_CAST")
-        return HistoryViewModel(context) as T
-    }
+    fun clearAll() = viewModelScope.launch { repo.clearAll() }
 }

@@ -45,7 +45,7 @@ import com.policyalarm.ui.theme.LocalAppColors
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.policyalarm.data.local.AppDatabase
+import com.policyalarm.data.repository.NotificationRepository
 
 private enum class Tab { HOME, HISTORY, SETTINGS }
 
@@ -58,8 +58,8 @@ fun MainScaffold(
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     val context = LocalContext.current
     val homeVm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))
-    val db = remember { AppDatabase.getInstance(context) }
-    val unreadCount by db.notificationHistoryDao().observeUnreadCount()
+    val notifRepo = remember { NotificationRepository() }
+    val unreadCount by notifRepo.observeUnreadCount()
         .collectAsStateWithLifecycle(initialValue = 0)
 
     Column(

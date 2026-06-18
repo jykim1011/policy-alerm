@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.policyalarm.data.local.NotificationHistoryEntity
+import com.policyalarm.data.repository.NotificationItem
 import com.policyalarm.ui.components.Emoji
 import com.policyalarm.ui.components.catEmoji
 import com.policyalarm.ui.theme.LocalAppColors
@@ -46,7 +45,7 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(
     onPolicyClick: (String) -> Unit,
-    vm: HistoryViewModel = viewModel(factory = HistoryViewModelFactory(LocalContext.current)),
+    vm: HistoryViewModel = viewModel(),
 ) {
     val c = LocalAppColors.current
     val items by vm.items.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -125,7 +124,7 @@ fun HistoryScreen(
 }
 
 @Composable
-private fun HistoryRow(item: NotificationHistoryEntity, onClick: () -> Unit) {
+private fun HistoryRow(item: NotificationItem, onClick: () -> Unit) {
     val c = LocalAppColors.current
     Row(
         modifier = Modifier
@@ -192,9 +191,9 @@ private fun dayLabel(ts: Long): String {
 }
 
 private fun groupByDay(
-    items: List<NotificationHistoryEntity>,
-): List<Pair<String, List<NotificationHistoryEntity>>> {
-    val map = LinkedHashMap<String, MutableList<NotificationHistoryEntity>>()
+    items: List<NotificationItem>,
+): List<Pair<String, List<NotificationItem>>> {
+    val map = LinkedHashMap<String, MutableList<NotificationItem>>()
     items.forEach { map.getOrPut(dayLabel(it.receivedAt)) { mutableListOf() }.add(it) }
     return map.map { it.key to it.value }
 }
