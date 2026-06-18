@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.policyalarm.data.repository.NotificationRepository
+import com.policyalarm.ui.components.AdBanner
 
 private enum class Tab { HOME, HISTORY, SETTINGS }
 
@@ -80,6 +81,7 @@ fun MainScaffold(
                 )
             }
         }
+        AdBanner(modifier = Modifier.fillMaxWidth())
         BottomTabs(active = tab, onSelect = { tab = it }, badge = unreadCount)
     }
 }

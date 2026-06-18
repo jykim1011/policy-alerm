@@ -12,6 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PolicyAlarm">
 
+        <!-- AdMob 앱 ID (AdMob 콘솔 > 앱 설정) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4710152968528474~4270535612"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
