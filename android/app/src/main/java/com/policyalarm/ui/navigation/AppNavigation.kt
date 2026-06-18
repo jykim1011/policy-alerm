@@ -1,6 +1,7 @@
 package com.policyalarm.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,16 +31,22 @@ object Routes {
 }
 
 @Composable
-fun AppNavigation(startPolicyId: String? = null) {
+fun AppNavigation(
+    deepLinkPolicyId: String? = null,
+    onDeepLinkHandled: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    // rememberSaveable: 화면 회전 등 Activity 재생성 시 딥링크 중복 push 방지
-    var deepLinkConsumed by rememberSaveable { mutableStateOf(false) }
+    // 로그인해서 MAIN에 도달하면 true. 이후 들어오는 알림 딥링크는 바로 상세로 이동한다.
+    var readyForDeepLink by rememberSaveable { mutableStateOf(false) }
 
-    fun navigateToDeepLink() {
-        if (!deepLinkConsumed && startPolicyId != null) {
-            deepLinkConsumed = true
-            navController.navigate(Routes.detail(startPolicyId))
+    // 콜드 스타트(onCreate)·앱 실행 중(onNewIntent) 모두 deepLinkPolicyId가 갱신되며,
+    // 준비되면(로그인 완료) 상세로 이동하고 소비한다.
+    LaunchedEffect(deepLinkPolicyId, readyForDeepLink) {
+        val id = deepLinkPolicyId
+        if (readyForDeepLink && id != null) {
+            navController.navigate(Routes.detail(id))
+            onDeepLinkHandled()
         }
     }
 
@@ -50,7 +57,7 @@ fun AppNavigation(startPolicyId: String? = null) {
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
-                    navigateToDeepLink()
+                    readyForDeepLink = true
                 },
                 onNotLoggedIn = {
                     navController.navigate(Routes.LOGIN) {
@@ -66,7 +73,7 @@ fun AppNavigation(startPolicyId: String? = null) {
                     navController.navigate(dest) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
-                    if (!isNewUser) navigateToDeepLink()
+                    if (!isNewUser) readyForDeepLink = true
                 }
             )
         }
@@ -76,7 +83,7 @@ fun AppNavigation(startPolicyId: String? = null) {
                     navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.ONBOARDING) { inclusive = true }
                     }
-                    navigateToDeepLink()
+                    readyForDeepLink = true
                 }
             )
         }
