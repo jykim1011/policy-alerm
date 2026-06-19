@@ -9,8 +9,9 @@ import com.policyalarm.ui.theme.FileRed
 data class CategoryMeta(val key: String, val emoji: String, val full: String)
 
 val CATEGORY_LIST = listOf(
-    CategoryMeta("전체", "📑", "전체"),
-    CategoryMeta("청약", "🔑", "청약 / 분양"),
+    CategoryMeta("전체",   "📑", "전체"),
+    CategoryMeta("부동산", "🏠", "부동산 전체"),
+    CategoryMeta("청약",   "🔑", "청약 / 분양"),
     CategoryMeta("대출", "🏦", "대출 / 금리"),
     CategoryMeta("세금", "🧾", "세금 (취득세·종부세)"),
     CategoryMeta("재개발", "🏗️", "재개발 / 재건축"),
