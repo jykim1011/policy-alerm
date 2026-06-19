@@ -38,6 +38,41 @@ class HomeViewModelTest {
     fun teardown() { Dispatchers.resetMain() }
 
     @Test
+    fun `부동산 필터는 category가 부동산인 모든 아이템을 반환한다`() = runTest {
+        val items = listOf(
+            PolicyItem("id-1", "부동산", "청약",   "청약 개편", "국토교통부", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-2", "부동산", "대출",   "대출 규제", "금융위원회", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-3", "부동산", "부동산", "주택 정책", "국토교통부", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-4", "고용",   "고용",   "취업 지원", "고용노동부", "2026-06-01T09:00:00+09:00", ""),
+        )
+        coEvery { mockRepo.getPolicyIndex() } returns PolicyIndex("2026-06-01", 4, items)
+
+        val vm = HomeViewModel(mockRepo, mockUserRepo)
+        vm.selectCategory("부동산")
+
+        val result = vm.uiState.value.policies
+        assertEquals(3, result.size)
+        assert(result.none { it.id == "id-4" }) { "고용 기사가 부동산 필터에 포함됨" }
+    }
+
+    @Test
+    fun `청약 필터는 subcategory가 청약인 아이템만 반환한다`() = runTest {
+        val items = listOf(
+            PolicyItem("id-1", "부동산", "청약",   "청약 개편", "국토교통부", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-2", "부동산", "대출",   "대출 규제", "금융위원회", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-3", "부동산", "부동산", "주택 정책", "국토교통부", "2026-06-01T09:00:00+09:00", ""),
+        )
+        coEvery { mockRepo.getPolicyIndex() } returns PolicyIndex("2026-06-01", 3, items)
+
+        val vm = HomeViewModel(mockRepo, mockUserRepo)
+        vm.selectCategory("청약")
+
+        val result = vm.uiState.value.policies
+        assertEquals(1, result.size)
+        assertEquals("id-1", result[0].id)
+    }
+
+    @Test
     fun `loadPolicies populates items`() = runTest {
         val items = listOf(
             PolicyItem(

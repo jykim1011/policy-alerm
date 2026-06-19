@@ -27,6 +27,7 @@ data class HomeUiState(
         get() = when {
             showBookmarks -> bookmarkPolicies
             selectedCategory == "전체" -> allPolicies
+            selectedCategory == "부동산" -> allPolicies.filter { it.category == "부동산" }
             else -> allPolicies.filter { it.subcategory == selectedCategory }
         }
 }
