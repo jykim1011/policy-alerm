@@ -12,9 +12,10 @@ exports.onNewPolicy = onDocumentCreated(
     const policyId = event.params.policyId;
     const db = getFirestore();
 
+    const matchValues = [...new Set([policy.subcategory, policy.category])];
     const usersSnap = await db
       .collection("users")
-      .where("subscribed_categories", "array-contains", policy.subcategory)
+      .where("subscribed_categories", "array-contains-any", matchValues)
       .get();
 
     // 구독자 각자의 알림함(users/{uid}/notifications/{policyId})에 기록한다.
