@@ -51,6 +51,7 @@ import com.policyalarm.ui.theme.LocalThemeController
 fun SettingsScreen(
     onLogout: () -> Unit,
     onBookmarkClick: () -> Unit = {},
+    onLicensesClick: () -> Unit = {},
     vm: SettingsViewModel = viewModel(),
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -167,7 +168,7 @@ fun SettingsScreen(
 
             // 기타
             SettingsSection("기타") {
-                SettingRow(dividerBelow = true) {
+                SettingRow(dividerBelow = true, onClick = onLicensesClick) {
                     Text("오픈소스 라이선스", color = c.fgDefault, fontSize = 14.5.sp, modifier = Modifier.weight(1f))
                     Icon(Icons.Filled.ChevronRight, null, tint = c.fgFaint, modifier = Modifier.size(18.dp))
                 }

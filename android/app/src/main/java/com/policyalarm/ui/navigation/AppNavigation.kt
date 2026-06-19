@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.policyalarm.ui.screens.detail.DetailScreen
 import com.policyalarm.ui.screens.detail.DetailViewModelFactory
+import com.policyalarm.ui.screens.licenses.OssLicensesScreen
 import com.policyalarm.ui.screens.login.LoginScreen
 import com.policyalarm.ui.screens.main.MainScaffold
 import com.policyalarm.ui.screens.onboarding.OnboardingScreen
@@ -25,6 +26,7 @@ object Routes {
     const val LOGIN = "login"
     const val ONBOARDING = "onboarding"
     const val MAIN = "main"
+    const val LICENSES = "licenses"
     const val DETAIL = "detail/{policyId}"
 
     fun detail(policyId: String) = "detail/$policyId"
@@ -95,7 +97,11 @@ fun AppNavigation(
                         popUpTo(Routes.MAIN) { inclusive = true }
                     }
                 },
+                onLicensesClick = { navController.navigate(Routes.LICENSES) },
             )
+        }
+        composable(Routes.LICENSES) {
+            OssLicensesScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.DETAIL,

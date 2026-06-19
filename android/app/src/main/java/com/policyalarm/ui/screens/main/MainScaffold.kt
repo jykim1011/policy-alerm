@@ -54,6 +54,7 @@ private enum class Tab { HOME, HISTORY, SETTINGS }
 fun MainScaffold(
     onPolicyClick: (String) -> Unit,
     onLogout: () -> Unit,
+    onLicensesClick: () -> Unit = {},
 ) {
     val c = LocalAppColors.current
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
@@ -78,6 +79,7 @@ fun MainScaffold(
                         tab = Tab.HOME
                         homeVm.loadAndShowBookmarks()
                     },
+                    onLicensesClick = onLicensesClick,
                 )
             }
         }

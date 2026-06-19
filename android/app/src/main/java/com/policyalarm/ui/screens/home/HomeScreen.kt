@@ -1,5 +1,6 @@
 package com.policyalarm.ui.screens.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +56,9 @@ fun HomeScreen(
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
     val c = LocalAppColors.current
+
+    // 북마크 모드에서 시스템 뒤로가기를 누르면 앱을 종료하지 않고 일반 홈으로 돌아간다.
+    BackHandler(enabled = state.showBookmarks) { vm.exitBookmarksMode() }
 
     Column(
         modifier = Modifier
