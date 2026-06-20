@@ -53,6 +53,7 @@ private enum class Tab { HOME, HISTORY, SETTINGS }
 @Composable
 fun MainScaffold(
     onPolicyClick: (String) -> Unit,
+    onArchiveClick: () -> Unit = {},
     onLogout: () -> Unit,
     onLicensesClick: () -> Unit = {},
 ) {
@@ -71,7 +72,7 @@ fun MainScaffold(
     ) {
         Box(modifier = Modifier.weight(1f)) {
             when (tab) {
-                Tab.HOME -> HomeScreen(onPolicyClick = onPolicyClick, vm = homeVm)
+                Tab.HOME -> HomeScreen(onPolicyClick = onPolicyClick, onArchiveClick = onArchiveClick, vm = homeVm)
                 Tab.HISTORY -> HistoryScreen(onPolicyClick = onPolicyClick)
                 Tab.SETTINGS -> SettingsScreen(
                     onLogout = onLogout,

@@ -13,6 +13,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.policyalarm.ui.screens.archive.ArchiveScreen
+import com.policyalarm.ui.screens.archive.ArchiveViewModel
+import com.policyalarm.ui.screens.archive.ArchiveViewModelFactory
 import com.policyalarm.ui.screens.detail.DetailScreen
 import com.policyalarm.ui.screens.detail.DetailViewModelFactory
 import com.policyalarm.ui.screens.licenses.OssLicensesScreen
@@ -26,6 +29,7 @@ object Routes {
     const val LOGIN = "login"
     const val ONBOARDING = "onboarding"
     const val MAIN = "main"
+    const val ARCHIVE = "archive"
     const val LICENSES = "licenses"
     const val DETAIL = "detail/{policyId}"
 
@@ -92,12 +96,21 @@ fun AppNavigation(
         composable(Routes.MAIN) {
             MainScaffold(
                 onPolicyClick = { policyId -> navController.navigate(Routes.detail(policyId)) },
+                onArchiveClick = { navController.navigate(Routes.ARCHIVE) },
                 onLogout = {
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.MAIN) { inclusive = true }
                     }
                 },
                 onLicensesClick = { navController.navigate(Routes.LICENSES) },
+            )
+        }
+        composable(Routes.ARCHIVE) {
+            val vm = viewModel<ArchiveViewModel>(factory = ArchiveViewModelFactory(context))
+            ArchiveScreen(
+                onBack = { navController.popBackStack() },
+                onPolicyClick = { policyId -> navController.navigate(Routes.detail(policyId)) },
+                vm = vm,
             )
         }
         composable(Routes.LICENSES) {

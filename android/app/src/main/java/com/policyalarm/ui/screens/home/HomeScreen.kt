@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -52,6 +53,7 @@ import com.policyalarm.ui.theme.LocalAppColors
 @Composable
 fun HomeScreen(
     onPolicyClick: (String) -> Unit,
+    onArchiveClick: () -> Unit = {},
     vm: HomeViewModel,
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -84,6 +86,15 @@ fun HomeScreen(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onArchiveClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.DateRange, "정책 아카이브", tint = c.fgMuted, modifier = Modifier.size(21.dp))
+            }
             Box(
                 modifier = Modifier
                     .size(40.dp)
