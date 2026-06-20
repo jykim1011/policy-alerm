@@ -88,6 +88,7 @@ def _update_archive_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "category": item.category,
         "subcategory": item.subcategory,
         "title": item.title,
+        "source": item.source,
         "published_at": item.published_at,
         "summary_preview": (item.summary.what_changed[:100] + "...") if item.summary else "",
     }

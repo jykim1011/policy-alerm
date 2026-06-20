@@ -7,7 +7,7 @@ data class PolicyItem(
     val category: String,
     val subcategory: String,
     val title: String,
-    val source: String,
+    val source: String?,
     @SerializedName("published_at") val publishedAt: String,
     @SerializedName("summary_preview") val summaryPreview: String,
 )

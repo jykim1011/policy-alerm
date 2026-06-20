@@ -265,7 +265,7 @@ fun PolicyCard(policy: PolicyItem, isRead: Boolean, onClick: () -> Unit) {
         )
         Spacer(Modifier.height(11.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(policy.source, color = c.fgDefault, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(policy.source.orEmpty(), color = c.fgDefault, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.weight(1f))
             Icon(
                 Icons.Filled.ChevronRight,
