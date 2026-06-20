@@ -43,6 +43,7 @@ def publish_policy(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
     out_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
     _update_category_index(item, docs_root)
+    _update_archive_index(item, docs_root)
 
 
 def update_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
@@ -69,6 +70,43 @@ def update_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
     index["updated_at"] = datetime.now(KST).isoformat()
 
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _update_archive_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
+    year = int(item.published_at[:4])
+    archive_dir = Path(docs_root) / "archive"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    year_path = archive_dir / f"{year}.json"
+    if year_path.exists():
+        data = json.loads(year_path.read_text(encoding="utf-8"))
+    else:
+        data = {"year": year, "total": 0, "updated_at": "", "items": []}
+
+    entry = {
+        "id": item.id,
+        "category": item.category,
+        "subcategory": item.subcategory,
+        "title": item.title,
+        "published_at": item.published_at,
+        "summary_preview": (item.summary.what_changed[:100] + "...") if item.summary else "",
+    }
+    items = [entry] + [i for i in data["items"] if i["id"] != item.id]
+    items.sort(key=lambda x: x["published_at"], reverse=True)
+    data["items"] = items
+    data["total"] = len(items)
+    data["updated_at"] = datetime.now(KST).isoformat()
+    year_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    index_path = archive_dir / "index.json"
+    if index_path.exists():
+        idx = json.loads(index_path.read_text(encoding="utf-8"))
+    else:
+        idx = {"years": [], "updated_at": ""}
+    if year not in idx["years"]:
+        idx["years"] = sorted(set(idx["years"] + [year]), reverse=True)
+    idx["updated_at"] = datetime.now(KST).isoformat()
+    index_path.write_text(json.dumps(idx, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _update_category_index(item: PolicyItem, docs_root: str) -> None:

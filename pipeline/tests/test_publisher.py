@@ -46,6 +46,37 @@ def test_update_index_prepends_item(tmp_path):
     assert len(index["items"]) == 1
     assert index["items"][0]["id"] == "molit-2026-05-29-001"
 
+from pipeline.publisher import _update_archive_index
+
+def test_update_archive_creates_year_file(tmp_path):
+    item = _make_item()
+    _update_archive_index(item, docs_root=str(tmp_path))
+
+    year_path = tmp_path / "archive" / "2026.json"
+    assert year_path.exists()
+    data = json.loads(year_path.read_text(encoding="utf-8"))
+    assert data["year"] == 2026
+    assert data["total"] == 1
+    assert data["items"][0]["id"] == "molit-2026-05-29-001"
+    assert data["items"][0]["summary_preview"] == "가점 확대..."
+
+def test_update_archive_creates_years_index(tmp_path):
+    item = _make_item()
+    _update_archive_index(item, docs_root=str(tmp_path))
+
+    idx_path = tmp_path / "archive" / "index.json"
+    assert idx_path.exists()
+    idx = json.loads(idx_path.read_text(encoding="utf-8"))
+    assert 2026 in idx["years"]
+
+def test_update_archive_deduplicates_same_id(tmp_path):
+    item = _make_item()
+    _update_archive_index(item, docs_root=str(tmp_path))
+    _update_archive_index(item, docs_root=str(tmp_path))
+
+    data = json.loads((tmp_path / "archive" / "2026.json").read_text(encoding="utf-8"))
+    assert data["total"] == 1
+
 def test_update_index_keeps_max_50(tmp_path):
     for i in range(55):
         item = _make_item()
