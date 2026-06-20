@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +60,10 @@ fun MainScaffold(
 ) {
     val c = LocalAppColors.current
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
+
+    // 홈이 아닌 탭에서 뒤로가기 → 홈으로. 홈에서 뒤로가기 → 시스템 기본(앱 종료)
+    BackHandler(enabled = tab != Tab.HOME) { tab = Tab.HOME }
+
     val context = LocalContext.current
     val homeVm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))
     val notifRepo = remember { NotificationRepository() }

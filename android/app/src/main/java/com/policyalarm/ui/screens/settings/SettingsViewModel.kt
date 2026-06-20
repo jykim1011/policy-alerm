@@ -29,9 +29,17 @@ class SettingsViewModel(
         viewModelScope.launch {
             val settings = userRepo.getUserSettings()
             @Suppress("UNCHECKED_CAST")
-            val categories = (settings?.get("subscribed_categories") as? List<String>)
+            var categories = (settings?.get("subscribed_categories") as? List<String>)
                 ?.toSet() ?: emptySet()
             val schedule = settings?.get("notification_schedule") as? String ?: "both"
+
+            // 부동산 서브카테고리를 구독 중인데 상위 "부동산"이 없는 기존 유저를 조용히 마이그레이션
+            val realEstateSubs = setOf("청약", "대출", "세금", "재개발", "전월세")
+            if (categories.any { it in realEstateSubs } && "부동산" !in categories) {
+                categories = categories + "부동산"
+                runCatching { userRepo.updateSubscribedCategories(categories.toList()) }
+            }
+
             _uiState.value = _uiState.value.copy(
                 subscribedCategories = categories,
                 notificationSchedule = schedule,

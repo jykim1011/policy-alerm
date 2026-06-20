@@ -41,7 +41,7 @@ class LoginViewModel(
                 if (isNewUser) {
                     userRepo.saveUserSettings(
                         fcmToken = fcmToken,
-                        subscribedCategories = listOf("청약", "대출", "세금"),
+                        subscribedCategories = listOf("부동산", "청약", "대출", "세금"),
                         notificationSchedule = "both",
                     )
                 } else {

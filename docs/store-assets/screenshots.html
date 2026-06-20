@@ -43,7 +43,7 @@ const C = {
   white:    '#FFFFFF',
 };
 
-const W = 390, H = 844;
+const W = 422, H = 844;  // 422:844 = 정확히 1:2 (Play Console 2:1 비율 제한 충족)
 const SCALE = 1;
 
 /* ── helpers ── */
@@ -126,9 +126,9 @@ function bottomNav(ctx, active='home') {
   ctx.beginPath(); ctx.moveTo(0, H - navH); ctx.lineTo(W, H - navH); ctx.stroke();
 
   const tabs = [
-    { id:'home', icon:'🏠', label:'홈' },
-    { id:'history', icon:'🕐', label:'기록' },
-    { id:'settings', icon:'⚙️', label:'설정' },
+    { id:'home', icon:'🏠', label:'홈', badge:0 },
+    { id:'history', icon:'🔔', label:'알림', badge:3 },
+    { id:'settings', icon:'⚙️', label:'설정', badge:0 },
   ];
   const tabW = W / tabs.length;
   tabs.forEach((tab, i) => {
@@ -137,11 +137,18 @@ function bottomNav(ctx, active='home') {
     ctx.font = '20px serif';
     ctx.globalAlpha = isActive ? 1 : 0.45;
     ctx.fillText(tab.icon, cx - 11, H - 38);
+    ctx.globalAlpha = 1;
     ctx.font = isActive ? '600 11px -apple-system' : '400 11px -apple-system';
     ctx.fillStyle = isActive ? C.accent : C.fgSubtle;
-    ctx.globalAlpha = 1;
     const lw = ctx.measureText(tab.label).width;
     ctx.fillText(tab.label, cx - lw/2, H - 18);
+    if (tab.badge > 0) {
+      const bx = cx + 8, by = H - 52;
+      roundRect(ctx, bx, by, 16, 16, 8, C.danger);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 10px -apple-system';
+      const bt = String(tab.badge);
+      ctx.fillText(bt, bx + 8 - ctx.measureText(bt).width/2, by + 11);
+    }
   });
 }
 
@@ -157,7 +164,7 @@ function drawHome(ctx) {
   ctx.strokeStyle = C.border; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(0, 152); ctx.lineTo(W, 152); ctx.stroke();
 
-  const cats = [['전체', null], ['청약', '🏠'], ['대출', '💳'], ['세금', '💰'], ['재개발', '🏗']];
+  const cats = [['전체', null], ['청약', '🔑'], ['대출', '🏦'], ['세금', '🧾'], ['재개발', '🏗️']];
   let cx = 16;
   cats.forEach(([name, emoji], i) => {
     const label = emoji ? `${emoji} ${name}` : name;
@@ -349,11 +356,11 @@ function drawOnboarding(ctx) {
   cy += 44;
 
   const cats2 = [
-    { emoji:'🏠', name:'청약', desc:'공공·민간 분양 청약', on:true },
-    { emoji:'💳', name:'대출', desc:'주택담보·전세자금 대출', on:true },
-    { emoji:'💰', name:'세금', desc:'양도세·취득세·종부세', on:true },
-    { emoji:'🏗', name:'재개발', desc:'재개발·재건축·리모델링', on:false },
-    { emoji:'🏘', name:'전월세', desc:'임대차·전세사기 대책', on:false },
+    { emoji:'🔑', name:'청약', desc:'공공·민간 분양 청약', on:true },
+    { emoji:'🏦', name:'대출', desc:'주택담보·전세자금 대출', on:true },
+    { emoji:'🧾', name:'세금', desc:'양도세·취득세·종부세', on:true },
+    { emoji:'🏗️', name:'재개발', desc:'재개발·재건축·리모델링', on:false },
+    { emoji:'🏘️', name:'전월세', desc:'임대차·전세사기 대책', on:false },
   ];
 
   cats2.forEach(cat => {
@@ -413,79 +420,92 @@ function drawSettings(ctx) {
   ctx.fillStyle = C.bgApp; ctx.fillRect(0, 0, W, H);
   statusBar(ctx);
 
+  // header
   ctx.fillStyle = C.bgSurf; ctx.fillRect(0, 44, W, 56);
   ctx.strokeStyle = C.border; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(0, 100); ctx.lineTo(W, 100); ctx.stroke();
   ctx.font = 'bold 18px -apple-system'; ctx.fillStyle = C.fgStrong;
   ctx.fillText('설정', 16, 76);
 
-  // user card
+  // account card
   let cy = 112;
-  roundRect(ctx, 16, cy, W-32, 72, 14, C.bgSurf, C.border);
-  ctx.beginPath(); ctx.arc(52, cy+36, 22, 0, Math.PI*2);
-  const grd2 = ctx.createLinearGradient(30, cy+14, 74, cy+58);
-  grd2.addColorStop(0,'#2F63F0'); grd2.addColorStop(1,'#1E3A8A');
-  ctx.fillStyle = grd2; ctx.fill();
-  ctx.font = '20px serif'; ctx.fillText('😊', 33, cy+46);
-  ctx.font = 'bold 15px -apple-system'; ctx.fillStyle = C.fgStrong;
-  ctx.fillText('jysm8689@gmail.com', 84, cy+30);
-  ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
-  ctx.fillText('Google 계정으로 로그인 중', 84, cy+50);
-  cy += 84;
+  roundRect(ctx, 16, cy, W-32, 76, 16, C.bgSurf, C.border);
+  const grd = ctx.createLinearGradient(28, cy+16, 76, cy+62);
+  grd.addColorStop(0,'#2F63F0'); grd.addColorStop(1,'#1E3A8A');
+  ctx.beginPath(); ctx.arc(52, cy+38, 24, 0, Math.PI*2); ctx.fillStyle = grd; ctx.fill();
+  ctx.font = 'bold 20px -apple-system'; ctx.fillStyle = '#fff'; ctx.fillText('정', 45, cy+45);
+  ctx.font = 'bold 15.5px -apple-system'; ctx.fillStyle = C.fgStrong;
+  ctx.fillText('정책 사용자', 88, cy+34);
+  ctx.font = '12.5px -apple-system'; ctx.fillStyle = C.fgSubtle;
+  ctx.fillText('user@example.com', 88, cy+54);
+  const gTxt = 'Google'; ctx.font = '600 11px -apple-system';
+  const gw = ctx.measureText(gTxt).width + 18;
+  roundRect(ctx, W-16-gw, cy+27, gw, 22, 11, C.bgMuted);
+  ctx.fillStyle = C.fgSubtle; ctx.fillText(gTxt, W-16-gw+9, cy+42);
+  cy += 76 + 22;
 
-  // sections
-  const sections = [
-    { title:'알림 설정', items:[
-      { label:'알림 받기', sub:'새 정책 알림 활성화', toggle:true },
-      { label:'알림 시간', sub:'오전·오후 모두', arrow:true },
-    ]},
-    { title:'구독 카테고리', items:[
-      { label:'청약', sub:'구독 중', check:true },
-      { label:'대출', sub:'구독 중', check:true },
-      { label:'세금', sub:'구독 중', check:true },
-    ]},
-    { title:'앱 정보', items:[
-      { label:'버전', sub:'1.0.0' },
-      { label:'개인정보처리방침', sub:'', link:true },
-    ]},
-  ];
-
-  sections.forEach(sec => {
-    ctx.font = '600 12px -apple-system'; ctx.fillStyle = C.fgSubtle;
-    ctx.fillText(sec.title.toUpperCase(), 24, cy+4);
-    cy += 14;
-    roundRect(ctx, 16, cy, W-32, sec.items.length * 56, 14, C.bgSurf, C.border);
-
-    sec.items.forEach((item, i) => {
-      const iy = cy + i * 56;
+  function section(title, rows) {
+    ctx.font = 'bold 12px -apple-system'; ctx.fillStyle = C.fgSubtle;
+    ctx.fillText(title, 20, cy); cy += 13;
+    const h = rows.length * 52;
+    roundRect(ctx, 16, cy, W-32, h, 16, C.bgSurf, C.border);
+    rows.forEach((r, i) => {
+      const iy = cy + i * 52;
       if (i > 0) {
         ctx.strokeStyle = C.border; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(16, iy); ctx.lineTo(W-16, iy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(32, iy); ctx.lineTo(W-16, iy); ctx.stroke();
       }
-      ctx.font = '15px -apple-system'; ctx.fillStyle = C.fgStrong;
-      ctx.fillText(item.label, 28, iy+24);
-      if (item.sub) {
-        ctx.font = '12px -apple-system'; ctx.fillStyle = C.fgSubtle;
-        ctx.fillText(item.sub, 28, iy+42);
-      }
-
-      if (item.toggle) {
-        // toggle switch ON
-        roundRect(ctx, W-64, iy+20, 44, 24, 12, C.accent);
-        ctx.beginPath(); ctx.arc(W-28, iy+32, 10, 0, Math.PI*2);
-        ctx.fillStyle = '#fff'; ctx.fill();
-      } else if (item.arrow || item.link) {
-        ctx.strokeStyle = C.fgFaint; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(W-36, iy+24); ctx.lineTo(W-26, iy+32); ctx.lineTo(W-36, iy+40); ctx.stroke();
-      } else if (item.check) {
-        ctx.beginPath(); ctx.arc(W-34, iy+32, 10, 0, Math.PI*2);
-        ctx.fillStyle = C.accent; ctx.fill();
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8;
-        ctx.beginPath(); ctx.moveTo(W-40, iy+32); ctx.lineTo(W-35, iy+38); ctx.lineTo(W-27, iy+26); ctx.stroke();
-      }
+      r(iy);
     });
-    cy += sec.items.length * 56 + 24;
-  });
+    cy += h + 20;
+  }
+  function emojiRow(iy, emoji, title, sub) {
+    ctx.font = '17px serif'; ctx.fillText(emoji, 30, iy+33);
+    ctx.font = '600 14.5px -apple-system'; ctx.fillStyle = C.fgStrong;
+    ctx.fillText(title, 58, sub ? iy+27 : iy+33);
+    if (sub) {
+      ctx.font = '11.5px -apple-system'; ctx.fillStyle = C.fgSubtle;
+      ctx.fillText(sub, 58, iy+43);
+    }
+  }
+  function toggle(iy, on) {
+    const x = W-16-44, ty = iy+14;
+    roundRect(ctx, x, ty, 44, 24, 12, on ? C.accent : C.borderSt);
+    ctx.beginPath(); ctx.arc(on ? x+32 : x+12, ty+12, 10, 0, Math.PI*2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+  }
+  function chev(iy) {
+    ctx.strokeStyle = C.fgFaint; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(W-32, iy+22); ctx.lineTo(W-24, iy+30); ctx.lineTo(W-32, iy+38); ctx.stroke();
+  }
+
+  section('구독 카테고리', [
+    iy => { emojiRow(iy,'🔑','청약','청약 / 분양'); toggle(iy, true); },
+    iy => { emojiRow(iy,'🏦','대출','대출 / 금리'); toggle(iy, true); },
+    iy => { emojiRow(iy,'🧾','세금','세금 (취득세·종부세)'); toggle(iy, true); },
+    iy => { emojiRow(iy,'🤝','복지','복지 / 지원금'); toggle(iy, false); },
+  ]);
+
+  section('화면', [
+    iy => { emojiRow(iy,'🌙','다크 모드', null); toggle(iy, false); },
+    iy => {
+      emojiRow(iy,'🔖','저장한 북마크', null);
+      ctx.font = '13px -apple-system'; ctx.fillStyle = C.fgSubtle;
+      const t = '5개'; ctx.fillText(t, W-44-ctx.measureText(t).width, iy+34);
+      chev(iy);
+    },
+  ]);
+
+  section('기타', [
+    iy => { ctx.font = '14.5px -apple-system'; ctx.fillStyle = C.fgDef;
+      ctx.fillText('오픈소스 라이선스', 30, iy+34); chev(iy); },
+    iy => { ctx.font = '14.5px -apple-system'; ctx.fillStyle = C.fgDef;
+      ctx.fillText('앱 버전', 30, iy+34);
+      ctx.font = '13px -apple-system'; ctx.fillStyle = C.fgSubtle;
+      const t = '1.0.0'; ctx.fillText(t, W-44-ctx.measureText(t).width, iy+34); },
+    iy => { ctx.font = '600 14.5px -apple-system'; ctx.fillStyle = C.danger;
+      ctx.fillText('로그아웃', 30, iy+34); },
+  ]);
 
   bottomNav(ctx, 'settings');
 }
@@ -504,10 +524,11 @@ screens.forEach(({ id, label, fn }, idx) => {
   item.className = 'item';
 
   const c = document.createElement('canvas');
-  c.id = id; c.width = W; c.height = H;
-  c.style.width = W * 0.55 + 'px';
-  c.style.height = H * 0.55 + 'px';
+  c.id = id; c.width = W * 2; c.height = H * 2;   // 844 x 1688, 정확히 1:2
+  c.style.width = (W * 2) + 'px';
+  c.style.height = (H * 2) + 'px';
   const ctx = c.getContext('2d');
+  ctx.scale(2, 2);
   fn(ctx);
 
   const btn = document.createElement('button');

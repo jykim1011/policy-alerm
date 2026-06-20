@@ -11,7 +11,7 @@ class OnboardingViewModel(
     private val userRepo: UserRepository = UserRepository(),
 ) : ViewModel() {
 
-    private val _selected = MutableStateFlow(setOf("청약", "대출", "세금"))
+    private val _selected = MutableStateFlow(setOf("부동산", "청약", "대출", "세금"))
     val selected: StateFlow<Set<String>> = _selected
 
     private val _schedule = MutableStateFlow("both")

@@ -105,7 +105,7 @@ fun ArchiveScreen(
         }
 
         when {
-            state.isLoading -> Box(
+            state.isLoading && state.sections.isEmpty() -> Box(
                 Modifier.fillMaxSize(), contentAlignment = Alignment.Center
             ) { CircularProgressIndicator(color = c.accent) }
 
@@ -129,7 +129,7 @@ fun ArchiveScreen(
                         Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)) {
                             PolicyCard(
                                 policy = policy,
-                                isRead = false,
+                                isRead = policy.id in state.readIds,
                                 onClick = { onPolicyClick(policy.id) },
                             )
                         }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.policyalarm.data.model.PolicyItem
 import com.policyalarm.data.repository.PolicyRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -19,6 +20,7 @@ data class ArchiveUiState(
     val availableYears: List<Int> = emptyList(),
     val selectedYear: Int = 0,
     val sections: List<ArchiveSection> = emptyList(),
+    val readIds: Set<String> = emptySet(),
     val isLoading: Boolean = true,
     val error: String? = null,
 )
@@ -27,8 +29,16 @@ class ArchiveViewModel(private val repo: PolicyRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ArchiveUiState())
     val uiState: StateFlow<ArchiveUiState> = _uiState
+    private var loadJob: Job? = null
 
-    init { loadYears() }
+    init {
+        viewModelScope.launch {
+            repo.observeReadIds().collect { ids ->
+                _uiState.update { it.copy(readIds = ids.toSet()) }
+            }
+        }
+        loadYears()
+    }
 
     private fun loadYears() {
         viewModelScope.launch {
@@ -48,7 +58,8 @@ class ArchiveViewModel(private val repo: PolicyRepository) : ViewModel() {
 
     fun selectYear(year: Int) {
         _uiState.update { it.copy(selectedYear = year, isLoading = true, error = null) }
-        viewModelScope.launch { loadArchive(year) }
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch { loadArchive(year) }
     }
 
     private suspend fun loadArchive(year: Int) {
@@ -62,14 +73,14 @@ class ArchiveViewModel(private val repo: PolicyRepository) : ViewModel() {
 
     private fun groupByMonth(items: List<PolicyItem>): List<ArchiveSection> =
         items
+            .filter { it.publishedAt.length >= 7 }
             .groupBy { it.publishedAt.substring(0, 7) }
             .entries
             .sortedByDescending { it.key }
             .map { (ym, group) ->
-                val (y, m) = ym.split("-")
                 ArchiveSection(
                     yearMonth = ym,
-                    label = "${y}년 ${m.trimStart('0')}월 (${group.size}건)",
+                    label = "${ym.substring(0, 4)}년 ${ym.substring(5, 7).toInt()}월 (${group.size}건)",
                     items = group,
                 )
             }
