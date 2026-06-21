@@ -12,7 +12,13 @@ exports.onNewPolicy = onDocumentCreated(
     const policyId = event.params.policyId;
     const db = getFirestore();
 
-    const matchValues = [...new Set([policy.subcategory, policy.category])];
+    // subcategory가 undefined/null이면 Firestore array-contains-any가 예외를 던지므로 필터링한다.
+    const matchValues = [...new Set([policy.subcategory, policy.category].filter(Boolean))];
+    if (matchValues.length === 0) {
+      console.error(`No valid matchValues for policy: ${policyId}`);
+      await event.data.ref.delete();
+      return;
+    }
     const usersSnap = await db
       .collection("users")
       .where("subscribed_categories", "array-contains-any", matchValues)
@@ -91,15 +97,20 @@ exports.onNewPolicy = onDocumentCreated(
       });
 
       if (expiredTokens.length > 0) {
-        const batch = db.batch();
-        const usersWithExpiredSnap = await db
-          .collection("users")
-          .where("fcm_token", "in", expiredTokens)
-          .get();
-        usersWithExpiredSnap.forEach((doc) => {
-          batch.update(doc.ref, { fcm_token: null });
-        });
-        await batch.commit();
+        // Firestore `in` 연산자는 최대 30개 값만 허용한다.
+        const IN_LIMIT = 30;
+        for (let j = 0; j < expiredTokens.length; j += IN_LIMIT) {
+          const tokenChunk = expiredTokens.slice(j, j + IN_LIMIT);
+          const usersWithExpiredSnap = await db
+            .collection("users")
+            .where("fcm_token", "in", tokenChunk)
+            .get();
+          const cleanupBatch = db.batch();
+          usersWithExpiredSnap.forEach((doc) => {
+            cleanupBatch.update(doc.ref, { fcm_token: null });
+          });
+          await cleanupBatch.commit();
+        }
       }
     }
   }

@@ -2,6 +2,7 @@ package com.policyalarm.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 class UserRepository(
@@ -28,8 +29,11 @@ class UserRepository(
         db.collection("users").document(uid).get().await().data
 
     suspend fun updateFcmToken(token: String) {
+        // .update()는 문서가 없으면 NOT_FOUND 예외를 던진다. 신규 사용자 가입 직후 또는
+        // 토큰 갱신이 Firestore 문서 생성보다 먼저 도달하는 경쟁 조건을 방어하기 위해
+        // merge 옵션으로 .set()을 사용한다.
         db.collection("users").document(uid)
-            .update("fcm_token", token).await()
+            .set(mapOf("fcm_token" to token), SetOptions.merge()).await()
     }
 
     suspend fun updateSubscribedCategories(categories: List<String>) {

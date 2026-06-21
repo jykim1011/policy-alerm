@@ -99,8 +99,18 @@ def run(batch: str) -> None:
 
 
 def _write_pending(new_items: list[tuple[PolicyItem, str]]) -> None:
-    """발행은 됐지만 아직 알림을 보내지 않은 정책 목록을 파일로 남긴다."""
-    pending = [
+    """발행은 됐지만 아직 알림을 보내지 않은 정책 목록을 파일로 남긴다.
+    이전 런에서 실패해 남은 항목이 있으면 병합한다(덮어쓰면 소실됨).
+    """
+    existing: list[dict] = []
+    if PENDING_FILE.exists():
+        try:
+            existing = json.loads(PENDING_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            existing = []
+
+    existing_ids = {p["id"] for p in existing}
+    new_entries = [
         {
             "id": item.id,
             "category": item.category,
@@ -109,11 +119,14 @@ def _write_pending(new_items: list[tuple[PolicyItem, str]]) -> None:
             "batch": b,
         }
         for item, b in new_items
+        if item.id not in existing_ids  # 중복 방지
     ]
-    PENDING_FILE.write_text(json.dumps(pending, ensure_ascii=False), encoding="utf-8")
+    PENDING_FILE.write_text(
+        json.dumps(existing + new_entries, ensure_ascii=False), encoding="utf-8"
+    )
 
 
-def _wait_for_cdn(policy_id: str, timeout: int = 300, interval: int = 10) -> bool:
+def _wait_for_cdn(policy_id: str, timeout: int = 900, interval: int = 15) -> bool:
     """상세 JSON이 CDN에 라이브될 때까지 폴링한다. timeout이면 False."""
     url = f"{CDN_BASE}policies/{quote(policy_id)}.json"
     deadline = time.monotonic() + timeout
@@ -135,9 +148,12 @@ def notify_pending() -> None:
     pending = json.loads(PENDING_FILE.read_text(encoding="utf-8"))
     failures = []
     for p in pending:
-        # CDN 반영을 기다린다. 끝내 안 보이면(타임아웃) 늦더라도 알림은 발송한다.
+        # CDN 반영 확인 실패 시 알림을 보내지 않는다. 사용자가 탭했을 때 404가 뜨므로
+        # 타임아웃이면 실패 목록에 넣어 CI 스텝을 실패로 표시한다.
         if not _wait_for_cdn(p["id"]):
-            print(f"  CDN 반영 확인 실패(타임아웃), 그래도 알림 발송: {p['title']}", file=sys.stderr)
+            print(f"  CDN 반영 확인 실패(타임아웃), 알림 미발송: {p['title']}", file=sys.stderr)
+            failures.append(p)
+            continue
         item = PolicyItem(
             id=p["id"], category=p["category"], subcategory=p["subcategory"],
             title=p["title"], source="", source_url="",
@@ -151,12 +167,10 @@ def notify_pending() -> None:
             failures.append(p)
 
     if failures:
-        # 실패분만 pending에 다시 써 둔다. 그래야 `notify`를 수동 재실행해도
-        # 이미 보낸 항목이 중복 발송되지 않고 실패분만 재시도된다.
-        # 실패분은 이미 seen에 있어 자동 실행에서는 재시도되지 않으므로,
-        # 스텝을 실패로 표시해 유실을 드러낸다.
+        # 실패분(CDN 타임아웃 또는 FCM 트리거 오류)을 pending에 다시 써 둔다.
+        # pipeline/pending_notify.json은 git에 커밋되므로 다음 자동 실행에서 재시도된다.
         PENDING_FILE.write_text(json.dumps(failures, ensure_ascii=False), encoding="utf-8")
-        raise SystemExit(f"FCM 발송 실패 {len(failures)}건: {[p['id'] for p in failures]}")
+        raise SystemExit(f"알림 발송 미완료 {len(failures)}건: {[p['id'] for p in failures]}")
     PENDING_FILE.unlink(missing_ok=True)
 
 

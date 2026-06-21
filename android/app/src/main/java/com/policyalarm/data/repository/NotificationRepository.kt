@@ -76,9 +76,12 @@ class NotificationRepository(
         runCatching {
             val snap = db.collection("users").document(uid).collection("notifications").get().await()
             if (snap.isEmpty) return
-            val batch = db.batch()
-            snap.documents.forEach { batch.delete(it.reference) }
-            batch.commit().await()
+            // Firestore 배치는 최대 500개 작업 제한이 있으므로 청크 단위로 커밋한다.
+            snap.documents.chunked(500).forEach { chunk ->
+                val batch = db.batch()
+                chunk.forEach { batch.delete(it.reference) }
+                batch.commit().await()
+            }
         }
     }
 }

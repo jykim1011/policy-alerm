@@ -29,7 +29,7 @@ class OnboardingViewModel(
 
     fun setSchedule(value: String) { _schedule.value = value }
 
-    fun confirm() {
+    fun confirm(pushGranted: Boolean = true) {
         viewModelScope.launch {
             userRepo.updateSubscribedCategories(_selected.value.toList())
             userRepo.updateNotificationSchedule(_schedule.value)

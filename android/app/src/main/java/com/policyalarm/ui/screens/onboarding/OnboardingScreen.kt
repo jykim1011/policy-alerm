@@ -56,7 +56,12 @@ fun OnboardingScreen(
 
     val notifLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { vm.confirm() }
+    ) { isGranted ->
+        // 권한 허용 여부와 무관하게 온보딩을 완료한다.
+        // 거부 시에도 인앱 알림(Firestore 기반 뱃지)은 정상 동작하며,
+        // 푸시 알림은 설정 앱에서 권한을 허용하면 자동으로 활성화된다.
+        vm.confirm(isGranted)
+    }
 
     LaunchedEffect(done) { if (done) onComplete() }
 

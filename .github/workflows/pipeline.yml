@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: policy-pipeline
+  cancel-in-progress: false
+
 jobs:
   crawl-and-publish:
     runs-on: ubuntu-latest
@@ -52,7 +56,7 @@ jobs:
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add docs/ pipeline/seen_policies.json
+          git add docs/ pipeline/seen_policies.json pipeline/pending_notify.json
           git diff --staged --quiet || git commit -m "chore: update policy data [skip ci]"
           git push
 
