@@ -4,11 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.policyalarm.data.model.PolicyDetail
 import com.policyalarm.data.model.PolicyItem
+import com.policyalarm.data.remote.RetrofitClient
 import com.policyalarm.data.repository.PolicyRepository
 import com.policyalarm.data.repository.UserRepository
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import com.policyalarm.data.repository.resolveBookmarks
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -83,14 +82,12 @@ class HomeViewModel(
                 )
             }
             try {
-                val ids = userRepo.getBookmarkIds()
                 // 북마크한 정책은 50개짜리 index.json에 없을 수 있으므로 각 상세 JSON을
-                // 직접 받아온다. 일부 항목이 실패해도 나머지는 보여준다.
-                val policies = coroutineScope {
-                    ids.map { id ->
-                        async { runCatching { repo.getPolicyDetail(id).toItem() }.getOrNull() }
-                    }.awaitAll()
-                }.filterNotNull().sortedByDescending { it.publishedAt }
+                // 직접 받아온다. 정책이 사라진(404) 고아 북마크는 제거하고, 나머지를 보여준다.
+                // (설정 화면 개수도 같은 resolveBookmarks 로 세어 목록과 항상 일치한다.)
+                val policies = resolveBookmarks(RetrofitClient.policyApi, userRepo)
+                    .map { it.toItem() }
+                    .sortedByDescending { it.publishedAt }
                 _uiState.update { it.copy(bookmarkPolicies = policies, isLoading = false) }
             } catch (e: Exception) {
                 // showBookmarks를 유지해 북마크 화면에서 에러를 표시한다(무피드백 방지).

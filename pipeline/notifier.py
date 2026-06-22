@@ -30,6 +30,10 @@ def notify_new_policy(item: PolicyItem, batch: str, db=None) -> None:
     """Firestore new_policies/{id} 에 문서를 생성해 Cloud Function을 트리거한다."""
     client = _get_db(db)
     client.collection("new_policies").document(item.id).set({
+        # id를 본문에도 저장한다. Cloud Function v2(gen2)의 event.params 는 한글 등
+        # 비ASCII 문서 ID를 모지바케로 깨뜨리므로(firebase-functions#1459), 함수는
+        # 경로 파라미터가 아닌 이 본문 id를 사용해야 알림 policy_id 가 CDN 파일명과 맞다.
+        "id": item.id,
         "category": item.category,
         "subcategory": item.subcategory,
         "title": item.title,

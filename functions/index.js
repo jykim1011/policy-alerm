@@ -9,7 +9,11 @@ exports.onNewPolicy = onDocumentCreated(
   "new_policies/{policyId}",
   async (event) => {
     const policy = event.data.data();
-    const policyId = event.params.policyId;
+    // event.params.policyId 는 gen2 트리거에서 한글 등 비ASCII 문서 ID를 모지바케로
+    // 깨뜨린다(firebase-functions#1459). 그 깨진 값을 policy_id 로 쓰면 앱이
+    // policies/{id}.json 을 404 로 받는다. 문서 본문(event.data.data())은 깨지지 않으므로
+    // 파이프라인이 본문에 저장한 id 를 단일 소스로 사용한다(구버전 문서 대비 params 폴백).
+    const policyId = policy.id || event.params.policyId;
     const db = getFirestore();
 
     console.log(`[onNewPolicy] START policyId=${policyId} category=${policy.category} subcategory=${policy.subcategory}`);

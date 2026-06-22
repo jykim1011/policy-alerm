@@ -39,3 +39,7 @@ def test_notify_new_policy_writes_to_firestore():
     call_data = mock_doc_ref.set.call_args[0][0]
     assert call_data["batch"] == "morning"
     assert call_data["subcategory"] == "청약"
+    # id를 문서 본문에도 저장한다. Cloud Function v2의 event.params 가 비ASCII(한글)
+    # 문서 ID를 모지바케로 깨뜨리므로(firebase-functions#1459), 함수는 경로 파라미터가
+    # 아닌 이 본문 id를 단일 소스로 사용해야 푸시/알림의 policy_id 가 CDN 파일명과 일치한다.
+    assert call_data["id"] == "molit-2026-05-29-001"

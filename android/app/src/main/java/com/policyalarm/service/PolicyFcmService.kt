@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.policyalarm.MainActivity
+import com.policyalarm.PolicyAlarmApp
 import com.policyalarm.R
 import com.policyalarm.data.repository.UserRepository
 import kotlinx.coroutines.CoroutineScope
@@ -37,8 +38,9 @@ class PolicyFcmService : FirebaseMessagingService() {
     }
 
     private fun showNotification(policyId: String, title: String, body: String) {
-        // v1.4.3: IMPORTANCE_DEFAULT → HIGH (배너 표시 보장). 채널 ID 변경으로 기존 채널 교체.
-        val channelId = "policy_alerts_v2"
+        // 채널은 앱 시작 시 PolicyAlarmApp 에서 생성된다. 여기서도 한 번 더 보장한다
+        // (createNotificationChannel 은 동일 ID면 멱등).
+        val channelId = PolicyAlarmApp.FCM_CHANNEL_ID
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val channel = NotificationChannel(

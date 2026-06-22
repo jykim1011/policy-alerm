@@ -2,7 +2,10 @@ package com.policyalarm.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.policyalarm.data.remote.PolicyApiService
+import com.policyalarm.data.remote.RetrofitClient
 import com.policyalarm.data.repository.UserRepository
+import com.policyalarm.data.repository.resolveBookmarks
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -18,6 +21,7 @@ data class SettingsUiState(
 
 class SettingsViewModel(
     private val userRepo: UserRepository = UserRepository(),
+    private val policyApi: PolicyApiService = RetrofitClient.policyApi,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -47,7 +51,9 @@ class SettingsViewModel(
                 userEmail = userRepo.email() ?: "",
                 isLoading = false,
             )
-            runCatching { userRepo.countBookmarks() }
+            // 북마크 목록 화면(HomeViewModel)과 같은 resolveBookmarks 로 세어, 정책이 사라진
+            // 고아 북마크를 빼고 정리한다. 단순 문서 수(countBookmarks)는 목록과 어긋날 수 있다.
+            runCatching { resolveBookmarks(policyApi, userRepo).size }
                 .onSuccess { count -> _uiState.value = _uiState.value.copy(bookmarkCount = count) }
         }
     }
@@ -71,7 +77,9 @@ class SettingsViewModel(
 
     fun refreshBookmarkCount() {
         viewModelScope.launch {
-            runCatching { userRepo.countBookmarks() }
+            // 북마크 목록 화면(HomeViewModel)과 같은 resolveBookmarks 로 세어, 정책이 사라진
+            // 고아 북마크를 빼고 정리한다. 단순 문서 수(countBookmarks)는 목록과 어긋날 수 있다.
+            runCatching { resolveBookmarks(policyApi, userRepo).size }
                 .onSuccess { count -> _uiState.value = _uiState.value.copy(bookmarkCount = count) }
         }
     }
