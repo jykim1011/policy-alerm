@@ -89,7 +89,10 @@ exports.onNewPolicy = onDocumentCreated(
           title: `새 ${policy.category} 정책`,
           body: policy.title,
         },
-        android: { priority: "high" },
+        android: {
+          priority: "high",
+          notification: { channelId: "policy_alerts_v2" },
+        },
         tokens: chunk,
       };
 

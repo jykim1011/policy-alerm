@@ -13,6 +13,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PolicyAlarm">
 
+        <!-- 백그라운드/종료 상태 FCM 기본 채널 — IMPORTANCE_HIGH 보장 -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="policy_alerts_v2"/>
+
         <!-- AdMob 앱 ID (AdMob 콘솔 > 앱 설정) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
