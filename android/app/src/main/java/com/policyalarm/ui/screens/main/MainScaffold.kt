@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,6 +38,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.google.firebase.messaging.FirebaseMessaging
+import com.policyalarm.data.repository.NotificationRepository
+import com.policyalarm.data.repository.UserRepository
 import com.policyalarm.ui.screens.history.HistoryScreen
 import com.policyalarm.ui.screens.home.HomeScreen
 import com.policyalarm.ui.screens.home.HomeViewModel
@@ -46,8 +50,10 @@ import com.policyalarm.ui.theme.LocalAppColors
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.policyalarm.data.repository.NotificationRepository
 import com.policyalarm.ui.components.AdBanner
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 private enum class Tab { HOME, HISTORY, SETTINGS }
 
@@ -63,6 +69,17 @@ fun MainScaffold(
 
     // 홈이 아닌 탭에서 뒤로가기 → 홈으로. 홈에서 뒤로가기 → 시스템 기본(앱 종료)
     BackHandler(enabled = tab != Tab.HOME) { tab = Tab.HOME }
+
+    // Application.onCreate의 syncFcmTokenOnAuthReady가 실패한 경우를 대비한 폴백.
+    // MainScaffold는 로그인 완료 후에만 진입하므로 여기서는 uid가 항상 유효하다.
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val token = FirebaseMessaging.getInstance().token.await()
+                UserRepository().updateFcmToken(token)
+            }
+        }
+    }
 
     val context = LocalContext.current
     val homeVm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))

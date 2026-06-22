@@ -37,11 +37,12 @@ class PolicyFcmService : FirebaseMessagingService() {
     }
 
     private fun showNotification(policyId: String, title: String, body: String) {
-        val channelId = "policy_alerts"
+        // v1.4.3: IMPORTANCE_DEFAULT → HIGH (배너 표시 보장). 채널 ID 변경으로 기존 채널 교체.
+        val channelId = "policy_alerts_v2"
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val channel = NotificationChannel(
-            channelId, "정책 알림", NotificationManager.IMPORTANCE_DEFAULT
+            channelId, "정책 알림", NotificationManager.IMPORTANCE_HIGH
         )
         manager.createNotificationChannel(channel)
 
