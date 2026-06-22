@@ -1,5 +1,6 @@
 package com.policyalarm.ui.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,7 +34,7 @@ object Routes {
     const val LICENSES = "licenses"
     const val DETAIL = "detail/{policyId}"
 
-    fun detail(policyId: String) = "detail/$policyId"
+    fun detail(policyId: String) = "detail/${Uri.encode(policyId)}"
 }
 
 @Composable
@@ -120,7 +121,8 @@ fun AppNavigation(
             route = Routes.DETAIL,
             arguments = listOf(navArgument("policyId") { type = NavType.StringType })
         ) { backStack ->
-            val policyId = backStack.arguments?.getString("policyId") ?: return@composable
+            val rawId = backStack.arguments?.getString("policyId") ?: return@composable
+            val policyId = Uri.decode(rawId)
             val vm = viewModel<com.policyalarm.ui.screens.detail.DetailViewModel>(
                 factory = DetailViewModelFactory(context)
             )

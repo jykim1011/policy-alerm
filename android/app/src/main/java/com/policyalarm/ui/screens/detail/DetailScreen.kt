@@ -135,7 +135,9 @@ fun DetailScreen(
                         Spacer(Modifier.height(12.dp))
                         SummaryCard("👥", "누가 대상인가", summary.whoIsAffected)
                         Spacer(Modifier.height(12.dp))
-                        SummaryCard("📅", "언제부터 적용되나", summary.whenEffective)
+                        summary.whenEffective?.let {
+                            SummaryCard("📅", "언제부터 적용되나", it)
+                        }
 
                         if (summary.keyPoints.isNotEmpty()) {
                             Spacer(Modifier.height(12.dp))

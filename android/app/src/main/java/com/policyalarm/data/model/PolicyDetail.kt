@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class PolicySummary(
     @SerializedName("what_changed") val whatChanged: String,
     @SerializedName("who_is_affected") val whoIsAffected: String,
-    @SerializedName("when_effective") val whenEffective: String,
+    @SerializedName("when_effective") val whenEffective: String?,
     @SerializedName("key_points") val keyPoints: List<String>,
 )
 

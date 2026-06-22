@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.policyalarm.BuildConfig
 import com.policyalarm.ui.components.AppSwitch
 import com.policyalarm.ui.components.Emoji
 import com.policyalarm.ui.components.SUBSCRIBABLE_CATEGORIES
@@ -174,7 +175,7 @@ fun SettingsScreen(
                 }
                 SettingRow(dividerBelow = true) {
                     Text("앱 버전", color = c.fgDefault, fontSize = 14.5.sp, modifier = Modifier.weight(1f))
-                    Text("1.0.0", color = c.fgSubtle, fontSize = 13.sp)
+                    Text(BuildConfig.VERSION_NAME, color = c.fgSubtle, fontSize = 13.sp)
                 }
                 SettingRow(onClick = { vm.logout(); onLogout() }) {
                     Text("로그아웃", color = c.danger, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
