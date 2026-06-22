@@ -12,17 +12,23 @@ exports.onNewPolicy = onDocumentCreated(
     const policyId = event.params.policyId;
     const db = getFirestore();
 
+    console.log(`[onNewPolicy] START policyId=${policyId} category=${policy.category} subcategory=${policy.subcategory}`);
+
     // subcategory가 undefined/null이면 Firestore array-contains-any가 예외를 던지므로 필터링한다.
     const matchValues = [...new Set([policy.subcategory, policy.category].filter(Boolean))];
     if (matchValues.length === 0) {
-      console.error(`No valid matchValues for policy: ${policyId}`);
+      console.error(`[onNewPolicy] No valid matchValues for policy: ${policyId}`);
       await event.data.ref.delete();
       return;
     }
+
+    console.log(`[onNewPolicy] Querying users with subscribed_categories array-contains-any ${JSON.stringify(matchValues)}`);
     const usersSnap = await db
       .collection("users")
       .where("subscribed_categories", "array-contains-any", matchValues)
       .get();
+
+    console.log(`[onNewPolicy] Found ${usersSnap.size} matching users for policy: ${policyId}`);
 
     // 구독자 각자의 알림함(users/{uid}/notifications/{policyId})에 기록한다.
     // 앱이 푸시를 잡았는지/사용자가 탭했는지와 무관하게 알림 탭에서 항상 보이게 하는 단일 소스.
@@ -43,20 +49,26 @@ exports.onNewPolicy = onDocumentCreated(
       });
       await notifBatch.commit();
     }
+    console.log(`[onNewPolicy] Wrote notifications to ${usersSnap.size} users' subcollections`);
 
     const tokens = [];
+    const usersWithNoToken = [];
     usersSnap.forEach((doc) => {
       const user = doc.data();
       if (user.fcm_token) {
         tokens.push(user.fcm_token);
+      } else {
+        usersWithNoToken.push(doc.id);
       }
     });
+
+    console.log(`[onNewPolicy] FCM tokens: ${tokens.length} valid, ${usersWithNoToken.length} missing (uid list: ${JSON.stringify(usersWithNoToken)})`);
 
     // Firestore 트리거 문서 삭제 (중복 방지)
     await event.data.ref.delete();
 
     if (tokens.length === 0) {
-      console.log(`No matching users for policy: ${policyId}`);
+      console.log(`[onNewPolicy] No FCM tokens to send for policy: ${policyId}. Users exist but have no token.`);
       return;
     }
 
@@ -81,22 +93,31 @@ exports.onNewPolicy = onDocumentCreated(
         tokens: chunk,
       };
 
-      const response = await getMessaging().sendEachForMulticast(message);
+      let response;
+      try {
+        response = await getMessaging().sendEachForMulticast(message);
+      } catch (err) {
+        console.error(`[onNewPolicy] sendEachForMulticast THREW for chunk ${i}: ${err.message}`);
+        throw err;
+      }
+
       console.log(
-        `Sent ${response.successCount}/${chunk.length} notifications for ${policyId}`
+        `[onNewPolicy] Sent ${response.successCount}/${chunk.length} notifications for ${policyId}. ` +
+        `failureCount=${response.failureCount}`
       );
 
       const expiredTokens = [];
       response.responses.forEach((resp, idx) => {
-        if (
-          !resp.success &&
-          resp.error?.code === "messaging/registration-token-not-registered"
-        ) {
-          expiredTokens.push(chunk[idx]);
+        if (!resp.success) {
+          console.warn(`[onNewPolicy] FCM send failed for token[${idx}]: code=${resp.error?.code} msg=${resp.error?.message}`);
+          if (resp.error?.code === "messaging/registration-token-not-registered") {
+            expiredTokens.push(chunk[idx]);
+          }
         }
       });
 
       if (expiredTokens.length > 0) {
+        console.log(`[onNewPolicy] Clearing ${expiredTokens.length} expired tokens from Firestore`);
         // Firestore `in` 연산자는 최대 30개 값만 허용한다.
         const IN_LIMIT = 30;
         for (let j = 0; j < expiredTokens.length; j += IN_LIMIT) {
@@ -113,5 +134,7 @@ exports.onNewPolicy = onDocumentCreated(
         }
       }
     }
+
+    console.log(`[onNewPolicy] DONE for policyId=${policyId}`);
   }
 );
