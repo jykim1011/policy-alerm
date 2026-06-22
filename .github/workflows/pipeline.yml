@@ -66,3 +66,16 @@ jobs:
         run: python -m pipeline.main notify
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      # notify 단계 성공·실패 여부와 무관하게 pending_notify.json의 현재 상태를 git에 반영한다.
+      # notify 성공 시 파일이 삭제(unlink)되므로 빈 배열로 대체해 커밋한다.
+      # 이를 커밋하지 않으면 다음 실행에서 이미 처리된 정책이 중복 발송된다.
+      - name: Persist notification state
+        if: always()
+        run: |
+          if [ ! -f pipeline/pending_notify.json ]; then
+            echo "[]" > pipeline/pending_notify.json
+          fi
+          git add pipeline/pending_notify.json
+          git diff --staged --quiet || git commit -m "chore: update notification state [skip ci]"
+          git push

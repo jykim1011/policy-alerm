@@ -1,7 +1,9 @@
 package com.policyalarm.ui.screens.detail
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.policyalarm.data.model.PolicyDetail
 import com.policyalarm.data.repository.PolicyRepository
 import com.policyalarm.data.repository.UserRepository
@@ -41,7 +43,7 @@ class DetailViewModel(
             } catch (e: Exception) {
                 _uiState.value = DetailUiState(
                     isLoading = false,
-                    error = "정책을 불러올 수 없습니다",
+                    error = "정책을 불러올 수 없습니다\n[${e.javaClass.simpleName}] ${e.message?.take(80)}",
                 )
             }
         }
@@ -58,11 +60,19 @@ class DetailViewModel(
             try {
                 return policyRepo.getPolicyDetail(policyId)
             } catch (e: Exception) {
+                Log.e("DetailVM", "load attempt $attempt failed — id=[$policyId] ${e.javaClass.simpleName}: ${e.message}")
                 lastError = e
                 if (attempt < delaysMs.size) delay(delaysMs[attempt])
             }
         }
-        throw lastError ?: IllegalStateException("policy load failed")
+        val err = lastError ?: IllegalStateException("policy load failed")
+        runCatching {
+            FirebaseCrashlytics.getInstance().apply {
+                setCustomKey("policyId", policyId)
+                recordException(err)
+            }
+        }
+        throw err
     }
 
     fun toggleBookmark(policyId: String) {
