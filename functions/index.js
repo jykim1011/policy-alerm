@@ -1,15 +1,20 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 
 initializeApp();
 
-// 야간 방해금지 구간(한국시간 기준). 시작 ≤ hour < 24 또는 0 ≤ hour < 끝.
-const QUIET_START_KST = 22; // 밤 10시
-const QUIET_END_KST = 8; // 아침 8시
+const FCM_CHANNEL_ID = "policy_alerts_v2";
 
-/** 현재가 KST 야간 방해금지 시간대(22:00~08:00)인지 반환한다. */
+// 야간 방해금지 구간(한국시간 기준). 시작 ≤ hour < 24 또는 0 ≤ hour < 끝.
+// 이 시간대 정책은 즉시 푸시하지 않고 쌓아 두었다가 morningDigest(매일 09:00 KST)가
+// 한 번에 알린다.
+const QUIET_START_KST = 22; // 밤 10시
+const QUIET_END_KST = 9; // 아침 9시
+
+/** 현재가 KST 야간 방해금지 시간대(22:00~09:00)인지 반환한다. */
 function isQuietHoursKst(now = new Date()) {
   // 서버는 UTC로 동작하므로 +9시간 해 KST 시각(0~23)을 구한다.
   const kstHour = (now.getUTCHours() + 9) % 24;
@@ -82,11 +87,20 @@ exports.onNewPolicy = onDocumentCreated(
     // Firestore 트리거 문서 삭제 (중복 방지)
     await event.data.ref.delete();
 
-    // 야간 방해금지(KST 22:00~08:00): 이 시간대엔 FCM 푸시(배너/소리)를 보내지 않는다.
-    // 알림함(users/{uid}/notifications)에는 위에서 이미 기록했으므로, 사용자는 아침에
-    // 앱 알림 탭에서 확인할 수 있다(정책 누락 없음, 잠만 깨우지 않음).
+    // 야간 방해금지(KST 22:00~09:00): 즉시 푸시하지 않고, 구독자별로 밤사이 누적 건수
+    // (overnight_pending)를 올려 둔다. 알림함(users/{uid}/notifications)에는 위에서 이미
+    // 기록했고, 쌓인 건수는 morningDigest(매일 09:00 KST)가 한 번에 푸시로 알린다.
     if (isQuietHoursKst()) {
-      console.log(`[onNewPolicy] Quiet hours (KST) — skipping FCM push for ${policyId}. Saved to inbox only.`);
+      for (let i = 0; i < usersSnap.docs.length; i += 500) {
+        const pendingBatch = db.batch();
+        usersSnap.docs.slice(i, i + 500).forEach((doc) => {
+          pendingBatch.update(doc.ref, {
+            overnight_pending: FieldValue.increment(1),
+          });
+        });
+        await pendingBatch.commit();
+      }
+      console.log(`[onNewPolicy] Quiet hours (KST) — deferred ${policyId} to morning digest (${usersSnap.size} users).`);
       return;
     }
 
@@ -114,7 +128,7 @@ exports.onNewPolicy = onDocumentCreated(
         },
         android: {
           priority: "high",
-          notification: { channelId: "policy_alerts_v2" },
+          notification: { channelId: FCM_CHANNEL_ID },
         },
         tokens: chunk,
       };
@@ -162,5 +176,86 @@ exports.onNewPolicy = onDocumentCreated(
     }
 
     console.log(`[onNewPolicy] DONE for policyId=${policyId}`);
+  }
+);
+
+// 매일 KST 09:00 — 야간(22:00~09:00)에 쌓인 정책을 사용자별로 한 번에 알린다.
+// onNewPolicy 가 야간에 올려 둔 overnight_pending 카운트를 읽어 "밤사이 N건" 푸시를
+// 보내고 카운트를 비운다(필드 삭제).
+exports.morningDigest = onSchedule(
+  { schedule: "0 9 * * *", timeZone: "Asia/Seoul" },
+  async () => {
+    const db = getFirestore();
+    const snap = await db
+      .collection("users")
+      .where("overnight_pending", ">", 0)
+      .get();
+
+    console.log(`[morningDigest] START — ${snap.size} users with pending overnight policies`);
+    if (snap.empty) return;
+
+    // 토큰이 있는 사용자에게만 보낼 메시지를 만든다. 카운트 리셋은 토큰 유무와 무관하게 모두.
+    const messages = [];
+    const messageTokens = [];
+    const resetRefs = [];
+    snap.forEach((doc) => {
+      resetRefs.push(doc.ref);
+      const user = doc.data();
+      const count = user.overnight_pending || 0;
+      if (user.fcm_token && count > 0) {
+        messageTokens.push(user.fcm_token);
+        messages.push({
+          token: user.fcm_token,
+          notification: {
+            title: "정책 알리미",
+            body: `밤사이 새 정책 ${count}건이 도착했어요`,
+          },
+          android: {
+            priority: "high",
+            notification: { channelId: FCM_CHANNEL_ID },
+          },
+        });
+      }
+    });
+
+    // 푸시 발송 (sendEach 는 메시지 배열, 청크당 최대 500건).
+    const expiredTokens = [];
+    for (let i = 0; i < messages.length; i += 500) {
+      const chunk = messages.slice(i, i + 500);
+      const tokenChunk = messageTokens.slice(i, i + 500);
+      let response;
+      try {
+        response = await getMessaging().sendEach(chunk);
+      } catch (err) {
+        console.error(`[morningDigest] sendEach THREW for chunk ${i}: ${err.message}`);
+        throw err;
+      }
+      console.log(`[morningDigest] Sent ${response.successCount}/${chunk.length}, failures=${response.failureCount}`);
+      response.responses.forEach((resp, idx) => {
+        if (!resp.success && resp.error?.code === "messaging/registration-token-not-registered") {
+          expiredTokens.push(tokenChunk[idx]);
+        }
+      });
+    }
+
+    // 만료 토큰 정리 (Firestore `in` 은 최대 30개).
+    for (let j = 0; j < expiredTokens.length; j += 30) {
+      const tokenChunk = expiredTokens.slice(j, j + 30);
+      const expiredSnap = await db.collection("users").where("fcm_token", "in", tokenChunk).get();
+      const batch = db.batch();
+      expiredSnap.forEach((doc) => batch.update(doc.ref, { fcm_token: null }));
+      await batch.commit();
+    }
+
+    // overnight_pending 리셋 (필드 삭제 → 다음 쿼리에서 제외).
+    for (let i = 0; i < resetRefs.length; i += 500) {
+      const batch = db.batch();
+      resetRefs.slice(i, i + 500).forEach((ref) => {
+        batch.update(ref, { overnight_pending: FieldValue.delete() });
+      });
+      await batch.commit();
+    }
+
+    console.log(`[morningDigest] DONE — pushed to ${messages.length}, reset ${resetRefs.length}`);
   }
 );
