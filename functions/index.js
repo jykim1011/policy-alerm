@@ -14,6 +14,22 @@ const FCM_CHANNEL_ID = "policy_alerts_v2";
 const QUIET_START_KST = 22; // 밤 10시
 const QUIET_END_KST = 9; // 아침 9시
 
+/**
+ * gen2 트리거가 비ASCII 문서 ID(한글)를 UTF-8 바이트→Latin-1로 오독해 만든 모지바케를
+ * 원래 문자열로 되돌린다(firebase-functions#1459). round-trip 가드로, 모지바케가 아닌
+ * 일반 ASCII나 이미 정상인 한글 문자열에 적용해도 그대로 반환한다(안전).
+ */
+function decodeMojibake(s) {
+  if (!s) return s;
+  try {
+    const restored = Buffer.from(s, "latin1").toString("utf8");
+    if (Buffer.from(restored, "utf8").toString("latin1") === s) return restored;
+  } catch (_) {
+    // 변환 불가 — 원본 유지
+  }
+  return s;
+}
+
 /** 현재가 KST 야간 방해금지 시간대(22:00~09:00)인지 반환한다. */
 function isQuietHoursKst(now = new Date()) {
   // 서버는 UTC로 동작하므로 +9시간 해 KST 시각(0~23)을 구한다.
@@ -27,9 +43,11 @@ exports.onNewPolicy = onDocumentCreated(
     const policy = event.data.data();
     // event.params.policyId 는 gen2 트리거에서 한글 등 비ASCII 문서 ID를 모지바케로
     // 깨뜨린다(firebase-functions#1459). 그 깨진 값을 policy_id 로 쓰면 앱이
-    // policies/{id}.json 을 404 로 받는다. 문서 본문(event.data.data())은 깨지지 않으므로
-    // 파이프라인이 본문에 저장한 id 를 단일 소스로 사용한다(구버전 문서 대비 params 폴백).
-    const policyId = policy.id || event.params.policyId;
+    // policies/{id}.json 을 404 로 받는다.
+    //  1순위: 문서 본문 id(파이프라인이 저장, 깨지지 않음)
+    //  2순위(폴백): params 를 모지바케 복원 — 파이프라인이 아직 본문 id 를 안 넣은
+    //              구버전 문서에서도 앱이 정상 동작하도록.
+    const policyId = policy.id || decodeMojibake(event.params.policyId);
     const db = getFirestore();
 
     console.log(`[onNewPolicy] START policyId=${policyId} category=${policy.category} subcategory=${policy.subcategory}`);
