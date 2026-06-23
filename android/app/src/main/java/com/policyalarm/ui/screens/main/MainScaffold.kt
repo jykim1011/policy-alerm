@@ -1,5 +1,11 @@
 package com.policyalarm.ui.screens.main
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -81,6 +87,10 @@ fun MainScaffold(
         }
     }
 
+    // 알림 권한은 콜드 스타트가 아니라 로그인/온보딩을 마치고 메인에 진입한 이 시점에 요청한다
+    // (사용자가 앱 가치를 본 뒤 물어 수락률을 높인다). 메인 진입 시 1회만 요청.
+    RequestNotificationPermissionOnce()
+
     val context = LocalContext.current
     val homeVm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))
     val notifRepo = remember { NotificationRepository() }
@@ -108,6 +118,26 @@ fun MainScaffold(
         }
         AdBanner(modifier = Modifier.fillMaxWidth())
         BottomTabs(active = tab, onSelect = { tab = it }, badge = unreadCount)
+    }
+}
+
+/**
+ * Android 13(API 33)+ 의 런타임 알림 권한(POST_NOTIFICATIONS)을 메인 진입 시 1회 요청한다.
+ * 매니페스트 선언만으론 설치 시 알림이 기본 차단되므로 필요하다. 이미 허용됐거나 사용자가
+ * 영구 거부한 경우엔 시스템이 다이얼로그를 띄우지 않는다(거부해도 앱은 정상 동작).
+ */
+@Composable
+private fun RequestNotificationPermissionOnce() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {}
+    LaunchedEffect(Unit) {
+        val granted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 }
 
