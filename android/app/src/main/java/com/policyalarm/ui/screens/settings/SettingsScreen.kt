@@ -1,5 +1,9 @@
 package com.policyalarm.ui.screens.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,8 +29,12 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,11 +42,16 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.policyalarm.BuildConfig
@@ -84,6 +97,9 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
         ) {
+            // 알림이 꺼져 있으면(권한 거부/시스템에서 끔) 안내 배너 + 시스템 설정 바로가기.
+            NotificationDisabledBanner()
+
             // account header
             Spacer(Modifier.height(10.dp))
             Row(
@@ -189,6 +205,76 @@ fun SettingsScreen(
                 lineHeight = 17.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 24.dp),
+            )
+        }
+    }
+}
+
+/**
+ * 알림이 꺼져 있을 때만(권한 거부 또는 시스템 설정에서 끔) 보이는 안내 배너.
+ * 한 번 거부/수동 차단한 사용자는 앱에서 권한 다이얼로그를 다시 띄울 수 없으므로
+ * 시스템의 앱 알림 설정으로 바로 보낸다. 설정에서 돌아오면(ON_RESUME) 상태를 다시 읽어
+ * 알림을 켰다면 배너가 사라진다.
+ */
+@Composable
+private fun NotificationDisabledBanner() {
+    val c = LocalAppColors.current
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var enabled by remember {
+        mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                enabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    if (enabled) return
+
+    Spacer(Modifier.height(10.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(c.danger.copy(alpha = 0.12f))
+            .border(1.dp, c.danger.copy(alpha = 0.40f), RoundedCornerShape(16.dp))
+            .clickable { context.openAppNotificationSettings() }
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Emoji("🔔", 20)
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text("알림이 꺼져 있어요", color = c.fgStrong, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                "새 정책 알림을 받으려면 알림을 켜주세요",
+                color = c.fgSubtle,
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        Text("켜기", color = c.danger, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Icon(Icons.Filled.ChevronRight, null, tint = c.danger, modifier = Modifier.size(18.dp))
+    }
+}
+
+/** 이 앱의 시스템 알림 설정 화면을 연다(없으면 앱 정보 화면으로 폴백). */
+private fun Context.openAppNotificationSettings() {
+    val notifIntent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+        .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+    runCatching { startActivity(notifIntent) }.onFailure {
+        runCatching {
+            startActivity(
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", packageName, null),
+                )
             )
         }
     }
