@@ -5,6 +5,17 @@ const { getMessaging } = require("firebase-admin/messaging");
 
 initializeApp();
 
+// 야간 방해금지 구간(한국시간 기준). 시작 ≤ hour < 24 또는 0 ≤ hour < 끝.
+const QUIET_START_KST = 22; // 밤 10시
+const QUIET_END_KST = 8; // 아침 8시
+
+/** 현재가 KST 야간 방해금지 시간대(22:00~08:00)인지 반환한다. */
+function isQuietHoursKst(now = new Date()) {
+  // 서버는 UTC로 동작하므로 +9시간 해 KST 시각(0~23)을 구한다.
+  const kstHour = (now.getUTCHours() + 9) % 24;
+  return kstHour >= QUIET_START_KST || kstHour < QUIET_END_KST;
+}
+
 exports.onNewPolicy = onDocumentCreated(
   "new_policies/{policyId}",
   async (event) => {
@@ -70,6 +81,14 @@ exports.onNewPolicy = onDocumentCreated(
 
     // Firestore 트리거 문서 삭제 (중복 방지)
     await event.data.ref.delete();
+
+    // 야간 방해금지(KST 22:00~08:00): 이 시간대엔 FCM 푸시(배너/소리)를 보내지 않는다.
+    // 알림함(users/{uid}/notifications)에는 위에서 이미 기록했으므로, 사용자는 아침에
+    // 앱 알림 탭에서 확인할 수 있다(정책 누락 없음, 잠만 깨우지 않음).
+    if (isQuietHoursKst()) {
+      console.log(`[onNewPolicy] Quiet hours (KST) — skipping FCM push for ${policyId}. Saved to inbox only.`);
+      return;
+    }
 
     if (tokens.length === 0) {
       console.log(`[onNewPolicy] No FCM tokens to send for policy: ${policyId}. Users exist but have no token.`);
