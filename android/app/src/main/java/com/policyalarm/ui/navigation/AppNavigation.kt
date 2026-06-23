@@ -126,7 +126,9 @@ fun AppNavigation(
             arguments = listOf(navArgument("policyId") { type = NavType.StringType })
         ) { backStack ->
             val rawId = backStack.arguments?.getString("policyId") ?: return@composable
-            val policyId = Uri.decode(rawId)
+            // 서버 수정 전 알림함에 쌓인 기존 항목은 문서 ID가 모지바케라 그대로 쓰면 404 다.
+            // 상세 진입 직전에 복원한다(정상 ID는 무영향).
+            val policyId = com.policyalarm.decodeMojibake(Uri.decode(rawId))
             val vm = viewModel<com.policyalarm.ui.screens.detail.DetailViewModel>(
                 factory = DetailViewModelFactory(context)
             )
