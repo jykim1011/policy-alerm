@@ -22,8 +22,8 @@ android {
         applicationId = "com.policyalarm"
         minSdk = 26
         targetSdk = 35
-        versionCode = 24
-        versionName = "1.4.7"
+        versionCode = 25
+        versionName = "1.4.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "CDN_BASE_URL",
             "\"https://jykim1011.github.io/policy-alerm/\"")
