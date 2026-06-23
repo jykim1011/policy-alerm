@@ -221,6 +221,8 @@ exports.morningDigest = onSchedule(
     });
 
     // 푸시 발송 (sendEach 는 메시지 배열, 청크당 최대 500건).
+    // 한 청크가 throw 해도 중단하지 않는다. 중단하면 아래 리셋이 실행되지 않아,
+    // 다음 실행/재시도 때 이미 받은 사용자에게 디지트가 중복 발송된다.
     const expiredTokens = [];
     for (let i = 0; i < messages.length; i += 500) {
       const chunk = messages.slice(i, i + 500);
@@ -229,8 +231,8 @@ exports.morningDigest = onSchedule(
       try {
         response = await getMessaging().sendEach(chunk);
       } catch (err) {
-        console.error(`[morningDigest] sendEach THREW for chunk ${i}: ${err.message}`);
-        throw err;
+        console.error(`[morningDigest] sendEach THREW for chunk ${i}: ${err.message} — continuing`);
+        continue;
       }
       console.log(`[morningDigest] Sent ${response.successCount}/${chunk.length}, failures=${response.failureCount}`);
       response.responses.forEach((resp, idx) => {
@@ -240,21 +242,22 @@ exports.morningDigest = onSchedule(
       });
     }
 
-    // 만료 토큰 정리 (Firestore `in` 은 최대 30개).
-    for (let j = 0; j < expiredTokens.length; j += 30) {
-      const tokenChunk = expiredTokens.slice(j, j + 30);
-      const expiredSnap = await db.collection("users").where("fcm_token", "in", tokenChunk).get();
-      const batch = db.batch();
-      expiredSnap.forEach((doc) => batch.update(doc.ref, { fcm_token: null }));
-      await batch.commit();
-    }
-
-    // overnight_pending 리셋 (필드 삭제 → 다음 쿼리에서 제외).
+    // overnight_pending 리셋 (필드 삭제 → 다음 쿼리에서 제외). 중복 발송 방지의 핵심이므로
+    // 만료 토큰 정리(부가 작업)보다 먼저, 발송 성공/실패와 무관하게 항상 수행한다.
     for (let i = 0; i < resetRefs.length; i += 500) {
       const batch = db.batch();
       resetRefs.slice(i, i + 500).forEach((ref) => {
         batch.update(ref, { overnight_pending: FieldValue.delete() });
       });
+      await batch.commit();
+    }
+
+    // 만료 토큰 정리 (Firestore `in` 은 최대 30개) — 실패해도 이미 리셋됐으므로 안전.
+    for (let j = 0; j < expiredTokens.length; j += 30) {
+      const tokenChunk = expiredTokens.slice(j, j + 30);
+      const expiredSnap = await db.collection("users").where("fcm_token", "in", tokenChunk).get();
+      const batch = db.batch();
+      expiredSnap.forEach((doc) => batch.update(doc.ref, { fcm_token: null }));
       await batch.commit();
     }
 

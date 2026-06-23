@@ -51,10 +51,8 @@ class SettingsViewModel(
                 userEmail = userRepo.email() ?: "",
                 isLoading = false,
             )
-            // 북마크 목록 화면(HomeViewModel)과 같은 resolveBookmarks 로 세어, 정책이 사라진
-            // 고아 북마크를 빼고 정리한다. 단순 문서 수(countBookmarks)는 목록과 어긋날 수 있다.
-            runCatching { resolveBookmarks(policyApi, userRepo).size }
-                .onSuccess { count -> _uiState.value = _uiState.value.copy(bookmarkCount = count) }
+            // 북마크 개수는 화면 진입 시 LaunchedEffect 가 refreshBookmarkCount() 로 갱신한다.
+            // 여기서 또 세면 화면 첫 진입 때 resolveBookmarks(상세 N건 fetch)가 중복 실행된다.
         }
     }
 
@@ -78,7 +76,7 @@ class SettingsViewModel(
     fun refreshBookmarkCount() {
         viewModelScope.launch {
             // 북마크 목록 화면(HomeViewModel)과 같은 resolveBookmarks 로 세어, 정책이 사라진
-            // 고아 북마크를 빼고 정리한다. 단순 문서 수(countBookmarks)는 목록과 어긋날 수 있다.
+            // 고아 북마크를 빼고 정리한다 → 목록과 개수가 항상 일치한다.
             runCatching { resolveBookmarks(policyApi, userRepo).size }
                 .onSuccess { count -> _uiState.value = _uiState.value.copy(bookmarkCount = count) }
         }
