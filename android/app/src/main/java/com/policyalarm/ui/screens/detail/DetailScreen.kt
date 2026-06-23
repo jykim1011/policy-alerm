@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -83,6 +84,10 @@ fun DetailScreen(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
             )
+            // 공유는 정책 내용을 통한 앱 홍보가 주 목적. 상세가 로드된 뒤에만 노출한다.
+            state.detail?.let { d ->
+                IconCircle(Icons.Filled.Share, "공유하기", c.fgMuted) { sharePolicy(context, d) }
+            }
             IconCircle(
                 if (state.isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
                 "북마크",
@@ -217,6 +222,31 @@ fun DetailScreen(
             }
         }
     }
+}
+
+private const val PLAY_STORE_URL =
+    "https://play.google.com/store/apps/details?id=com.policyalarm"
+
+/**
+ * 정책 내용을 공유한다. 주 목적은 앱 홍보 — 정책 요약 한 토막 뒤에 홍보 문구와 Play 스토어
+ * 링크를 붙여, 받은 사람이 자연스럽게 설치 페이지로 가도록 한다.
+ */
+private fun sharePolicy(context: android.content.Context, detail: com.policyalarm.data.model.PolicyDetail) {
+    val text = buildString {
+        append("📋 ${detail.title}")
+        detail.summary?.whatChanged?.trim()?.takeIf { it.isNotEmpty() }?.let { changed ->
+            val brief = if (changed.length > 120) changed.take(120).trimEnd() + "…" else changed
+            append("\n\n$brief")
+        }
+        append("\n\n정책 알리미에서 청약·대출·창업·고용 등 새 정책을\n가장 먼저 받아보세요 👇\n")
+        append(PLAY_STORE_URL)
+    }
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, detail.title)
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+    context.startActivity(Intent.createChooser(send, "공유하기"))
 }
 
 @Composable
