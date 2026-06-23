@@ -210,6 +210,8 @@ exports.morningDigest = onSchedule(
             title: "정책 알리미",
             body: `밤사이 새 정책 ${count}건이 도착했어요`,
           },
+          // 묶음 알림은 특정 정책이 아니므로, 탭하면 앱의 알림 탭으로 연다.
+          data: { open_tab: "history" },
           android: {
             priority: "high",
             notification: { channelId: FCM_CHANNEL_ID },

@@ -69,9 +69,21 @@ fun MainScaffold(
     onArchiveClick: () -> Unit = {},
     onLogout: () -> Unit,
     onLicensesClick: () -> Unit = {},
+    requestedTab: String? = null,
+    onRequestedTabHandled: () -> Unit = {},
 ) {
     val c = LocalAppColors.current
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
+
+    // 아침 묶음 알림(open_tab=history) 등 외부 신호로 특정 탭을 열도록 요청받으면 전환한다.
+    LaunchedEffect(requestedTab) {
+        when (requestedTab) {
+            "history" -> {
+                tab = Tab.HISTORY
+                onRequestedTabHandled()
+            }
+        }
+    }
 
     // 홈이 아닌 탭에서 뒤로가기 → 홈으로. 홈에서 뒤로가기 → 시스템 기본(앱 종료)
     BackHandler(enabled = tab != Tab.HOME) { tab = Tab.HOME }

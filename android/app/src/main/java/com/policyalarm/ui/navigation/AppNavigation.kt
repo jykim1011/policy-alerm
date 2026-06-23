@@ -41,6 +41,8 @@ object Routes {
 fun AppNavigation(
     deepLinkPolicyId: String? = null,
     onDeepLinkHandled: () -> Unit = {},
+    openTab: String? = null,
+    onOpenTabHandled: () -> Unit = {},
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -104,6 +106,8 @@ fun AppNavigation(
                     }
                 },
                 onLicensesClick = { navController.navigate(Routes.LICENSES) },
+                requestedTab = openTab,
+                onRequestedTabHandled = onOpenTabHandled,
             )
         }
         composable(Routes.ARCHIVE) {

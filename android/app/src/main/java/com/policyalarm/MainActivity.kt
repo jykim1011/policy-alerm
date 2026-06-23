@@ -21,14 +21,20 @@ class MainActivity : ComponentActivity() {
     // (알림 기록 자체는 Cloud Function이 Firestore에 써 두므로 여기서 저장하지 않는다.)
     private val deepLinkPolicyId = mutableStateOf<String?>(null)
 
+    // 아침 묶음 알림(morningDigest)은 특정 정책이 아니라 "open_tab=history"를 실어 보낸다.
+    // 탭하면 앱의 알림 탭으로 이동시키기 위한 신호.
+    private val openTab = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         deepLinkPolicyId.value = intent.getStringExtra("policy_id")
+        openTab.value = intent.getStringExtra("open_tab")
         setContent {
             val systemDark = isSystemInDarkTheme()
             val themeController = remember { ThemeController(this, systemDark) }
             val policyId by deepLinkPolicyId
+            val tabRequest by openTab
             CompositionLocalProvider(LocalThemeController provides themeController) {
                 PolicyAlarmTheme(darkTheme = themeController.isDark) {
                     AppNavigation(
@@ -37,6 +43,11 @@ class MainActivity : ComponentActivity() {
                         onDeepLinkHandled = {
                             deepLinkPolicyId.value = null
                             intent.removeExtra("policy_id")
+                        },
+                        openTab = tabRequest,
+                        onOpenTabHandled = {
+                            openTab.value = null
+                            intent.removeExtra("open_tab")
                         },
                     )
                 }
@@ -47,8 +58,9 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // 앱이 실행 중일 때 알림을 탭한 경우. getIntent()가 새 인텐트를 가리키도록 교체하고
-        // 딥링크 대상을 갱신해 상세 화면으로 이동시킨다.
+        // 딥링크 대상/탭 신호를 갱신해 상세 화면 또는 알림 탭으로 이동시킨다.
         setIntent(intent)
         deepLinkPolicyId.value = intent.getStringExtra("policy_id")
+        openTab.value = intent.getStringExtra("open_tab")
     }
 }
