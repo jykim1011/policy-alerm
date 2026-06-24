@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -64,7 +65,7 @@ fun CommentSection(
                 placeholder = { Text("댓글을 입력하세요") },
                 maxLines = 4,
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.width(8.dp))
             Icon(
                 Icons.AutoMirrored.Filled.Send, "등록",
                 tint = if (input.isBlank()) c.fgFaint else c.accent,
@@ -121,7 +122,6 @@ private fun CommentRow(
             Row {
                 Text("답글", color = c.fgSubtle, fontSize = 11.5.sp, modifier = Modifier.clickable { onReply() })
                 if (comment.authorUid == myUid) {
-                    Spacer(Modifier.height(0.dp))
                     Text("삭제", color = c.danger, fontSize = 11.5.sp,
                         modifier = Modifier.padding(start = 14.dp).clickable { onDelete() })
                 }
