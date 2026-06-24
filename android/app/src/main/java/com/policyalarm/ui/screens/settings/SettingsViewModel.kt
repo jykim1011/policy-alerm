@@ -15,6 +15,7 @@ data class SettingsUiState(
     val notificationSchedule: String = "both",
     val userName: String = "사용자",
     val userEmail: String = "",
+    val nickname: String = "",
     val bookmarkCount: Int = 0,
     val isLoading: Boolean = true,
 )
@@ -44,11 +45,14 @@ class SettingsViewModel(
                 runCatching { userRepo.updateSubscribedCategories(categories.toList()) }
             }
 
+            val nickname = runCatching { userRepo.ensureNickname() }.getOrDefault("")
+
             _uiState.value = _uiState.value.copy(
                 subscribedCategories = categories,
                 notificationSchedule = schedule,
                 userName = userRepo.displayName() ?: "사용자",
                 userEmail = userRepo.email() ?: "",
+                nickname = nickname,
                 isLoading = false,
             )
             // 북마크 개수는 화면 진입 시 LaunchedEffect 가 refreshBookmarkCount() 로 갱신한다.
@@ -70,6 +74,16 @@ class SettingsViewModel(
         _uiState.value = _uiState.value.copy(notificationSchedule = schedule)
         viewModelScope.launch {
             runCatching { userRepo.updateNotificationSchedule(schedule) }
+        }
+    }
+
+    /** 닉네임을 갱신하고 즉시 저장한다(live save). */
+    fun setNickname(nickname: String) {
+        val trimmed = nickname.trim()
+        if (trimmed.isEmpty()) return
+        _uiState.value = _uiState.value.copy(nickname = trimmed)
+        viewModelScope.launch {
+            runCatching { userRepo.updateNickname(trimmed) }
         }
     }
 
