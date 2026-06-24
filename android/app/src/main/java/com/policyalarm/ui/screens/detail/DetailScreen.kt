@@ -171,6 +171,14 @@ fun DetailScreen(
                         )
                     }
                     Spacer(Modifier.height(16.dp))
+                    CommentSection(
+                        threads = state.commentThreads,
+                        commentCount = state.commentCount,
+                        myUid = state.myUid,
+                        onPost = { text, parentId, mention -> vm.postComment(policyId, text, parentId, mention) },
+                        onDelete = { commentId -> vm.deleteComment(policyId, commentId) },
+                    )
+                    Spacer(Modifier.height(24.dp))
                 }
 
                 // bottom action bar

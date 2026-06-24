@@ -87,6 +87,8 @@ class UserRepository(
             .collection("bookmarks").get().await()
             .documents.map { it.id }
 
+    fun uidOrNull(): String? = auth.currentUser?.uid
+
     fun isLoggedIn(): Boolean = auth.currentUser != null
 
     fun displayName(): String? = auth.currentUser?.displayName
