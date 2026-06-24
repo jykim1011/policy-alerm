@@ -28,5 +28,24 @@ service cloud.firestore {
     match /new_policies/{policyId} {
       allow read, write: if false;
     }
+
+    // 정책 댓글 — 로그인 사용자 읽기, 본인 작성/소프트삭제만
+    match /comments/{policyId}/items/{commentId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.deleted == false;
+
+      // 본인 댓글의 deleted 플래그만 수정 허용 (내용 편집 불가)
+      allow update: if request.auth != null
+        && resource.data.authorUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["deleted"]);
+
+      allow delete: if false;
+    }
   }
 }
