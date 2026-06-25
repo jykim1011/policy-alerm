@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.CircularProgressIndicator
@@ -162,7 +163,12 @@ fun DetailScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Emoji("🤖", 17)
+                        Icon(
+                            Icons.Filled.AutoAwesome,
+                            null,
+                            tint = c.accent,
+                            modifier = Modifier.size(17.dp),
+                        )
                         Text(
                             "AI가 원문을 요약했어요. 정확한 내용은 원문을 확인하세요.",
                             color = c.fgSubtle,
