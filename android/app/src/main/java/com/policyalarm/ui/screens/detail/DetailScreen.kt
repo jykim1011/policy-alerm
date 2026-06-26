@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.CircularProgressIndicator
@@ -84,10 +85,6 @@ fun DetailScreen(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
             )
-            // 공유는 정책 내용을 통한 앱 홍보가 주 목적. 상세가 로드된 뒤에만 노출한다.
-            state.detail?.let { d ->
-                IconCircle(Icons.Filled.Share, "공유하기", c.fgMuted) { sharePolicy(context, d) }
-            }
             IconCircle(
                 if (state.isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
                 "북마크",
@@ -162,7 +159,12 @@ fun DetailScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Emoji("🤖", 17)
+                        Icon(
+                            Icons.Filled.AutoAwesome,
+                            null,
+                            tint = c.accent,
+                            modifier = Modifier.size(17.dp),
+                        )
                         Text(
                             "AI가 원문을 요약했어요. 정확한 내용은 원문을 확인하세요.",
                             color = c.fgSubtle,
@@ -171,6 +173,14 @@ fun DetailScreen(
                         )
                     }
                     Spacer(Modifier.height(16.dp))
+                    CommentSection(
+                        threads = state.commentThreads,
+                        commentCount = state.commentCount,
+                        myUid = state.myUid,
+                        onPost = { text, parentId, mention -> vm.postComment(policyId, text, parentId, mention) },
+                        onDelete = { commentId -> vm.deleteComment(policyId, commentId) },
+                    )
+                    Spacer(Modifier.height(24.dp))
                 }
 
                 // bottom action bar
@@ -189,18 +199,14 @@ fun DetailScreen(
                             .size(width = 52.dp, height = 48.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(c.bgSurface)
-                            .border(
-                                1.dp,
-                                if (state.isBookmarked) c.accent else c.borderStrong,
-                                RoundedCornerShape(8.dp),
-                            )
-                            .clickable { vm.toggleBookmark(policyId) },
+                            .border(1.dp, c.borderStrong, RoundedCornerShape(8.dp))
+                            .clickable { sharePolicy(context, detail) },
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            if (state.isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
-                            "북마크",
-                            tint = if (state.isBookmarked) c.accent else c.fgMuted,
+                            Icons.Filled.Share,
+                            "공유하기",
+                            tint = c.fgMuted,
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -233,13 +239,21 @@ private const val PLAY_STORE_URL =
  */
 private fun sharePolicy(context: android.content.Context, detail: com.policyalarm.data.model.PolicyDetail) {
     val text = buildString {
-        append("📋 ${detail.title}")
+        append("📋 ${detail.title}\n")
+        append("🏛 ${detail.source} · ${detail.publishedAt.take(10)}")
+
         detail.summary?.whatChanged?.trim()?.takeIf { it.isNotEmpty() }?.let { changed ->
-            val brief = if (changed.length > 120) changed.take(120).trimEnd() + "…" else changed
-            append("\n\n$brief")
+            val brief = if (changed.length > 150) changed.take(150).trimEnd() + "…" else changed
+            append("\n\n🔄 무엇이 바뀌었나\n$brief")
         }
-        append("\n\n정책 알리미에서 청약·대출·창업·고용 등 새 정책을\n가장 먼저 받아보세요 👇\n")
-        append(PLAY_STORE_URL)
+        detail.summary?.whenEffective?.trim()?.takeIf { it.isNotEmpty() }?.let { whenEff ->
+            append("\n\n📅 적용 시기\n$whenEff")
+        }
+
+        append("\n\n──────────")
+        append("\n📲 정책 알리미")
+        append("\n청약·대출·창업·고용 등 새 정책을 가장 먼저 받아보세요")
+        append("\n$PLAY_STORE_URL")
     }
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"

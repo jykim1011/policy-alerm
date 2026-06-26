@@ -44,6 +44,7 @@ class LoginViewModel(
                         subscribedCategories = listOf("부동산", "청약", "대출", "세금"),
                         notificationSchedule = "both",
                     )
+                    ensureProfileForNewUser(isNewUser = true)
                 } else {
                     userRepo.updateFcmToken(fcmToken)
                 }
@@ -52,6 +53,13 @@ class LoginViewModel(
             } catch (e: Exception) {
                 _uiState.value = LoginUiState.Error(e.message ?: "로그인 실패")
             }
+        }
+    }
+
+    /** 신규 가입자에게 표시용 닉네임을 보장한다. 기존 사용자는 건드리지 않는다. */
+    suspend fun ensureProfileForNewUser(isNewUser: Boolean) {
+        if (isNewUser) {
+            runCatching { userRepo.ensureNickname() }
         }
     }
 

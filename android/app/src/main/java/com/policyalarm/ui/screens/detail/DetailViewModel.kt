@@ -4,7 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.policyalarm.data.model.CommentThread
 import com.policyalarm.data.model.PolicyDetail
+import com.policyalarm.data.model.groupComments
+import com.policyalarm.data.repository.CommentRepository
 import com.policyalarm.data.repository.PolicyRepository
 import com.policyalarm.data.repository.UserRepository
 import kotlinx.coroutines.delay
@@ -17,11 +20,15 @@ data class DetailUiState(
     val isLoading: Boolean = true,
     val isBookmarked: Boolean = false,
     val error: String? = null,
+    val commentThreads: List<CommentThread> = emptyList(),
+    val commentCount: Int = 0,
+    val myUid: String? = null,
 )
 
 class DetailViewModel(
     private val policyRepo: PolicyRepository,
     private val userRepo: UserRepository = UserRepository(),
+    private val commentRepo: CommentRepository = CommentRepository(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailUiState())
@@ -40,6 +47,7 @@ class DetailViewModel(
                     isBookmarked = bookmarked,
                     isLoading = false,
                 )
+                loadComments(policyId)
             } catch (e: Exception) {
                 _uiState.value = DetailUiState(
                     isLoading = false,
@@ -73,6 +81,40 @@ class DetailViewModel(
             }
         }
         throw err
+    }
+
+    fun loadComments(policyId: String) {
+        viewModelScope.launch {
+            runCatching {
+                val flat = commentRepo.getComments(policyId)
+                val count = runCatching { commentRepo.count(policyId) }.getOrDefault(flat.size)
+                groupComments(flat) to count
+            }.onSuccess { (threads, count) ->
+                _uiState.value = _uiState.value.copy(
+                    commentThreads = threads,
+                    commentCount = count,
+                    myUid = userRepo.uidOrNull(),
+                )
+            }
+        }
+    }
+
+    fun postComment(policyId: String, text: String, parentId: String? = null, mentionNickname: String? = null) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty() || trimmed.length > 1000) return
+        viewModelScope.launch {
+            runCatching {
+                val nickname = userRepo.ensureNickname()
+                commentRepo.addComment(policyId, trimmed, nickname, parentId, mentionNickname)
+            }.onSuccess { loadComments(policyId) }
+        }
+    }
+
+    fun deleteComment(policyId: String, commentId: String) {
+        viewModelScope.launch {
+            runCatching { commentRepo.softDelete(policyId, commentId) }
+                .onSuccess { loadComments(policyId) }
+        }
     }
 
     fun toggleBookmark(policyId: String) {

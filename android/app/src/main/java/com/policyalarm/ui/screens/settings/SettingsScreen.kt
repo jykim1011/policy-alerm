@@ -26,8 +26,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -142,6 +146,45 @@ fun SettingsScreen(
                         .background(c.bgMuted)
                         .padding(horizontal = 9.dp, vertical = 4.dp),
                 ) { Text("Google", color = c.fgSubtle, fontSize = 11.sp, fontWeight = FontWeight.SemiBold) }
+            }
+
+            var showNicknameDialog by remember { mutableStateOf(false) }
+
+            // 닉네임
+            SettingsSection("프로필") {
+                SettingRow(onClick = { showNicknameDialog = true }) {
+                    Emoji("🙂", 20)
+                    Spacer(Modifier.width(12.dp))
+                    Text("닉네임", color = c.fgStrong, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(state.nickname.ifBlank { "설정 안 됨" }, color = c.fgSubtle, fontSize = 13.sp)
+                    Spacer(Modifier.width(4.dp))
+                    Icon(Icons.Filled.Edit, null, tint = c.fgFaint, modifier = Modifier.size(16.dp))
+                }
+            }
+
+            if (showNicknameDialog) {
+                var draft by remember { mutableStateOf(state.nickname) }
+                AlertDialog(
+                    onDismissRequest = { showNicknameDialog = false },
+                    title = { Text("닉네임 변경") },
+                    text = {
+                        OutlinedTextField(
+                            value = draft,
+                            onValueChange = { if (it.length <= 20) draft = it },
+                            singleLine = true,
+                            label = { Text("닉네임 (최대 20자)") },
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = { vm.setNickname(draft); showNicknameDialog = false },
+                            enabled = draft.isNotBlank(),
+                        ) { Text("저장") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showNicknameDialog = false }) { Text("취소") }
+                    },
+                )
             }
 
             // 구독 카테고리
