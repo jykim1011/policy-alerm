@@ -1,6 +1,7 @@
 package com.policyalarm.ui.screens.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,7 +92,8 @@ fun CommentSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(22.dp))
-                .background(c.bgSurface2)
+                .background(c.bgSurface)
+                .border(1.dp, c.borderStrong, RoundedCornerShape(22.dp))
                 .padding(start = 16.dp, end = 5.dp, top = 5.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
