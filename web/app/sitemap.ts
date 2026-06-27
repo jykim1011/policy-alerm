@@ -23,8 +23,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
+  const staticUrls: MetadataRoute.Sitemap = [
+    "/about",
+    "/privacy",
+    "/contact",
+  ].map((p) => ({
+    url: `${SITE_URL}${p}/`,
+    changeFrequency: "yearly",
+    priority: 0.3,
+  }));
+
   return [
     { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1 },
+    ...staticUrls,
     ...categoryUrls,
     ...policyUrls,
   ];

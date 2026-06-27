@@ -13,6 +13,13 @@ export function HomeClient({ initial }: { initial: PolicyItem[] }) {
   const [src, setSrc] = useState("전체");
   const [q, setQ] = useState("");
 
+  // URL 의 ?q= 검색어로 초기화 (구글 사이트링크 검색창·공유 가능한 검색 URL 지원).
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get("q");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (initial) setQ(initial);
+  }, []);
+
   useEffect(() => {
     let alive = true;
     fetch(`${CDN_BASE}/policies/index.json`)
