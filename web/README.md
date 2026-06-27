@@ -35,22 +35,23 @@ npm run build      # web/out 에 정적 HTML 생성 (output: 'export')
    CI 시크릿 `FIREBASE_HOSTING_SA` 로 등록.
 4. (선택) FCM 웹 푸시를 붙일 때 클라우드 메시징의 **VAPID 키** 발급.
 
-## 배포 (CI 자동)
+## 배포 (수동)
 
-`.github/workflows/web-deploy.yml` 가 다음 시점에 빌드+배포한다:
-- `web/**` 또는 `firebase.json` 변경 push (코드/설정 변경)
-- **Policy Pipeline** 워크플로 완료 후(`workflow_run`) — 데이터 갱신 반영
-  (파이프라인 데이터 커밋은 `[skip ci]` 라 push 트리거가 안 걸리므로 필요)
-
-필요 시크릿: `FIREBASE_HOSTING_SA`, `NEXT_PUBLIC_FIREBASE_API_KEY`,
-`NEXT_PUBLIC_FIREBASE_APP_ID`. (project id·sender id·auth domain 등 비밀 아님 → 워크플로에 인라인.)
-
-수동 배포:
+현재는 **수동 배포**가 표준이다. `web/` 에서 한 줄로 빌드+배포한다:
 
 ```bash
-npm run build
-npx firebase-tools deploy --only hosting --project policy-alerm
+npm run deploy
 ```
+
+(내부적으로 `next build` 로 `web/out` 생성 후 루트 `../firebase.json` 설정으로
+`firebase deploy --only hosting` 실행. Firebase CLI 로그인이 되어 있어야 한다.)
+
+### CI 자동 배포 (현재 비활성)
+
+`.github/workflows/web-deploy.yml` 가 있지만 자동 트리거는 꺼져 있고 수동 실행만 가능하다.
+켜려면 CI 서비스 계정(`firebase-adminsdk-fbsvc@…`)에 `roles/firebasehosting.admin`
+권한을 부여한 뒤, 워크플로의 `push`/`workflow_run` 트리거 주석을 해제한다.
+(BOM 인증 버그는 이미 수정됨.)
 
 ## 남은 작업 (follow-up)
 

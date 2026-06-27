@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy": "next build && firebase --config ../firebase.json deploy --only hosting --project policy-alerm --non-interactive"
   },
   "dependencies": {
     "firebase": "^12.15.0",
