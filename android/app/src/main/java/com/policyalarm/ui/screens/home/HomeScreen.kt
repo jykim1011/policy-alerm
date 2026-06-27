@@ -23,15 +23,21 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -133,23 +139,32 @@ fun HomeScreen(
                 }
             }
         } else {
-            // category chip row
-            LazyRow(
+            // category chip row + 주관부처 필터
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(c.bgSurface)
                     .border(width = 1.dp, color = c.border),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(CATEGORY_LIST) { cat ->
-                    CategoryChip(
-                        label = cat.key,
-                        emoji = if (cat.key == "전체") null else cat.emoji,
-                        selected = state.selectedCategory == cat.key,
-                        onClick = { vm.selectCategory(cat.key) },
-                    )
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(CATEGORY_LIST) { cat ->
+                        CategoryChip(
+                            label = cat.key,
+                            emoji = if (cat.key == "전체") null else cat.emoji,
+                            selected = state.selectedCategory == cat.key,
+                            onClick = { vm.selectCategory(cat.key) },
+                        )
+                    }
                 }
+                SourceFilter(
+                    sources = state.sources,
+                    selected = state.selectedSource,
+                    onSelect = vm::selectSource,
+                )
             }
         }
 
@@ -273,6 +288,59 @@ fun PolicyCard(policy: PolicyItem, isRead: Boolean, onClick: () -> Unit) {
                 tint = c.fgFaint,
                 modifier = Modifier.size(18.dp),
             )
+        }
+    }
+}
+
+/** 주관부처 필터 드롭다운. 현재 불러온 정책에 등장하는 부처만 빈도순으로 나열한다. */
+@Composable
+private fun SourceFilter(
+    sources: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+) {
+    val c = LocalAppColors.current
+    var expanded by remember { mutableStateOf(false) }
+    val active = selected != "전체"
+    Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(if (active) c.govTint else c.bgSurface)
+                .border(1.dp, if (active) c.accent else c.border, RoundedCornerShape(8.dp))
+                .clickable { expanded = true }
+                .padding(horizontal = 12.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                if (active) "🏛 $selected" else "🏛 주관부처 전체",
+                color = if (active) c.accent else c.fgMuted,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+            )
+            Spacer(Modifier.width(4.dp))
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "주관부처 선택",
+                tint = if (active) c.accent else c.fgMuted,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(c.bgSurface),
+        ) {
+            DropdownMenuItem(
+                text = { Text("전체", color = c.fgStrong, fontWeight = if (selected == "전체") FontWeight.Bold else FontWeight.Normal) },
+                onClick = { onSelect("전체"); expanded = false },
+            )
+            sources.forEach { src ->
+                DropdownMenuItem(
+                    text = { Text(src, color = c.fgStrong, fontWeight = if (src == selected) FontWeight.Bold else FontWeight.Normal) },
+                    onClick = { onSelect(src); expanded = false },
+                )
+            }
         }
     }
 }

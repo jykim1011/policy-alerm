@@ -1,0 +1,31 @@
+import type { MetadataRoute } from "next";
+import { getArchivedPolicies } from "@/lib/policies";
+import { CATEGORY_LIST } from "@/lib/categoryMeta";
+import { SITE_URL } from "@/lib/site";
+
+export const dynamic = "force-static";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const policies = getArchivedPolicies();
+
+  const policyUrls: MetadataRoute.Sitemap = policies.map((p) => ({
+    url: `${SITE_URL}/policy/${encodeURIComponent(p.id)}/`,
+    lastModified: new Date(p.published_at),
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  const categoryUrls: MetadataRoute.Sitemap = CATEGORY_LIST.filter(
+    (c) => c.key !== "전체",
+  ).map((c) => ({
+    url: `${SITE_URL}/category/${encodeURIComponent(c.key)}/`,
+    changeFrequency: "daily",
+    priority: 0.6,
+  }));
+
+  return [
+    { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1 },
+    ...categoryUrls,
+    ...policyUrls,
+  ];
+}

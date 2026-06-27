@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* =============================================================
+ * 정책알람 웹 디자인 시스템
+ * 색상은 Android 앱(ui/theme/Color.kt)과 동일하게 통일 — 거브블루 액센트 +
+ * Tailwind 회색조 + 연블루 틴트. 웹 가독성을 위해 Pretendard 본문 + 넉넉한 행간.
+ *
+ * 토큰 이름은 유지하되(컴포넌트 클래스 보존) 값만 앱 팔레트로 매핑한다:
+ *   ink → fg-strong, ink-soft → fg-default, muted → fg-muted, faint → fg-faint,
+ *   rule → border, rule-strong → border-strong, paper → bgApp, surface → white,
+ *   seal/seal-ink/seal-soft → accent / accent-hover / gov-tint (앱 강조색)
+ * ============================================================= */
+@theme {
+  /* 배경 / 면 */
+  --color-paper: #f4f6fb; /* 앱 bgApp */
+  --color-surface: #ffffff; /* 앱 surface */
+  --color-muted-bg: #f3f4f6; /* 앱 bgMuted */
+
+  /* 글자 */
+  --color-ink: #111827; /* fg-strong (gray-900) */
+  --color-ink-soft: #374151; /* fg-default (gray-700) */
+  --color-muted: #4b5563; /* fg-muted (gray-600) */
+  --color-faint: #6b7280; /* fg-subtle (gray-500) — 가독성 위해 한 단계 진하게 */
+
+  /* 선 */
+  --color-rule: #e5e7eb; /* border (gray-200) */
+  --color-rule-strong: #d1d5db; /* border-strong (gray-300) */
+
+  /* 강조 — 앱 거브블루 */
+  --color-seal: #1d4ed8; /* accent (blue-700) */
+  --color-seal-ink: #1e40af; /* accent-hover (blue-800) */
+  --color-seal-soft: #eff6ff; /* gov-tint (blue-50) */
+  --color-danger: #ef4444;
+
+  /* 글꼴 — 가독성 높은 Pretendard로 통일 */
+  --font-sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo",
+    system-ui, sans-serif;
+  --font-serif: var(--font-sans);
+  --font-mono: var(--font-sans);
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink-soft);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  letter-spacing: -0.003em;
+}
+
+::selection {
+  background: var(--color-seal);
+  color: #fff;
+}
+
+/* ---- 섹션 라벨 (강조색 소제목) ---- */
+.doc-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-seal-ink);
+}
+
+/* ---- 발행 부처 칩 ---- */
+.seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--color-seal-ink);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 9999px;
+  padding: 0.15rem 0.55rem;
+  background: var(--color-surface);
+  white-space: nowrap;
+}
+.seal::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--color-seal);
+}
+.seal--lg {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  background: var(--color-seal-soft);
+  border-color: var(--color-seal);
+  color: var(--color-seal-ink);
+}
+
+/* ---- 제호 강조 괘선 ---- */
+.rule-seal {
+  height: 2px;
+  background: var(--color-seal);
+  border-radius: 2px;
+}
+
+/* ---- 공고 행 hover ---- */
+.notice {
+  transition: background 0.16s ease;
+}
+.notice:hover {
+  background: var(--color-seal-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

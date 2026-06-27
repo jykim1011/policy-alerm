@@ -17,17 +17,30 @@ data class HomeUiState(
     val allPolicies: List<PolicyItem> = emptyList(),
     val readIds: Set<String> = emptySet(),
     val selectedCategory: String = "전체",
+    val selectedSource: String = "전체",
     val isLoading: Boolean = false,
     val error: String? = null,
     val showBookmarks: Boolean = false,
     val bookmarkPolicies: List<PolicyItem> = emptyList(),
 ) {
+    /** 현재 불러온 정책들의 주관부처 목록(빈도 내림차순). 필터 드롭다운에 사용. */
+    val sources: List<String>
+        get() = allPolicies
+            .mapNotNull { it.source?.takeIf { s -> s.isNotBlank() } }
+            .groupingBy { it }.eachCount()
+            .entries.sortedByDescending { it.value }
+            .map { it.key }
+
     val policies: List<PolicyItem>
-        get() = when {
-            showBookmarks -> bookmarkPolicies
-            selectedCategory == "전체" -> allPolicies
-            selectedCategory == "부동산" -> allPolicies.filter { it.category == "부동산" }
-            else -> allPolicies.filter { it.subcategory == selectedCategory }
+        get() {
+            if (showBookmarks) return bookmarkPolicies
+            val byCategory = when (selectedCategory) {
+                "전체" -> allPolicies
+                "부동산" -> allPolicies.filter { it.category == "부동산" }
+                else -> allPolicies.filter { it.subcategory == selectedCategory }
+            }
+            return if (selectedSource == "전체") byCategory
+            else byCategory.filter { it.source == selectedSource }
         }
 }
 
@@ -69,6 +82,10 @@ class HomeViewModel(
 
     fun selectCategory(category: String) {
         _uiState.update { it.copy(selectedCategory = category) }
+    }
+
+    fun selectSource(source: String) {
+        _uiState.update { it.copy(selectedSource = source) }
     }
 
     fun loadAndShowBookmarks() {
