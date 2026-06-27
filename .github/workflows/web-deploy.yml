@@ -1,21 +1,23 @@
 name: Deploy Web
 
 # 웹 정적 사이트(web/)를 빌드해 Firebase Hosting 에 배포한다.
-# 트리거:
-#  1) web/ 또는 firebase.json 변경 push — 코드/설정 변경 시
-#  2) Policy Pipeline 완료 후(workflow_run) — 데이터 갱신 시
-#     (Policy Pipeline 의 데이터 커밋은 "[skip ci]" 라 push 트리거가 안 걸리므로 필요)
+#
+# ⚠️ 자동 트리거(push·workflow_run)는 비활성화되어 있다(수동 실행만).
+#    CI 배포가 동작하려면 CI 서비스 계정(firebase-adminsdk-fbsvc@…)에
+#    roles/firebasehosting.admin 권한이 필요하다(미부여 상태). 권한 부여 전까지
+#    자동 실행하면 deploy 단계에서 매번 실패해 알림 메일이 쌓이므로 수동 실행만 둔다.
+#    권한 부여 후 아래 push/workflow_run 트리거 주석을 해제하면 자동 배포가 켜진다.
 on:
-  push:
-    branches: [master]
-    paths:
-      - "web/**"
-      - "firebase.json"
-      - ".github/workflows/web-deploy.yml"
-  workflow_run:
-    workflows: ["Policy Pipeline"]
-    types: [completed]
   workflow_dispatch:
+  # push:
+  #   branches: [master]
+  #   paths:
+  #     - "web/**"
+  #     - "firebase.json"
+  #     - ".github/workflows/web-deploy.yml"
+  # workflow_run:
+  #   workflows: ["Policy Pipeline"]
+  #   types: [completed]
 
 concurrency:
   group: web-deploy
@@ -56,5 +58,7 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$GOOGLE_APPLICATION_CREDENTIALS"
+          # FIREBASE_SERVICE_ACCOUNT 시크릿 JSON 앞에 UTF-8 BOM이 섞여 있어 그대로 쓰면
+          # firebase-tools 인증이 "Failed to authenticate"로 깨진다. 첫 줄의 BOM을 제거한다.
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" | sed '1s/^\xEF\xBB\xBF//' > "$GOOGLE_APPLICATION_CREDENTIALS"
           npx --yes firebase-tools@latest deploy --only hosting --project policy-alerm --non-interactive
