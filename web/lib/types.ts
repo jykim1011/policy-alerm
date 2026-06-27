@@ -22,6 +22,12 @@ export interface PolicySummary {
   who_is_affected: string;
   when_effective?: string | null;
   key_points?: string[];
+  // 시민 가치 보강 필드(선택) — 파이프라인이 채우면 상세 페이지에 렌더된다.
+  background?: string;
+  eligibility?: string[];
+  how_to_apply?: string | null;
+  faq?: { question: string; answer: string }[];
+  glossary?: { term: string; definition: string }[];
 }
 
 export interface PolicyDetail {

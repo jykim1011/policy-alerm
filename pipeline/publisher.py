@@ -9,6 +9,27 @@ DOCS_ROOT = "docs"
 KST = timezone(timedelta(hours=9))
 
 
+def _summary_dict(s: PolicySummary) -> dict:
+    """요약을 JSON 직렬화. 보강 필드는 값이 있을 때만 넣어 기존 스키마와 호환되게 한다."""
+    d = {
+        "what_changed": s.what_changed,
+        "who_is_affected": s.who_is_affected,
+        "when_effective": s.when_effective,
+        "key_points": s.key_points,
+    }
+    if getattr(s, "background", ""):
+        d["background"] = s.background
+    if getattr(s, "eligibility", None):
+        d["eligibility"] = s.eligibility
+    if getattr(s, "how_to_apply", None):
+        d["how_to_apply"] = s.how_to_apply
+    if getattr(s, "faq", None):
+        d["faq"] = s.faq
+    if getattr(s, "glossary", None):
+        d["glossary"] = s.glossary
+    return d
+
+
 def build_policy_id(source: str, published_at: str, url: str) -> str:
     date_part = published_at[:10]
     url_short = hashlib.md5(url.encode()).hexdigest()[:8]
@@ -31,12 +52,7 @@ def publish_policy(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "file_type": item.file_type,
         "published_at": item.published_at,
         "crawled_at": item.crawled_at,
-        "summary": {
-            "what_changed": item.summary.what_changed,
-            "who_is_affected": item.summary.who_is_affected,
-            "when_effective": item.summary.when_effective,
-            "key_points": item.summary.key_points,
-        } if item.summary else None,
+        "summary": _summary_dict(item.summary) if item.summary else None,
     }
 
     out_path = policies_dir / f"{item.id}.json"

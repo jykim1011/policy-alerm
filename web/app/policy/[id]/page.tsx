@@ -58,6 +58,19 @@ export default async function PolicyPage({ params }: Props) {
     description: p.summary?.what_changed ?? p.title,
     mainEntityOfPage: `${SITE_URL}/policy/${encodeURIComponent(p.id)}/`,
   };
+  const faq = p.summary?.faq ?? [];
+  const faqLd =
+    faq.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faq.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: { "@type": "Answer", text: f.answer },
+          })),
+        }
+      : null;
 
   return (
     <article>
@@ -65,6 +78,12 @@ export default async function PolicyPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {faqLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      )}
 
       {/* 공문서 머리글: 분류·문서번호 + 직인 */}
       <div className="mb-4 flex items-start justify-between gap-4 border-b border-rule pb-4">
@@ -124,6 +143,12 @@ export default async function PolicyPage({ params }: Props) {
         )}
       </div>
 
+      {p.summary?.background && (
+        <p className="mb-5 rounded-lg border-l-4 border-seal bg-seal-soft px-4 py-3 text-[0.95rem] leading-relaxed text-ink-soft">
+          {p.summary.background}
+        </p>
+      )}
+
       {p.summary && (
         <div className="flex flex-col divide-y divide-rule border-y border-rule">
           <Section title="무엇이 달라지나요" body={p.summary.what_changed} />
@@ -144,6 +169,70 @@ export default async function PolicyPage({ params }: Props) {
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {/* 자가 체크 */}
+      {p.summary?.eligibility && p.summary.eligibility.length > 0 && (
+        <div className="mt-5 rounded-lg border border-rule bg-surface p-5">
+          <p className="doc-eyebrow mb-3">나에게 해당되나요?</p>
+          <ul className="flex flex-col gap-2 text-[0.95rem] leading-relaxed text-ink-soft">
+            {p.summary.eligibility.map((e, i) => (
+              <li key={i} className="flex gap-2.5">
+                <span className="mt-0.5 select-none text-seal">✓</span>
+                <span className="break-keep">{e}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 신청 방법 */}
+      {p.summary?.how_to_apply && (
+        <div className="mt-4">
+          <p className="doc-eyebrow mb-2">신청 방법·기간</p>
+          <p className="whitespace-pre-wrap text-[0.95rem] leading-[1.75] text-ink-soft">
+            {p.summary.how_to_apply}
+          </p>
+        </div>
+      )}
+
+      {/* 용어 풀이 */}
+      {p.summary?.glossary && p.summary.glossary.length > 0 && (
+        <div className="mt-5 rounded-lg bg-paper p-5">
+          <p className="doc-eyebrow mb-3">용어 풀이</p>
+          <dl className="flex flex-col gap-3">
+            {p.summary.glossary.map((g, i) => (
+              <div key={i}>
+                <dt className="text-[0.95rem] font-semibold text-ink">{g.term}</dt>
+                <dd className="break-keep text-[0.92rem] leading-relaxed text-muted">
+                  {g.definition}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+
+      {/* 자주 묻는 질문 (FAQPage 구조화데이터와 연동) */}
+      {faq.length > 0 && (
+        <div className="mt-6">
+          <p className="doc-eyebrow mb-3">자주 묻는 질문</p>
+          <div className="flex flex-col gap-3">
+            {faq.map((f, i) => (
+              <details
+                key={i}
+                className="rounded-lg border border-rule bg-surface px-4 py-3"
+              >
+                <summary className="cursor-pointer break-keep text-[0.95rem] font-semibold text-ink">
+                  Q. {f.question}
+                </summary>
+                <p className="mt-2 break-keep text-[0.93rem] leading-relaxed text-ink-soft">
+                  {f.answer}
+                </p>
+              </details>
+            ))}
+          </div>
         </div>
       )}
 
