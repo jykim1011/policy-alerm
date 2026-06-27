@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getArchivedPolicies } from "@/lib/policies";
+import { getArchivedPolicies, getAllSources } from "@/lib/policies";
 import { CATEGORY_LIST } from "@/lib/categoryMeta";
 import { SITE_URL } from "@/lib/site";
 
@@ -23,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
+  const sourceUrls: MetadataRoute.Sitemap = getAllSources().map((s) => ({
+    url: `${SITE_URL}/source/${encodeURIComponent(s.name)}/`,
+    changeFrequency: "weekly",
+    priority: 0.5,
+  }));
+
   const staticUrls: MetadataRoute.Sitemap = [
     "/about",
     "/privacy",
@@ -37,6 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1 },
     ...staticUrls,
     ...categoryUrls,
+    ...sourceUrls,
     ...policyUrls,
   ];
 }

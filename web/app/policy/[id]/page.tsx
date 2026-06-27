@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPolicy, getPolicyIds } from "@/lib/policies";
+import Link from "next/link";
+import { getPolicy, getPolicyIds, getRelatedPolicies } from "@/lib/policies";
 import { catEmoji, catMeta, fileMeta } from "@/lib/categoryMeta";
 import { formatDate } from "@/lib/format";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { ShareButton } from "@/components/ShareButton";
 import { CommentSection } from "@/components/CommentSection";
+import { RelatedPolicies } from "@/components/RelatedPolicies";
 import { Seal } from "@/components/Seal";
 
 export const dynamicParams = false;
@@ -45,6 +47,7 @@ export default async function PolicyPage({ params }: Props) {
   if (!p) notFound();
 
   const file = fileMeta(p.file_type);
+  const related = getRelatedPolicies(p.id, p.category, p.source);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
@@ -75,7 +78,15 @@ export default async function PolicyPage({ params }: Props) {
             <span className="break-all">문서 {p.id}</span>
           </div>
         </div>
-        <Seal source={p.source} size="lg" />
+        {p.source ? (
+          <Link
+            href={`/source/${encodeURIComponent(p.source)}`}
+            aria-label={`${p.source} 정책 모아보기`}
+            className="shrink-0"
+          >
+            <Seal source={p.source} size="lg" />
+          </Link>
+        ) : null}
       </div>
 
       <h1 className="mb-5 text-[1.55rem] font-bold leading-snug tracking-tight text-ink sm:text-[1.85rem]">
@@ -135,6 +146,23 @@ export default async function PolicyPage({ params }: Props) {
           )}
         </div>
       )}
+
+      {/* 출처·면책 고지 — 가공 콘텐츠임을 명시해 신뢰도와 차별성을 더한다. */}
+      <p className="mt-4 rounded-md bg-paper px-3 py-2.5 text-xs leading-relaxed text-muted">
+        이 요약은 {p.source ? `${p.source}의 ` : ""}보도자료를 시민이 이해하기 쉽게
+        가공한 것으로 법적 효력이 없습니다. 정확한 신청 자격·기한 등은{" "}
+        <a
+          href={p.source_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-seal hover:underline"
+        >
+          원문
+        </a>
+        을 확인하세요.
+      </p>
+
+      <RelatedPolicies items={related} />
 
       <CommentSection policyId={p.id} />
     </article>

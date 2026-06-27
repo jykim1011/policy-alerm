@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategoryPolicies } from "@/lib/policies";
 import { CATEGORY_LIST, catMeta } from "@/lib/categoryMeta";
+import { categoryIntro } from "@/lib/categoryIntro";
 import { SITE_URL } from "@/lib/site";
 import { PolicyCard } from "@/components/PolicyCard";
 
@@ -32,14 +33,20 @@ export default async function CategoryPage({ params }: Props) {
   const meta = catMeta(key);
   const policies = getCategoryPolicies(key);
 
+  const intro = categoryIntro(key);
   return (
     <>
-      <section className="mb-6 border-b border-rule pb-4">
+      <section className="mb-6 border-b border-rule pb-5">
         <p className="doc-eyebrow mb-2">분류별 보도자료</p>
         <h1 className="font-serif text-3xl font-bold leading-tight text-ink">
           {meta.emoji} {meta.full}
         </h1>
-        <p className="mt-2 font-mono text-xs text-faint">수록 {policies.length}건</p>
+        {intro && (
+          <p className="mt-3 max-w-prose break-keep text-[0.95rem] leading-[1.75] text-ink-soft">
+            {intro}
+          </p>
+        )}
+        <p className="mt-3 font-mono text-xs text-faint">수록 {policies.length}건</p>
       </section>
       <div>
         {policies.map((p) => (

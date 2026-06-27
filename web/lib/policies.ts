@@ -53,3 +53,42 @@ export function getCategoryPolicies(category: string): PolicyItem[] {
   if (category === "전체") return all;
   return all.filter((p) => p.category === category);
 }
+
+/**
+ * 관련 정책 — 같은 분야를 우선하고, 모자라면 같은 부처로 채운다. 자기 자신 제외.
+ * 내부 링크를 늘려 thin/고립 페이지를 토픽 클러스터로 묶는다.
+ */
+export function getRelatedPolicies(
+  id: string,
+  category: string,
+  source: string | undefined,
+  limit = 6,
+): PolicyItem[] {
+  const all = getArchivedPolicies()
+    .filter((p) => p.id !== id)
+    .sort((a, b) => b.published_at.localeCompare(a.published_at));
+  const sameCat = all.filter((p) => p.category === category);
+  const seen = new Set(sameCat.map((p) => p.id));
+  const sameSource = source
+    ? all.filter((p) => p.source === source && !seen.has(p.id))
+    : [];
+  return [...sameCat, ...sameSource].slice(0, limit);
+}
+
+/** 전체 아카이브에 등장하는 주관부처 목록(빈도 내림차순). 부처 허브 생성에 사용. */
+export function getAllSources(): { name: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const p of getArchivedPolicies()) {
+    const s = p.source?.trim();
+    if (s) counts.set(s, (counts.get(s) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export function getSourcePolicies(source: string): PolicyItem[] {
+  return getArchivedPolicies()
+    .filter((p) => p.source === source)
+    .sort((a, b) => b.published_at.localeCompare(a.published_at));
+}
