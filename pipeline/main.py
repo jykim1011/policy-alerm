@@ -12,7 +12,7 @@ from pipeline.crawler import CRAWLERS, load_seen, save_seen, is_new_policy
 from pipeline.extractor import extract_text
 from pipeline.summarizer import summarize_policy
 from pipeline.publisher import build_policy_id, publish_policy, update_index
-from pipeline.notifier import notify_new_policy
+from pipeline.notifier import notify_new_batch
 from pipeline.models import PolicyItem
 
 KST = timezone(timedelta(hours=9))
@@ -141,33 +141,43 @@ def _wait_for_cdn(policy_id: str, timeout: int = 900, interval: int = 15) -> boo
 
 
 def notify_pending() -> None:
-    """docs/ push 이후 호출. CDN 반영을 확인한 뒤 FCM 알림을 보낸다."""
+    """docs/ push 이후 호출. 정책별 CDN 반영을 확인한 뒤, 확인된 정책 전체를 배치 1건으로
+    트리거한다(회차당 1푸시 코얼레싱)."""
     if not PENDING_FILE.exists():
         print("대기 중인 알림 없음")
         return
     pending = json.loads(PENDING_FILE.read_text(encoding="utf-8"))
     failures = []
+    confirmed_raw = []
     for p in pending:
-        # CDN 반영 확인 실패 시 알림을 보내지 않는다. 사용자가 탭했을 때 404가 뜨므로
-        # 타임아웃이면 실패 목록에 넣어 CI 스텝을 실패로 표시한다.
+        # CDN 반영 확인 실패 시 알림을 보내지 않는다. 타임아웃이면 실패 목록에 넣어
+        # 다음 자동 실행에서 재시도한다(탭 시 404 방지).
         if not _wait_for_cdn(p["id"]):
             print(f"  CDN 반영 확인 실패(타임아웃), 알림 미발송: {p['title']}", file=sys.stderr)
             failures.append(p)
             continue
-        item = PolicyItem(
-            id=p["id"], category=p["category"], subcategory=p["subcategory"],
-            title=p["title"], source="", source_url="",
-            file_url=None, file_type=None, published_at="",
-        )
+        confirmed_raw.append(p)
+
+    if confirmed_raw:
+        batch_label = os.environ.get("BATCH", "morning")
+        run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"_{batch_label}"
+        items = [
+            PolicyItem(
+                id=p["id"], category=p["category"], subcategory=p["subcategory"],
+                title=p["title"], source="", source_url="",
+                file_url=None, file_type=None, published_at="",
+            )
+            for p in confirmed_raw
+        ]
         try:
-            notify_new_policy(item, batch=p["batch"])
-            print(f"  FCM 트리거 완료: {p['title']}")
+            notify_new_batch(items, batch=batch_label, run_id=run_id)
+            print(f"  FCM 배치 트리거 완료: {len(items)}건 (run_id={run_id})")
         except Exception as e:
-            print(f"  FCM 트리거 실패: {p['title']} ({e})", file=sys.stderr)
-            failures.append(p)
+            print(f"  FCM 배치 트리거 실패: {e}", file=sys.stderr)
+            failures.extend(confirmed_raw)  # 확인분도 다음 회차 재시도
 
     if failures:
-        # 실패분(CDN 타임아웃 또는 FCM 트리거 오류)을 pending에 다시 써 둔다.
+        # 실패분(CDN 타임아웃 또는 배치 트리거 오류)을 pending에 다시 써 둔다.
         # pipeline/pending_notify.json은 git에 커밋되므로 다음 자동 실행에서 재시도된다.
         PENDING_FILE.write_text(json.dumps(failures, ensure_ascii=False), encoding="utf-8")
         raise SystemExit(f"알림 발송 미완료 {len(failures)}건: {[p['id'] for p in failures]}")
