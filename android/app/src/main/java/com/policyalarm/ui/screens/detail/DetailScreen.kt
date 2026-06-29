@@ -35,6 +35,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -132,7 +135,11 @@ fun DetailScreen(
 
                     val summary = detail.summary
                     if (summary != null) {
-                        Spacer(Modifier.height(20.dp))
+                        summary.background?.takeIf { it.isNotBlank() }?.let {
+                            Spacer(Modifier.height(20.dp))
+                            BackgroundCard(it)
+                            Spacer(Modifier.height(12.dp))
+                        } ?: Spacer(Modifier.height(20.dp))
                         SummaryCard("🔄", "무엇이 바뀌었나", summary.whatChanged)
                         Spacer(Modifier.height(12.dp))
                         SummaryCard("👥", "누가 대상인가", summary.whoIsAffected)
@@ -144,6 +151,23 @@ fun DetailScreen(
                         if (summary.keyPoints.isNotEmpty()) {
                             Spacer(Modifier.height(12.dp))
                             KeyPointsCard(summary.keyPoints)
+                        }
+
+                        summary.eligibility?.takeIf { it.isNotEmpty() }?.let {
+                            Spacer(Modifier.height(12.dp))
+                            EligibilityCard(it)
+                        }
+                        summary.howToApply?.takeIf { it.isNotBlank() }?.let {
+                            Spacer(Modifier.height(12.dp))
+                            SummaryCard("📝", "신청 방법·기간", it)
+                        }
+                        summary.glossary?.takeIf { it.isNotEmpty() }?.let {
+                            Spacer(Modifier.height(12.dp))
+                            GlossaryCard(it)
+                        }
+                        summary.faq?.takeIf { it.isNotEmpty() }?.let {
+                            Spacer(Modifier.height(12.dp))
+                            FaqCard(it)
                         }
                     }
 
@@ -327,6 +351,126 @@ private fun KeyPointsCard(points: List<String>) {
                     Text("${i + 1}", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 Text(pt, color = c.fgDefault, fontSize = 14.5.sp, lineHeight = 22.sp)
+            }
+        }
+    }
+}
+
+/** 배경 — 정책이 왜 나왔는지 도입부. 본문 위 강조 콜아웃으로 보여준다. */
+@Composable
+private fun BackgroundCard(text: String) {
+    val c = LocalAppColors.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(c.govTint)
+            .padding(start = 14.dp, top = 13.dp, end = 16.dp, bottom = 13.dp),
+        horizontalArrangement = Arrangement.spacedBy(11.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(40.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(c.accent),
+        )
+        Text(text, color = c.fgDefault, fontSize = 14.sp, lineHeight = 22.sp)
+    }
+}
+
+/** 자가 체크 — "나에게 해당되나요?" 체크리스트. */
+@Composable
+private fun EligibilityCard(items: List<String>) {
+    val c = LocalAppColors.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(c.bgSurface)
+            .border(1.dp, c.border, RoundedCornerShape(16.dp))
+            .padding(16.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            Emoji("✅", 15)
+            Text("나에게 해당되나요?", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(12.dp))
+        items.forEachIndexed { i, item ->
+            Row(
+                modifier = Modifier.padding(bottom = if (i == items.lastIndex) 0.dp else 9.dp),
+                horizontalArrangement = Arrangement.spacedBy(9.dp),
+            ) {
+                Text("✓", color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(item, color = c.fgDefault, fontSize = 14.5.sp, lineHeight = 22.sp)
+            }
+        }
+    }
+}
+
+/** 용어 풀이 — 용어(굵게) + 설명. */
+@Composable
+private fun GlossaryCard(items: List<com.policyalarm.data.model.GlossaryItem>) {
+    val c = LocalAppColors.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(c.bgSurface)
+            .border(1.dp, c.border, RoundedCornerShape(16.dp))
+            .padding(16.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            Emoji("📖", 15)
+            Text("용어 풀이", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(12.dp))
+        items.forEachIndexed { i, g ->
+            Column(modifier = Modifier.padding(bottom = if (i == items.lastIndex) 0.dp else 12.dp)) {
+                Text(g.term, color = c.fgStrong, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(3.dp))
+                Text(g.definition, color = c.fgSubtle, fontSize = 13.5.sp, lineHeight = 21.sp)
+            }
+        }
+    }
+}
+
+/** 자주 묻는 질문 — 탭하면 답이 펼쳐진다. */
+@Composable
+private fun FaqCard(items: List<com.policyalarm.data.model.FaqItem>) {
+    val c = LocalAppColors.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(c.bgSurface)
+            .border(1.dp, c.border, RoundedCornerShape(16.dp))
+            .padding(16.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            Emoji("💬", 15)
+            Text("자주 묻는 질문", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(8.dp))
+        items.forEachIndexed { i, f ->
+            var expanded by remember { mutableStateOf(false) }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = if (i == 0) 4.dp else 8.dp)
+                    .clickable { expanded = !expanded },
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("Q", color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(f.question, color = c.fgStrong, fontSize = 14.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)
+                }
+                if (expanded) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Text("A", color = c.fgSubtle, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(f.answer, color = c.fgDefault, fontSize = 14.sp, lineHeight = 22.sp)
+                    }
+                }
             }
         }
     }
