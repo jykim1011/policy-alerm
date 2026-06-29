@@ -3,6 +3,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
+const { computeUserDigest, formatBreakdown, formatDigestBody } = require("./digest");
 
 initializeApp();
 
@@ -14,22 +15,6 @@ const FCM_CHANNEL_ID = "policy_alerts_v2";
 const QUIET_START_KST = 22; // 밤 10시
 const QUIET_END_KST = 9; // 아침 9시
 
-/**
- * gen2 트리거가 비ASCII 문서 ID(한글)를 UTF-8 바이트→Latin-1로 오독해 만든 모지바케를
- * 원래 문자열로 되돌린다(firebase-functions#1459). round-trip 가드로, 모지바케가 아닌
- * 일반 ASCII나 이미 정상인 한글 문자열에 적용해도 그대로 반환한다(안전).
- */
-function decodeMojibake(s) {
-  if (!s) return s;
-  try {
-    const restored = Buffer.from(s, "latin1").toString("utf8");
-    if (Buffer.from(restored, "utf8").toString("latin1") === s) return restored;
-  } catch (_) {
-    // 변환 불가 — 원본 유지
-  }
-  return s;
-}
-
 /** 현재가 KST 야간 방해금지 시간대(22:00~09:00)인지 반환한다. */
 function isQuietHoursKst(now = new Date()) {
   // 서버는 UTC로 동작하므로 +9시간 해 KST 시각(0~23)을 구한다.
@@ -37,163 +22,156 @@ function isQuietHoursKst(now = new Date()) {
   return kstHour >= QUIET_START_KST || kstHour < QUIET_END_KST;
 }
 
-exports.onNewPolicy = onDocumentCreated(
-  "new_policies/{policyId}",
+exports.onNewPolicyBatch = onDocumentCreated(
+  "new_policy_batches/{runId}",
   async (event) => {
-    const policy = event.data.data();
-    // event.params.policyId 는 gen2 트리거에서 한글 등 비ASCII 문서 ID를 모지바케로
-    // 깨뜨린다(firebase-functions#1459). 그 깨진 값을 policy_id 로 쓰면 앱이
-    // policies/{id}.json 을 404 로 받는다.
-    //  1순위: 문서 본문 id(파이프라인이 저장, 깨지지 않음)
-    //  2순위(폴백): params 를 모지바케 복원 — 파이프라인이 아직 본문 id 를 안 넣은
-    //              구버전 문서에서도 앱이 정상 동작하도록.
-    const policyId = policy.id || decodeMojibake(event.params.policyId);
+    const data = event.data.data();
+    const policies = Array.isArray(data.policies) ? data.policies : [];
     const db = getFirestore();
 
-    console.log(`[onNewPolicy] START policyId=${policyId} category=${policy.category} subcategory=${policy.subcategory}`);
+    console.log(`[onNewPolicyBatch] START runId=${event.params.runId} policies=${policies.length}`);
 
-    // subcategory가 undefined/null이면 Firestore array-contains-any가 예외를 던지므로 필터링한다.
-    const matchValues = [...new Set([policy.subcategory, policy.category].filter(Boolean))];
-    if (matchValues.length === 0) {
-      console.error(`[onNewPolicy] No valid matchValues for policy: ${policyId}`);
+    if (policies.length === 0) {
       await event.data.ref.delete();
       return;
     }
 
-    console.log(`[onNewPolicy] Querying users with subscribed_categories array-contains-any ${JSON.stringify(matchValues)}`);
-    const usersSnap = await db
-      .collection("users")
-      .where("subscribed_categories", "array-contains-any", matchValues)
-      .get();
-
-    console.log(`[onNewPolicy] Found ${usersSnap.size} matching users for policy: ${policyId}`);
-
-    // 구독자 각자의 알림함(users/{uid}/notifications/{policyId})에 기록한다.
-    // 앱이 푸시를 잡았는지/사용자가 탭했는지와 무관하게 알림 탭에서 항상 보이게 하는 단일 소스.
-    // Firestore 배치는 최대 500개 작업이므로 청크 단위로 커밋한다.
-    for (let i = 0; i < usersSnap.docs.length; i += 500) {
-      const notifBatch = db.batch();
-      usersSnap.docs.slice(i, i + 500).forEach((doc) => {
-        notifBatch.set(
-          doc.ref.collection("notifications").doc(policyId),
-          {
-            title: policy.title,
-            category: policy.category,
-            subcategory: policy.subcategory,
-            received_at: FieldValue.serverTimestamp(),
-            read: false,
-          }
-        );
-      });
-      await notifBatch.commit();
+    // 배치 정책들의 category·subcategory 합집합으로 구독자 조회.
+    // array-contains-any 는 값 30개 제한 → 30개씩 청크로 나눠 조회 후 doc.id로 머지(중복 제거).
+    const matchValues = [
+      ...new Set(policies.flatMap((p) => [p.subcategory, p.category]).filter(Boolean)),
+    ];
+    const usersById = new Map();
+    for (let i = 0; i < matchValues.length; i += 30) {
+      const chunk = matchValues.slice(i, i + 30);
+      const snap = await db
+        .collection("users")
+        .where("subscribed_categories", "array-contains-any", chunk)
+        .get();
+      snap.forEach((doc) => usersById.set(doc.id, doc));
     }
-    console.log(`[onNewPolicy] Wrote notifications to ${usersSnap.size} users' subcollections`);
+    const userDocs = [...usersById.values()];
+    console.log(`[onNewPolicyBatch] matched ${userDocs.length} subscribers`);
 
-    const tokens = [];
-    const usersWithNoToken = [];
-    usersSnap.forEach((doc) => {
-      const user = doc.data();
-      if (user.fcm_token) {
-        tokens.push(user.fcm_token);
+    // 사용자별 매칭 다이제스트 산출(구독 분야에 매칭되는 정책만).
+    const digests = userDocs
+      .map((doc) => ({
+        doc,
+        user: doc.data(),
+        ...computeUserDigest(doc.data().subscribed_categories, policies),
+      }))
+      .filter((d) => d.count > 0);
+
+    // 알림함 기록: (사용자 × 매칭 정책)마다 notifications/{policyId}. 배치 500개 제한 청크.
+    const notifWrites = [];
+    digests.forEach((d) => {
+      d.matched.forEach((p) => {
+        notifWrites.push({ userRef: d.doc.ref, policy: p });
+      });
+    });
+    for (let i = 0; i < notifWrites.length; i += 500) {
+      const batch = db.batch();
+      notifWrites.slice(i, i + 500).forEach(({ userRef, policy }) => {
+        batch.set(userRef.collection("notifications").doc(policy.id), {
+          title: policy.title,
+          category: policy.category,
+          subcategory: policy.subcategory,
+          received_at: FieldValue.serverTimestamp(),
+          read: false,
+        });
+      });
+      await batch.commit();
+    }
+    console.log(`[onNewPolicyBatch] wrote ${notifWrites.length} notification records`);
+
+    // 트리거 문서 삭제 (중복 방지). 현 설계와 동일 수준의 at-least-once 수용.
+    await event.data.ref.delete();
+
+    // 야간 방해금지(KST 22:00~09:00): 즉시 푸시하지 않고 사용자별 누적만. morningDigest가 발송.
+    if (isQuietHoursKst()) {
+      for (let i = 0; i < digests.length; i += 500) {
+        const batch = db.batch();
+        digests.slice(i, i + 500).forEach((d) => {
+          const update = { overnight_pending: FieldValue.increment(d.count) };
+          for (const [cat, n] of Object.entries(d.breakdown)) {
+            update[`overnight_breakdown.${cat}`] = FieldValue.increment(n);
+          }
+          batch.update(d.doc.ref, update);
+        });
+        await batch.commit();
+      }
+      console.log(`[onNewPolicyBatch] Quiet hours — deferred to morning digest (${digests.length} users).`);
+      return;
+    }
+
+    // 주간: 사용자별 푸시 1건. 내용이 사용자마다 다르므로 sendEach(토큰별 메시지 배열).
+    const messages = [];
+    const messageTokens = [];
+    digests.forEach((d) => {
+      if (!d.user.fcm_token) return;
+      messageTokens.push(d.user.fcm_token);
+      if (d.count === 1) {
+        const p = d.matched[0];
+        const title = `새 ${p.category} 정책`;
+        messages.push({
+          token: d.user.fcm_token,
+          notification: { title, body: p.title },
+          data: {
+            policy_id: p.id,
+            category: p.category,
+            subcategory: p.subcategory,
+            title,
+            body: p.title,
+          },
+          android: { priority: "high", notification: { channelId: FCM_CHANNEL_ID } },
+        });
       } else {
-        usersWithNoToken.push(doc.id);
+        messages.push({
+          token: d.user.fcm_token,
+          notification: {
+            title: `새 정책 ${d.count}건`,
+            body: formatDigestBody(d.matched, d.breakdown),
+          },
+          data: { open_tab: "history" },
+          android: { priority: "high", notification: { channelId: FCM_CHANNEL_ID } },
+        });
       }
     });
 
-    console.log(`[onNewPolicy] FCM tokens: ${tokens.length} valid, ${usersWithNoToken.length} missing (uid list: ${JSON.stringify(usersWithNoToken)})`);
-
-    // Firestore 트리거 문서 삭제 (중복 방지)
-    await event.data.ref.delete();
-
-    // 야간 방해금지(KST 22:00~09:00): 즉시 푸시하지 않고, 구독자별로 밤사이 누적 건수
-    // (overnight_pending)를 올려 둔다. 알림함(users/{uid}/notifications)에는 위에서 이미
-    // 기록했고, 쌓인 건수는 morningDigest(매일 09:00 KST)가 한 번에 푸시로 알린다.
-    if (isQuietHoursKst()) {
-      for (let i = 0; i < usersSnap.docs.length; i += 500) {
-        const pendingBatch = db.batch();
-        usersSnap.docs.slice(i, i + 500).forEach((doc) => {
-          pendingBatch.update(doc.ref, {
-            overnight_pending: FieldValue.increment(1),
-          });
-        });
-        await pendingBatch.commit();
-      }
-      console.log(`[onNewPolicy] Quiet hours (KST) — deferred ${policyId} to morning digest (${usersSnap.size} users).`);
+    if (messages.length === 0) {
+      console.log(`[onNewPolicyBatch] No tokens to send.`);
       return;
     }
 
-    if (tokens.length === 0) {
-      console.log(`[onNewPolicy] No FCM tokens to send for policy: ${policyId}. Users exist but have no token.`);
-      return;
-    }
-
-    const chunkSize = 500;
-    for (let i = 0; i < tokens.length; i += chunkSize) {
-      const chunk = tokens.slice(i, i + chunkSize);
-      const message = {
-        // notification: OS 레벨에서 앱이 종료/백그라운드여도 알림 표시 보장 (OEM 배터리 최적화 우회)
-        notification: {
-          title: `새 ${policy.category} 정책`,
-          body: policy.title,
-        },
-        // data: onMessageReceived(포그라운드) 및 탭 인텐트(백그라운드/종료)에서 DB 저장용
-        data: {
-          policy_id: policyId,
-          category: policy.category,
-          subcategory: policy.subcategory,
-          title: `새 ${policy.category} 정책`,
-          body: policy.title,
-        },
-        android: {
-          priority: "high",
-          notification: { channelId: FCM_CHANNEL_ID },
-        },
-        tokens: chunk,
-      };
-
+    const expiredTokens = [];
+    for (let i = 0; i < messages.length; i += 500) {
+      const chunk = messages.slice(i, i + 500);
+      const tokenChunk = messageTokens.slice(i, i + 500);
       let response;
       try {
-        response = await getMessaging().sendEachForMulticast(message);
+        response = await getMessaging().sendEach(chunk);
       } catch (err) {
-        console.error(`[onNewPolicy] sendEachForMulticast THREW for chunk ${i}: ${err.message}`);
-        throw err;
+        console.error(`[onNewPolicyBatch] sendEach THREW for chunk ${i}: ${err.message} — continuing`);
+        continue;
       }
-
-      console.log(
-        `[onNewPolicy] Sent ${response.successCount}/${chunk.length} notifications for ${policyId}. ` +
-        `failureCount=${response.failureCount}`
-      );
-
-      const expiredTokens = [];
+      console.log(`[onNewPolicyBatch] Sent ${response.successCount}/${chunk.length}, failures=${response.failureCount}`);
       response.responses.forEach((resp, idx) => {
-        if (!resp.success) {
-          console.warn(`[onNewPolicy] FCM send failed for token[${idx}]: code=${resp.error?.code} msg=${resp.error?.message}`);
-          if (resp.error?.code === "messaging/registration-token-not-registered") {
-            expiredTokens.push(chunk[idx]);
-          }
+        if (!resp.success && resp.error?.code === "messaging/registration-token-not-registered") {
+          expiredTokens.push(tokenChunk[idx]);
         }
       });
-
-      if (expiredTokens.length > 0) {
-        console.log(`[onNewPolicy] Clearing ${expiredTokens.length} expired tokens from Firestore`);
-        // Firestore `in` 연산자는 최대 30개 값만 허용한다.
-        const IN_LIMIT = 30;
-        for (let j = 0; j < expiredTokens.length; j += IN_LIMIT) {
-          const tokenChunk = expiredTokens.slice(j, j + IN_LIMIT);
-          const usersWithExpiredSnap = await db
-            .collection("users")
-            .where("fcm_token", "in", tokenChunk)
-            .get();
-          const cleanupBatch = db.batch();
-          usersWithExpiredSnap.forEach((doc) => {
-            cleanupBatch.update(doc.ref, { fcm_token: null });
-          });
-          await cleanupBatch.commit();
-        }
-      }
     }
 
-    console.log(`[onNewPolicy] DONE for policyId=${policyId}`);
+    // 만료 토큰 정리 (Firestore `in` 은 최대 30개).
+    for (let j = 0; j < expiredTokens.length; j += 30) {
+      const tokenChunk = expiredTokens.slice(j, j + 30);
+      const expiredSnap = await db.collection("users").where("fcm_token", "in", tokenChunk).get();
+      const cleanup = db.batch();
+      expiredSnap.forEach((doc) => cleanup.update(doc.ref, { fcm_token: null }));
+      await cleanup.commit();
+    }
+
+    console.log(`[onNewPolicyBatch] DONE runId=${event.params.runId}`);
   }
 );
 
@@ -221,12 +199,16 @@ exports.morningDigest = onSchedule(
       const user = doc.data();
       const count = user.overnight_pending || 0;
       if (user.fcm_token && count > 0) {
+        // 야간 누적은 제목을 보관하지 않으므로(밤새 배열 증가 write 회피) 분야 카운트 형식만 쓴다.
+        // overnight_breakdown 이 있으면 "(부동산 3·고용 2)"를 덧붙이고, 없으면(구버전) 건수만.
+        const breakdown = user.overnight_breakdown || {};
+        const detail = Object.keys(breakdown).length > 0 ? ` (${formatBreakdown(breakdown)})` : "";
         messageTokens.push(user.fcm_token);
         messages.push({
           token: user.fcm_token,
           notification: {
             title: "정책 알리미",
-            body: `밤사이 새 정책 ${count}건이 도착했어요`,
+            body: `밤사이 새 정책 ${count}건${detail}`,
           },
           // 묶음 알림은 특정 정책이 아니므로, 탭하면 앱의 알림 탭으로 연다.
           data: { open_tab: "history" },
@@ -265,7 +247,10 @@ exports.morningDigest = onSchedule(
     for (let i = 0; i < resetRefs.length; i += 500) {
       const batch = db.batch();
       resetRefs.slice(i, i + 500).forEach((ref) => {
-        batch.update(ref, { overnight_pending: FieldValue.delete() });
+        batch.update(ref, {
+          overnight_pending: FieldValue.delete(),
+          overnight_breakdown: FieldValue.delete(),
+        });
       });
       await batch.commit();
     }

@@ -23,9 +23,9 @@ service cloud.firestore {
       }
     }
 
-    // new_policies — 파이프라인 → Cloud Function 내부 트리거용
+    // new_policy_batches — 파이프라인 → Cloud Function 내부 트리거용(회차당 배치 1건)
     // Admin SDK가 쓰고 삭제하므로 클라이언트 접근 전면 차단
-    match /new_policies/{policyId} {
+    match /new_policy_batches/{runId} {
       allow read, write: if false;
     }
 
