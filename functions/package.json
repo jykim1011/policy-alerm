@@ -2,6 +2,9 @@
   "name": "policy-alarm-functions",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  },
   "engines": { "node": "22" },
   "dependencies": {
     "firebase-admin": "^13.0.0",
