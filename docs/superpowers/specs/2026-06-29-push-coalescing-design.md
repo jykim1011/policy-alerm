@@ -20,7 +20,12 @@
   그대로 쓴다. (수백만~1,000만 목표라면 FCM Topic 메시징으로 재설계해야 하나, 이번 범위 아님.)
 - **푸시 형태(하이브리드)**:
   - 사용자 매칭 **1건** → 기존처럼 상세 푸시(제목 표시, 탭 시 해당 정책).
-  - 사용자 매칭 **2건 이상** → 요약 푸시 `"새 정책 N건 (부동산 2·고용 1)"`, 탭 시 알림 탭(history).
+  - 사용자 매칭 **2~3건** → 묶음 푸시. 제목 `"새 정책 N건"`, 본문은 **정책 제목 나열**
+    `"청년 전세대출 확대 · 고용장려금 개편"`. 탭 시 알림 탭(history).
+  - 사용자 매칭 **4건 이상** → 묶음 푸시. 제목 `"새 정책 N건"`, 본문은 **분야 카운트**
+    `"부동산 3·고용 2"`(상위 3분야 + "외 M건"). 탭 시 알림 탭(history).
+  - 근거: 흔한 소수 케이스(2~3건)는 제목이 열람 동기를 주고, 다수(4건+)는 제목 나열이 잘려
+    무의미하므로 분야 카운트가 더 읽기 쉽다.
 - **건수 기준**: 각 사용자가 **구독한 분야에 매칭되는 정책만** 카운트(현 동작과 일관).
 - **야간 포맷 통일**: `morningDigest`도 동일 요약 포맷을 쓰도록 분야별 누적을 추가한다.
 
@@ -81,8 +86,12 @@ onNewPolicyBatch
   `{ matched: Policy[], count, breakdown: {category: n} }`.
   매칭 규칙: 정책의 `subcategory` 또는 `category`가 사용자 `subscribed_categories`에 포함되면 매칭
   (현 `onNewPolicy`의 `array-contains-any` 의미와 동일).
-- `formatDigestBody(breakdown)` → `"새 정책 N건 (부동산 2·고용 1)"`.
-  분야를 건수 desc로 정렬, 상위 3분야 표기, 그 외는 `"외 M건"`으로 합산.
+- `formatDigestBody(matched, breakdown)` → 묶음 본문 문자열. N = matched.length.
+  - `N <= 3` → 매칭 정책 **제목**을 `" · "`로 이어 붙임. 개별 제목은 과도하게 길면 약 24자로
+    자르고 `…` 부가(전체 본문 폭주 방지; Android가 추가로 말줄임).
+  - `N >= 4` → `formatBreakdown(breakdown)`: 분야를 건수 desc 정렬, 상위 3분야 `"부동산 3·고용 2"`,
+    그 외는 `"외 M건"`으로 합산.
+- `formatBreakdown(breakdown)` → 분야 카운트 문자열(위 4건+ 및 morningDigest 공용).
 
 함수 흐름:
 1. `policies` 로드. 빈 배열이면 문서 삭제 후 종료.
@@ -98,14 +107,16 @@ onNewPolicyBatch
 7. 주간: 토큰 있는 사용자별 메시지 구성 후 `sendEach`(500 청크).
    - `count === 1` → `notification{ title:"새 {category} 정책", body: 제목 }`,
      `data{ policy_id, category, subcategory, title, body }` (기존 단건 포맷).
-   - `count >= 2` → `notification{ title:"정책 알리미", body: formatDigestBody(breakdown) }`,
+   - `count >= 2` → `notification{ title:"새 정책 {count}건", body: formatDigestBody(matched, breakdown) }`,
      `data{ open_tab:"history" }`.
    - 만료 토큰(`registration-token-not-registered`) 정리는 기존 로직 재사용.
 
 ### 4. `morningDigest` 포맷 통일
 
 - 누적 필드: 기존 `overnight_pending`(스칼라, `>0` 쿼리용) 유지 + 신규 `overnight_breakdown`(맵).
-- 발송 본문: `overnight_breakdown`가 있으면 `formatDigestBody(breakdown)`,
+  야간 누적은 제목을 보관하지 않으므로(사용자별 배열이 밤새 커지는 write 비용 회피) morning은
+  건수가 많을 수 있어 제목 나열 대신 **분야 카운트** 형식만 쓴다.
+- 발송 본문: `overnight_breakdown`가 있으면 `"새 정책 {count}건 (" + formatBreakdown(breakdown) + ")"`,
   없으면(구버전 데이터) 기존 `"밤사이 새 정책 {count}건이 도착했어요"`로 폴백.
 - 리셋: 발송/실패와 무관하게 `overnight_pending`과 `overnight_breakdown` 둘 다
   `FieldValue.delete()` (기존처럼 중복 방지 우선).
@@ -129,7 +140,8 @@ onNewPolicyBatch
 - `pipeline/tests/test_notifier.py`: `notify_new_batch`가 `new_policy_batches/{run_id}`에
   정책 배열을 담은 문서 1건을 write하는지 검증(기존 per-policy 테스트 대체/갱신).
 - `functions/`: 현재 JS 테스트 없음 → 순수 헬퍼 단위 테스트 신규 추가.
-  - `formatDigestBody`: 0/1/3/5분야, 상위 3 + "외 M건" 경계.
+  - `formatDigestBody`: N=2/3 제목 나열(긴 제목 24자 절단 포함), N=4+ 분야 카운트로 분기.
+  - `formatBreakdown`: 1/3/5분야, 상위 3 + "외 M건" 경계.
   - `computeUserDigest`: 매칭 0/1/다수, category·subcategory 매칭, breakdown 집계.
   - 테스트 러너(node:test 등) 한 개 도입.
 
