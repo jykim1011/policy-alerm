@@ -1,6 +1,6 @@
 import json
 from unittest.mock import MagicMock, patch
-from pipeline.notifier import notify_new_policy, _load_service_account
+from pipeline.notifier import notify_new_batch, _load_service_account
 from pipeline.models import PolicyItem, PolicySummary
 
 def _make_item() -> PolicyItem:
@@ -26,20 +26,30 @@ def test_load_service_account_handles_surrounding_whitespace():
     assert _load_service_account("  \n" + json.dumps(payload) + "\n  ") == payload
 
 
-def test_notify_new_policy_writes_to_firestore():
+def test_notify_new_batch_writes_single_document():
     mock_db = MagicMock()
     mock_doc_ref = MagicMock()
     mock_db.collection.return_value.document.return_value = mock_doc_ref
 
-    notify_new_policy(_make_item(), batch="morning", db=mock_db)
+    items = [_make_item()]
+    notify_new_batch(items, batch="morning", run_id="20260629T093000Z_morning", db=mock_db)
 
-    mock_db.collection.assert_called_with("new_policies")
-    mock_db.collection.return_value.document.assert_called_with("molit-2026-05-29-001")
+    mock_db.collection.assert_called_with("new_policy_batches")
+    mock_db.collection.return_value.document.assert_called_with("20260629T093000Z_morning")
     mock_doc_ref.set.assert_called_once()
-    call_data = mock_doc_ref.set.call_args[0][0]
-    assert call_data["batch"] == "morning"
-    assert call_data["subcategory"] == "청약"
-    # id를 문서 본문에도 저장한다. Cloud Function v2의 event.params 가 비ASCII(한글)
-    # 문서 ID를 모지바케로 깨뜨리므로(firebase-functions#1459), 함수는 경로 파라미터가
-    # 아닌 이 본문 id를 단일 소스로 사용해야 푸시/알림의 policy_id 가 CDN 파일명과 일치한다.
-    assert call_data["id"] == "molit-2026-05-29-001"
+    data = mock_doc_ref.set.call_args[0][0]
+    assert data["run_id"] == "20260629T093000Z_morning"
+    assert data["batch"] == "morning"
+    assert len(data["policies"]) == 1
+    p = data["policies"][0]
+    # policy_id는 본문 id에서 와야 한다(gen2 event.params 모지바케 회피, #1459).
+    assert p["id"] == "molit-2026-05-29-001"
+    assert p["category"] == "부동산"
+    assert p["subcategory"] == "청약"
+    assert p["title"] == "청약 제도 개편"
+
+
+def test_notify_new_batch_empty_items_writes_nothing():
+    mock_db = MagicMock()
+    notify_new_batch([], batch="morning", run_id="x", db=mock_db)
+    mock_db.collection.assert_not_called()
