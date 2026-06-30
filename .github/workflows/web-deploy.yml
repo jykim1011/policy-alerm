@@ -2,22 +2,25 @@ name: Deploy Web
 
 # 웹 정적 사이트(web/)를 빌드해 Firebase Hosting 에 배포한다.
 #
-# ⚠️ 자동 트리거(push·workflow_run)는 비활성화되어 있다(수동 실행만).
-#    CI 배포가 동작하려면 CI 서비스 계정(firebase-adminsdk-fbsvc@…)에
-#    roles/firebasehosting.admin 권한이 필요하다(미부여 상태). 권한 부여 전까지
-#    자동 실행하면 deploy 단계에서 매번 실패해 알림 메일이 쌓이므로 수동 실행만 둔다.
-#    권한 부여 후 아래 push/workflow_run 트리거 주석을 해제하면 자동 배포가 켜진다.
+# 자동 트리거 활성화됨:
+#  - push(web/·firebase.json 변경): 웹 코드/설정 수정 시 재배포
+#  - workflow_run(Policy Pipeline 완료): 새 정책이 들어오면 정적 페이지를 다시 구워
+#    "새 정책이 웹에서 404" 공백을 없앤다. (데이터 push는 [skip ci]지만 workflow_run은
+#    파이프라인 워크플로 완료에 걸리므로 [skip ci]의 영향을 받지 않는다.)
+#  CI SA(firebase-adminsdk-fbsvc@…)에는 hosting 배포 권한이 확인되어 있다.
+#  데이터 무변경 시 firebase가 "identical version" 400을 반환하는데, 이는 배포할
+#  것이 없다는 뜻이므로 deploy 단계에서 성공으로 처리한다(거짓 실패 알림 방지).
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [master]
-  #   paths:
-  #     - "web/**"
-  #     - "firebase.json"
-  #     - ".github/workflows/web-deploy.yml"
-  # workflow_run:
-  #   workflows: ["Policy Pipeline"]
-  #   types: [completed]
+  push:
+    branches: [master]
+    paths:
+      - "web/**"
+      - "firebase.json"
+      - ".github/workflows/web-deploy.yml"
+  workflow_run:
+    workflows: ["Policy Pipeline"]
+    types: [completed]
 
 concurrency:
   group: web-deploy
@@ -61,4 +64,13 @@ jobs:
           # FIREBASE_SERVICE_ACCOUNT 시크릿 JSON 앞에 UTF-8 BOM이 섞여 있어 그대로 쓰면
           # firebase-tools 인증이 "Failed to authenticate"로 깨진다. 첫 줄의 BOM을 제거한다.
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" | sed '1s/^\xEF\xBB\xBF//' > "$GOOGLE_APPLICATION_CREDENTIALS"
-          npx --yes firebase-tools@latest deploy --only hosting --project policy-alerm --non-interactive
+          # 빌드 결과가 라이브와 동일하면 firebase가 "current active version" 400으로 실패한다.
+          # 이는 배포할 변경이 없다는 뜻이므로 거짓 실패로 취급하지 않는다.
+          set -o pipefail
+          out=$(npx --yes firebase-tools@latest deploy --only hosting --project policy-alerm --non-interactive 2>&1) && rc=0 || rc=$?
+          echo "$out"
+          if [ "$rc" -ne 0 ] && echo "$out" | grep -q "is the current active version"; then
+            echo "::notice::배포할 변경 없음(라이브가 이미 최신). 성공으로 처리."
+            exit 0
+          fi
+          exit "$rc"
