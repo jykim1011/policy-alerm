@@ -34,6 +34,25 @@ def test_exclude_term_jeonsegye():
     assert _classify_category("전세계 주목하는 K-콘텐츠") is None
 
 
+def test_plant_bunyang_not_real_estate():
+    # "식물 분양" — "분양" 단독 키워드 오탐 방지.
+    assert _classify_category("반려식물 분양 행사 개최") is None
+
+
+def test_chartered_bus_not_real_estate():
+    # "전세 버스"/"전세버스" — "전세" 단독 키워드 오탐 방지.
+    assert _classify_category("명절 전세 버스 운행 확대") is None
+    assert _classify_category("전세버스 안전점검 실시") is None
+
+
+def test_jeonse_compounds_still_real_estate():
+    # 부동산 문맥의 전세/분양 복합어는 여전히 매칭돼야 한다.
+    assert _classify_category("전세사기 피해자 지원 확대") == "부동산"
+    assert _classify_category("수도권 전세시장 안정 대책") == "부동산"
+    assert _classify_category("분양가 상한제 개편") == "부동산"
+    assert _classify_category("공공분양 물량 확대") == "부동산"
+
+
 def test_startup_beats_welfare_for_jiwongeum():
     # "소상공인 지원금" — 창업이 복지보다 먼저 매칭돼야 한다.
     assert _classify_category("소상공인 지원금 신청 안내") == "창업"
