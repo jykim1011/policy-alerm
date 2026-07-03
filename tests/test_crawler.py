@@ -51,6 +51,7 @@ def test_jeonse_compounds_still_real_estate():
     assert _classify_category("수도권 전세시장 안정 대책") == "부동산"
     assert _classify_category("분양가 상한제 개편") == "부동산"
     assert _classify_category("공공분양 물량 확대") == "부동산"
+    assert _classify_category("전세 계약 전 '위험신호' 알려준다, 안심전세앱 9월 개편") == "부동산"
 
 
 def test_startup_beats_welfare_for_jiwongeum():
