@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  pages: write  # CDN 미반영 시 notify 단계가 Pages 재빌드를 요청
 
 concurrency:
   group: policy-pipeline
@@ -66,6 +67,7 @@ jobs:
         run: python -m pipeline.main notify
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # notify 단계 성공·실패 여부와 무관하게 pending_notify.json의 현재 상태를 git에 반영한다.
       # notify 성공 시 파일이 삭제(unlink)되므로 빈 배열로 대체해 커밋한다.

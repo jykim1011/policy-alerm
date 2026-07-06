@@ -54,3 +54,33 @@ def test_notify_pending_requeues_cdn_failures(tmp_path, monkeypatch):
     assert [i.id for i in items] == ["a"]  # 확인된 a만 발송
     remaining = json.loads(f.read_text(encoding="utf-8"))
     assert [p["id"] for p in remaining] == ["b"]  # b는 재시도용으로 남음
+
+
+class _Resp:
+    def __init__(self, status_code):
+        self.status_code = status_code
+
+
+def test_wait_for_cdn_requests_pages_rebuild_once_on_persistent_404(monkeypatch):
+    # Pages 자동 배포가 간헐 실패하면 404가 지속된다. rebuild_after 경과 시
+    # 재빌드를 정확히 1회 요청해야 한다.
+    rebuild_calls = []
+    monkeypatch.setattr(main, "_request_pages_rebuild", lambda: rebuild_calls.append(1))
+    monkeypatch.setattr(main.requests, "get", lambda *a, **kw: _Resp(404))
+    monkeypatch.setattr(main.time, "sleep", lambda s: None)
+
+    ok = main._wait_for_cdn("x", timeout=1, interval=0, rebuild_after=0)
+
+    assert ok is False
+    assert rebuild_calls == [1]
+
+
+def test_wait_for_cdn_no_rebuild_when_live_immediately(monkeypatch):
+    rebuild_calls = []
+    monkeypatch.setattr(main, "_request_pages_rebuild", lambda: rebuild_calls.append(1))
+    monkeypatch.setattr(main.requests, "get", lambda *a, **kw: _Resp(200))
+
+    ok = main._wait_for_cdn("x", timeout=1, interval=0)
+
+    assert ok is True
+    assert rebuild_calls == []

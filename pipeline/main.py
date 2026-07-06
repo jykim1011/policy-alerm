@@ -126,18 +126,48 @@ def _write_pending(new_items: list[tuple[PolicyItem, str]]) -> None:
     )
 
 
-def _wait_for_cdn(policy_id: str, timeout: int = 900, interval: int = 15) -> bool:
-    """상세 JSON이 CDN에 라이브될 때까지 폴링한다. timeout이면 False."""
+def _request_pages_rebuild() -> None:
+    """GitHub Pages 재빌드를 요청한다. Pages 자동 배포가 간헐적으로 플랫폼 오류
+    ("Deployment failed, try again later")로 실패하면 아무도 재시도하지 않아
+    CDN이 이전 커밋에 멈춘다(2026-07-06 알림 미발송 장애 원인)."""
+    token = os.environ.get("GITHUB_TOKEN")
+    repo = os.environ.get("GITHUB_REPOSITORY", "jykim1011/policy-alerm")
+    if not token:
+        print("  GITHUB_TOKEN 없음, Pages 재빌드 요청 생략", file=sys.stderr)
+        return
+    try:
+        resp = requests.post(
+            f"https://api.github.com/repos/{repo}/pages/builds",
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        print("  CDN 미반영 지속 → Pages 재빌드 요청됨")
+    except Exception as e:
+        print(f"  Pages 재빌드 요청 실패: {e}", file=sys.stderr)
+
+
+def _wait_for_cdn(
+    policy_id: str, timeout: int = 900, interval: int = 15, rebuild_after: int = 180
+) -> bool:
+    """상세 JSON이 CDN에 라이브될 때까지 폴링한다. timeout이면 False.
+    rebuild_after 경과에도 미반영이면 Pages 배포 실패로 보고 재빌드를 1회 요청한다."""
     url = f"{CDN_BASE}policies/{quote(policy_id)}.json"
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
+    start = time.monotonic()
+    deadline = start + timeout
+    rebuild_requested = False
+    while True:
         try:
             if requests.get(url, headers=HEADERS, timeout=15).status_code == 200:
                 return True
         except Exception:
             pass
+        if not rebuild_requested and time.monotonic() - start >= rebuild_after:
+            _request_pages_rebuild()
+            rebuild_requested = True
+        if time.monotonic() >= deadline:
+            return False
         time.sleep(interval)
-    return False
 
 
 def notify_pending() -> None:
