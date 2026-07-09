@@ -68,7 +68,9 @@ def summarize_policy(
         genai.configure(api_key=os.environ["GEMINI_API_KEY"].strip())
         model = genai.GenerativeModel("gemini-2.5-flash")
 
-    truncated = text[:8000]
+    # 첨부 원문은 붙임 표(지역 목록·일정 등)가 뒤에 붙어 8,000자로는 잘렸다.
+    # gemini-2.5-flash 컨텍스트·비용 여유가 커서 20,000자까지 살린다.
+    truncated = text[:20000]
     prompt = _PROMPT_TEMPLATE.format(title=title, text=truncated)
 
     # 2.5-flash는 호출당 지연이 길 수 있어 타임아웃을 둔다. 초과/실패 건은

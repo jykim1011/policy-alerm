@@ -36,10 +36,12 @@ def test_summarize_policy_handles_surrounding_text():
 
 
 def test_summarize_policy_truncates_long_text():
+    # 첨부 원문은 붙임 표까지 포함해 길다. 20,000자까지는 살려서
+    # 뒷부분 붙임(지역 목록·일정표)이 잘리지 않게 한다.
     mock_model = MagicMock()
     mock_model.generate_content.return_value.text = MOCK_RESPONSE_JSON
-    long_text = "가" * 20000
+    long_text = "가" * 40000
     summarize_policy("제목", long_text, model=mock_model)
-    call_args = mock_model.generate_content.call_args
-    prompt = call_args.args[0]
-    assert len(prompt) < 12000  # 텍스트가 잘렸는지 확인
+    prompt = mock_model.generate_content.call_args.args[0]
+    assert len(prompt) < 25000  # 상한 초과분은 잘림
+    assert "가" * 20000 in prompt  # 20,000자까지는 보존
