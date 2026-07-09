@@ -40,10 +40,35 @@ export function getPolicyIds(): string[] {
   return getArchivedPolicies().map((p) => p.id);
 }
 
+// 파이프라인(LLM)이 문자열 필드를 객체로 뱉는 사고가 있었다(2026-07-08 when_effective).
+// 객체가 React 자식으로 렌더되면 431페이지 전체 프리렌더가 죽으므로 읽기 시점에 평탄화한다.
+function flattenStr(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v.map(flattenStr).join(", ");
+  if (typeof v === "object") {
+    return Object.entries(v)
+      .map(([k, x]) => `${k}: ${flattenStr(x)}`)
+      .join(", ");
+  }
+  return String(v);
+}
+
 export function getPolicy(id: string): PolicyDetail | null {
   const file = path.join(POLICIES_DIR, `${id}.json`);
   if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, "utf-8")) as PolicyDetail;
+  const detail = JSON.parse(fs.readFileSync(file, "utf-8")) as PolicyDetail;
+  if (detail.summary) {
+    const s = detail.summary;
+    s.what_changed = flattenStr(s.what_changed);
+    s.who_is_affected = flattenStr(s.who_is_affected);
+    if (s.when_effective != null) s.when_effective = flattenStr(s.when_effective);
+    if (s.how_to_apply != null) s.how_to_apply = flattenStr(s.how_to_apply);
+    if (s.background != null) s.background = flattenStr(s.background);
+    if (Array.isArray(s.key_points)) s.key_points = s.key_points.map(flattenStr);
+    if (Array.isArray(s.eligibility)) s.eligibility = s.eligibility.map(flattenStr);
+  }
+  return detail;
 }
 
 export function getCategoryPolicies(category: string): PolicyItem[] {

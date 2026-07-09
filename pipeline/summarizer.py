@@ -79,8 +79,18 @@ def summarize_policy(
     raw = _parse_json(response.text)
 
     # 보강 필드는 모델이 누락하거나 형식이 어긋날 수 있어 견고하게 받는다(없으면 기본값).
+    def _flatten_str(v):
+        # 모델이 문자열 필드를 dict/list로 반환하는 사례가 있다(예: when_effective를
+        # {"의무 공시 시작": "2028년", ...}로). 객체가 그대로 발행되면 웹 프리렌더와
+        # Android Gson 파싱이 깨지므로 사람이 읽을 수 있는 한 줄 문자열로 평탄화한다.
+        if isinstance(v, dict):
+            return ", ".join(f"{k}: {_flatten_str(x)}" for k, x in v.items())
+        if isinstance(v, list):
+            return ", ".join(_flatten_str(x) for x in v)
+        return str(v).strip() if v is not None else ""
+
     def _str_list(v):
-        return [str(x).strip() for x in v if str(x).strip()] if isinstance(v, list) else []
+        return [_flatten_str(x) for x in v if _flatten_str(x)] if isinstance(v, list) else []
 
     def _qa_list(v, keys):
         out = []
@@ -97,10 +107,10 @@ def summarize_policy(
         how_to_apply = None
 
     return PolicySummary(
-        what_changed=raw["what_changed"],
-        who_is_affected=raw["who_is_affected"],
-        when_effective=raw["when_effective"],
-        key_points=raw["key_points"],
+        what_changed=_flatten_str(raw["what_changed"]),
+        who_is_affected=_flatten_str(raw["who_is_affected"]),
+        when_effective=_flatten_str(raw["when_effective"]),
+        key_points=_str_list(raw["key_points"]),
         background=str(raw.get("background", "")).strip(),
         eligibility=_str_list(raw.get("eligibility")),
         how_to_apply=how_to_apply,
