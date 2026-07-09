@@ -25,6 +25,16 @@ PENDING_FILE = Path("pipeline/pending_notify.json")
 CDN_BASE = "https://jykim1011.github.io/policy-alerm/"
 
 
+# 본문이 이보다 짧으면 "상세는 첨부 참고" 스텁으로 간주하고 첨부 추출을 시도한다.
+# ("[참고] 투기과열지구 및 조정대상지역 추가 지정" 요약이 지역명 없이 생성된 장애 원인 —
+#  본문이 비어 있지 않다는 이유로 첨부를 읽지 않았다.)
+MIN_BODY_CHARS = 500
+
+
+def _needs_attachment(text: str) -> bool:
+    return len(text.strip()) < MIN_BODY_CHARS
+
+
 def download_file(url: str) -> bytes:
     resp = requests.get(url, headers=HEADERS, timeout=30, stream=True)
     resp.raise_for_status()
@@ -49,15 +59,15 @@ def run(batch: str) -> None:
         for raw in new_in_source:
             print(f"  신규 정책 발견: {raw.title}")
 
-            # 텍스트 추출: 본문이 이미 있으면 그대로 사용한다.
-            # (정책브리핑 OpenAPI는 본문을 inline으로 제공하며, 첨부파일 호스트
-            #  korea.kr은 GitHub Actions IP를 차단하므로 다운로드는 항상 실패·지연된다.)
+            # 텍스트 추출: 본문이 충분히 길면 그대로 사용한다.
+            # (정책브리핑 OpenAPI는 본문을 inline으로 제공. korea.kr 첨부 다운로드는
+            #  GitHub Actions IP에서 실패할 수 있으므로 실패 시 본문으로 폴백한다.)
             text = raw.html_content
-            if not text.strip() and raw.file_url and raw.file_type:
+            if _needs_attachment(text) and raw.file_url and raw.file_type:
                 try:
                     file_bytes = download_file(raw.file_url)
                     extracted = extract_text(file_bytes, raw.file_type)
-                    if extracted.strip():
+                    if len(extracted.strip()) > len(text.strip()):
                         text = extracted
                 except Exception as e:
                     print(f"  파일 추출 실패, HTML 폴백: {e}", file=sys.stderr)

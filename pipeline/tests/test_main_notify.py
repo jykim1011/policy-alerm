@@ -56,6 +56,14 @@ def test_notify_pending_requeues_cdn_failures(tmp_path, monkeypatch):
     assert [p["id"] for p in remaining] == ["b"]  # b는 재시도용으로 남음
 
 
+def test_needs_attachment_for_stub_body():
+    # "[참고]" 유형 보도자료는 본문이 "상세는 첨부 참고" 스텁이라 짧다.
+    # 첨부(hwpx)에만 실제 내용이 있으므로 추출을 시도해야 한다 (동탄 규제지정 장애).
+    assert main._needs_attachment("자세한 내용은 첨부파일을 참고하시기 바랍니다.") is True
+    assert main._needs_attachment("") is True
+    assert main._needs_attachment("가" * 600) is False
+
+
 class _Resp:
     def __init__(self, status_code):
         self.status_code = status_code
