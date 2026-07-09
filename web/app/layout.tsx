@@ -39,6 +39,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary", images: ["/icon-512.png"] },
   alternates: { canonical: "/" },
   appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
+  other: { "google-adsense-account": "ca-pub-4710152968528474" },
 };
 
 export const viewport: Viewport = {
