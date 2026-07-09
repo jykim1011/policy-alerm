@@ -54,6 +54,15 @@ def test_jeonse_compounds_still_real_estate():
     assert _classify_category("전세 계약 전 '위험신호' 알려준다, 안심전세앱 9월 개편") == "부동산"
 
 
+def test_regulation_zone_titles_real_estate():
+    # 2026-06-30 동탄·기흥·구리 규제지역 지정 보도자료를 놓친 회귀 방지.
+    # 규제지역 관련 용어는 제목에 주택·아파트가 없어도 부동산으로 잡혀야 한다.
+    assert _classify_category("동탄·기흥·구리, 투기과열지구·조정대상지역 지정") == "부동산"
+    assert _classify_category("경기도, 토지거래허가구역 추가 지정 공고") == "부동산"
+    assert _classify_category("규제지역 지정 효력 7월 1일부터 발생") == "부동산"
+    assert _classify_category("주거정책심의위원회 심의 결과 발표") == "부동산"
+
+
 def test_startup_beats_welfare_for_jiwongeum():
     # "소상공인 지원금" — 창업이 복지보다 먼저 매칭돼야 한다.
     assert _classify_category("소상공인 지원금 신청 안내") == "창업"
