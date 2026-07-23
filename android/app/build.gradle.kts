@@ -16,14 +16,14 @@ val keystoreProps = Properties().apply {
 
 android {
     namespace = "com.policyalarm"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.policyalarm"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 36
-        versionName = "1.5.3"
+        targetSdk = 36
+        versionCode = 37
+        versionName = "1.5.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "CDN_BASE_URL",
             "\"https://jykim1011.github.io/policy-alerm/\"")
