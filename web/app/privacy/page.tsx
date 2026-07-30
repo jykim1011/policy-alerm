@@ -18,7 +18,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function PrivacyPage() {
   return (
-    <article className="mx-auto max-w-prose text-[0.95rem] leading-[1.8] text-ink-soft">
+    <article className="card mx-auto max-w-2xl p-6 text-[0.95rem] leading-[1.8] text-ink-soft sm:p-10">
       <p className="doc-eyebrow mb-2">개인정보처리방침</p>
       <h1 className="mb-4 text-2xl font-bold text-ink">개인정보처리방침</h1>
 

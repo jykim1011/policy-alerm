@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <article className="mx-auto max-w-prose">
+    <article className="card mx-auto max-w-2xl p-6 sm:p-10">
       <p className="doc-eyebrow mb-2">문의</p>
       <h1 className="mb-6 text-2xl font-bold text-ink">문의하기</h1>
 
@@ -19,7 +19,7 @@ export default function ContactPage() {
           아래 이메일로 보내주세요. 영업일 기준 신속히 답변드리겠습니다.
         </p>
 
-        <div className="rounded-lg border border-rule bg-paper p-5 text-center">
+        <div className="rounded-2xl bg-paper p-5 text-center">
           <p className="mb-1 text-sm text-muted">이메일</p>
           <a
             href="mailto:jysm8689@gmail.com"

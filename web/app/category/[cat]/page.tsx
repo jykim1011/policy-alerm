@@ -5,6 +5,7 @@ import { CATEGORY_LIST, catMeta } from "@/lib/categoryMeta";
 import { categoryIntro } from "@/lib/categoryIntro";
 import { SITE_URL } from "@/lib/site";
 import { PolicyCard } from "@/components/PolicyCard";
+import { CategoryIcon } from "@/components/icons";
 
 export const dynamicParams = false;
 
@@ -36,28 +37,31 @@ export default async function CategoryPage({ params }: Props) {
   const intro = categoryIntro(key);
   return (
     <>
-      <section className="mb-6 border-b border-rule pb-5">
+      <section className="mb-6">
         <p className="doc-eyebrow mb-2">분류별 보도자료</p>
-        <h1 className="font-serif text-3xl font-bold leading-tight text-ink">
-          {meta.emoji} {meta.full}
+        <h1 className="flex items-center gap-3 text-[1.6rem] font-extrabold leading-tight tracking-tight text-ink md:text-3xl">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-seal-soft text-seal md:h-12 md:w-12">
+            <CategoryIcon cat={key} className="h-6 w-6" />
+          </span>
+          {meta.full}
         </h1>
         {intro && (
-          <p className="mt-3 max-w-prose break-keep text-[0.95rem] leading-[1.75] text-ink-soft">
+          <p className="mt-3 max-w-prose break-keep text-[0.95rem] leading-[1.75] text-muted">
             {intro}
           </p>
         )}
-        <p className="mt-3 font-mono text-xs text-faint">수록 {policies.length}건</p>
+        <p className="mt-3 text-xs font-medium text-faint">수록 {policies.length}건</p>
       </section>
-      <div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
         {policies.map((p) => (
           <PolicyCard key={p.id} p={p} />
         ))}
-        {policies.length === 0 && (
-          <p className="py-16 text-center text-sm text-muted">
-            이 분류에는 아직 정책이 없습니다.
-          </p>
-        )}
       </div>
+      {policies.length === 0 && (
+        <p className="py-16 text-center text-sm text-muted">
+          이 분류에는 아직 정책이 없습니다.
+        </p>
+      )}
     </>
   );
 }

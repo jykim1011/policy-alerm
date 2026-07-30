@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAllSources, getSourcePolicies } from "@/lib/policies";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { PolicyCard } from "@/components/PolicyCard";
+import { BuildingIcon } from "@/components/icons";
 
 export const dynamicParams = false;
 
@@ -30,18 +31,21 @@ export default async function SourcePage({ params }: Props) {
 
   return (
     <>
-      <section className="mb-6 border-b border-rule pb-5">
+      <section className="mb-6">
         <p className="doc-eyebrow mb-2">주관부처별 보도자료</p>
-        <h1 className="font-serif text-3xl font-bold leading-tight text-ink">
-          🏛 {source}
+        <h1 className="flex items-center gap-3 text-[1.6rem] font-extrabold leading-tight tracking-tight text-ink md:text-3xl">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-seal-soft text-seal md:h-12 md:w-12">
+            <BuildingIcon className="h-6 w-6" />
+          </span>
+          {source}
         </h1>
-        <p className="mt-3 max-w-prose break-keep text-[0.95rem] leading-[1.75] text-ink-soft">
+        <p className="mt-3 max-w-prose break-keep text-[0.95rem] leading-[1.75] text-muted">
           {source}이(가) 발표한 정책 보도자료를 모았습니다. 발표 시점과 적용 시기를 함께
           확인하고, 자세한 내용은 각 정책의 원문을 참고하세요.
         </p>
-        <p className="mt-3 font-mono text-xs text-faint">수록 {policies.length}건</p>
+        <p className="mt-3 text-xs font-medium text-faint">수록 {policies.length}건</p>
       </section>
-      <div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
         {policies.map((p) => (
           <PolicyCard key={p.id} p={p} />
         ))}

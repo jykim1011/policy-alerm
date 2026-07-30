@@ -15,15 +15,17 @@ import type { NotificationItem } from "@/lib/types";
 
 export default function NotificationsPage() {
   return (
-    <>
-      <header className="mb-6 border-b border-rule pb-4">
-        <p className="doc-eyebrow mb-2">새 정책 소식</p>
-        <h1 className="font-serif text-3xl font-bold leading-tight text-ink">알림</h1>
+    <div className="mx-auto max-w-2xl">
+      <header className="mb-5">
+        <p className="doc-eyebrow mb-1.5">새 정책 소식</p>
+        <h1 className="text-[1.6rem] font-extrabold leading-tight tracking-tight text-ink md:text-3xl">
+          알림
+        </h1>
       </header>
       <LoginGate>
         <NotificationList />
       </LoginGate>
-    </>
+    </div>
   );
 }
 
@@ -38,7 +40,7 @@ function NotificationList() {
   }, [user]);
 
   async function open(n: NotificationItem) {
-    if (!user) return;
+    if (!user || !n.policyId?.trim()) return;
     if (!n.read) markNotificationRead(user.uid, n.id).catch(() => {});
     // gen2 트리거가 깨뜨린 비ASCII 정책 id 를 복원해 상세로 이동.
     router.push(`/policy/${decodeMojibake(n.policyId)}`);
@@ -51,38 +53,42 @@ function NotificationList() {
   }
 
   if (items === null) {
-    return <p className="py-12 text-center font-mono text-xs text-faint">불러오는 중…</p>;
+    return <p className="py-12 text-center text-xs font-medium text-faint">불러오는 중…</p>;
   }
   if (items.length === 0) {
     return (
-      <p className="py-16 text-center text-sm text-muted">
+      <p className="card px-6 py-16 text-center text-sm text-muted">
         새 정책이 발표되면 여기에 알림이 쌓입니다.
       </p>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2.5">
       {items.map((n) => (
         <li
           key={n.id}
-          className={`rounded-[4px] border p-3 ${
-            n.read
-              ? "border-rule bg-surface"
-              : "border-seal bg-seal-soft"
-          }`}
+          className={`card p-4 ${n.read ? "" : "bg-seal-soft"}`}
         >
           <div className="flex items-start gap-2">
             <button onClick={() => open(n)} className="flex-1 text-left">
-              <p className="font-semibold text-ink">{n.title}</p>
-              <p className="line-clamp-2 text-sm text-muted">{n.body}</p>
-              <span className="font-mono text-xs text-faint">
+              <p className="flex items-center gap-1.5 font-bold text-ink">
+                {!n.read && (
+                  <span
+                    aria-label="읽지 않음"
+                    className="h-1.5 w-1.5 shrink-0 rounded-full bg-seal"
+                  />
+                )}
+                {n.title}
+              </p>
+              <p className="line-clamp-2 break-keep text-sm text-muted">{n.body}</p>
+              <span className="text-xs font-medium text-faint">
                 {formatRelative(n.createdAtMillis)}
               </span>
             </button>
             <button
               onClick={() => remove(n)}
-              className="font-mono text-xs text-faint hover:text-seal"
+              className="rounded-full px-2 py-1 text-xs font-semibold text-faint transition hover:bg-paper hover:text-ink"
             >
               삭제
             </button>

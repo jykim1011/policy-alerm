@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { isBookmarked, saveBookmark, removeBookmark } from "@/lib/user";
+import { BookmarkIcon } from "./icons";
 
 export function BookmarkButton({ policyId }: { policyId: string }) {
   const { user, signIn } = useAuth();
@@ -42,13 +43,14 @@ export function BookmarkButton({ policyId }: { policyId: string }) {
     <button
       onClick={toggle}
       disabled={busy}
-      className={`rounded-[4px] border px-3 py-1.5 text-sm font-medium transition disabled:opacity-50 ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${
         marked
-          ? "border-seal bg-seal-soft text-seal"
-          : "border-rule-strong bg-paper text-ink-soft hover:border-seal hover:text-seal"
+          ? "bg-seal-soft text-seal"
+          : "bg-paper text-ink-soft hover:bg-rule"
       }`}
     >
-      {marked ? "★ 보관함에 있음" : "☆ 보관함에 담기"}
+      <BookmarkIcon filled={marked} className="h-4 w-4" />
+      {marked ? "보관함에 있음" : "보관함에 담기"}
     </button>
   );
 }

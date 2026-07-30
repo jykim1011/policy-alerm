@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { CheckIcon, ShareIcon } from "./icons";
 
 interface ShareProps {
   policyId: string;
@@ -64,9 +65,19 @@ export function ShareButton(props: ShareProps) {
   return (
     <button
       onClick={share}
-      className="rounded-md border border-rule-strong bg-paper px-3 py-1.5 text-sm font-medium text-ink-soft hover:border-seal hover:text-seal"
+      className="inline-flex items-center gap-1.5 rounded-full bg-paper px-4 py-2 text-sm font-semibold text-ink-soft transition hover:bg-rule"
     >
-      {copied ? "링크 복사됨 ✓" : "공유하기 ↗"}
+      {copied ? (
+        <>
+          <CheckIcon className="h-4 w-4 text-seal" />
+          링크 복사됨
+        </>
+      ) : (
+        <>
+          <ShareIcon className="h-4 w-4" />
+          공유하기
+        </>
+      )}
     </button>
   );
 }

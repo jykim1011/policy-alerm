@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Header } from "@/components/Header";
+import { MobileTabBar } from "@/components/MobileTabBar";
 import { SITE_DESC, SITE_NAME, SITE_URL } from "@/lib/site";
 import { GooglePlayBadge } from "@/components/GooglePlayBadge";
 
@@ -89,25 +90,28 @@ export default function RootLayout({
         />
         <AuthProvider>
           <Header />
-          <main className="mx-auto min-h-[70vh] max-w-3xl border-rule bg-surface px-5 py-8 md:border-x">
+          <main className="mx-auto min-h-[70vh] w-full max-w-5xl px-4 pb-24 pt-6 sm:px-6 md:pb-16 md:pt-8">
             {children}
           </main>
-          <footer className="mx-auto max-w-3xl px-5 py-10 text-center">
-            <p className="mb-3 text-sm text-muted">
-              앱으로 새 정책 알림을 가장 먼저 받아보세요
-            </p>
-            <div className="flex justify-center">
-              <GooglePlayBadge size="md" />
+          <footer className="border-t border-rule bg-surface pb-24 md:pb-10">
+            <div className="mx-auto max-w-5xl px-4 py-10 text-center sm:px-6">
+              <p className="mb-3 text-sm font-medium text-muted">
+                앱으로 새 정책 알림을 가장 먼저 받아보세요
+              </p>
+              <div className="flex justify-center">
+                <GooglePlayBadge size="md" />
+              </div>
+              <nav className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs font-medium text-muted">
+                <Link href="/about" className="hover:text-seal">소개</Link>
+                <Link href="/privacy" className="hover:text-seal">개인정보처리방침</Link>
+                <Link href="/contact" className="hover:text-seal">문의</Link>
+              </nav>
+              <p className="mt-3 text-xs text-faint">
+                © 2026 정책알람 · 정부 정책 보도자료 아카이브 · 데이터 출처 정책브리핑
+              </p>
             </div>
-            <nav className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted">
-              <Link href="/about" className="hover:text-seal">소개</Link>
-              <Link href="/privacy" className="hover:text-seal">개인정보처리방침</Link>
-              <Link href="/contact" className="hover:text-seal">문의</Link>
-            </nav>
-            <p className="mt-3 text-xs text-faint">
-              © 2026 정책알람 · 정부 정책 보도자료 아카이브 · 데이터 출처 정책브리핑
-            </p>
           </footer>
+          <MobileTabBar />
         </AuthProvider>
       </body>
     </html>

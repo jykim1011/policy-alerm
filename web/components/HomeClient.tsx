@@ -6,6 +6,7 @@ import type { PolicyItem } from "@/lib/types";
 import { CATEGORY_LIST } from "@/lib/categoryMeta";
 import { CDN_BASE } from "@/lib/site";
 import { PolicyCard } from "./PolicyCard";
+import { BuildingIcon, CategoryIcon, ChevronDownIcon, SearchIcon } from "./icons";
 
 export function HomeClient({ initial }: { initial: PolicyItem[] }) {
   const [policies, setPolicies] = useState<PolicyItem[]>(initial);
@@ -58,20 +59,20 @@ export function HomeClient({ initial }: { initial: PolicyItem[] }) {
 
   return (
     <div>
-      <div className="relative mb-5">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs text-faint">
-          검색
-        </span>
+      {/* 검색 — 흰색 라운드 바 + 돋보기 아이콘 */}
+      <div className="relative mb-4">
+        <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-faint" />
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="제목·내용으로 정책 찾기"
-          className="w-full rounded-[4px] border border-rule-strong bg-paper py-2.5 pl-14 pr-3 text-sm text-ink outline-none placeholder:text-faint focus:border-seal"
+          className="card w-full py-3.5 pl-11 pr-4 text-[0.95rem] text-ink outline-none ring-seal/60 transition placeholder:text-faint focus:ring-2"
         />
       </div>
 
-      <div className="mb-1 flex flex-wrap gap-2 border-b border-rule pb-4">
+      {/* 분류 칩 — 모바일 가로 스크롤, 데스크톱 줄바꿈 */}
+      <div className="no-scrollbar -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
         {CATEGORY_LIST.map((c) => {
           const active = cat === c.key;
           return (
@@ -79,68 +80,68 @@ export function HomeClient({ initial }: { initial: PolicyItem[] }) {
               key={c.key}
               onClick={() => setCat(c.key)}
               aria-pressed={active}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.82rem] font-medium transition ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[0.85rem] font-semibold transition ${
                 active
-                  ? "border-seal bg-seal text-white shadow-sm"
-                  : "border-rule bg-surface text-ink-soft hover:border-seal hover:bg-seal-soft hover:text-seal-ink"
+                  ? "bg-ink text-white"
+                  : "bg-surface text-muted shadow-card hover:text-ink"
               }`}
             >
-              <span aria-hidden="true" className="text-[0.9rem] leading-none">
-                {c.emoji}
-              </span>
+              <CategoryIcon cat={c.key} className="h-4 w-4" />
               {c.key}
             </button>
           );
         })}
       </div>
 
-      <div className="mb-1 mt-3 flex items-center gap-2">
-        <div className="relative">
+      <div className="mb-5 flex items-center gap-2">
+        <div
+          className={`relative ${
+            src !== "전체" ? "text-seal-ink" : "text-muted"
+          }`}
+        >
+          <BuildingIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" />
           <select
             value={src}
             onChange={(e) => setSrc(e.target.value)}
             aria-label="주관부처 필터"
-            className={`appearance-none rounded-full border py-1.5 pl-3.5 pr-8 text-[0.82rem] font-medium outline-none transition ${
+            className={`appearance-none rounded-full py-2 pl-9 pr-9 text-[0.85rem] font-semibold outline-none transition ${
               src !== "전체"
-                ? "border-seal bg-seal-soft text-seal-ink"
-                : "border-rule bg-surface text-ink-soft hover:border-seal"
+                ? "bg-seal-soft"
+                : "bg-surface shadow-card hover:text-ink"
             }`}
           >
-            <option value="전체">🏛 주관부처 전체</option>
+            <option value="전체">주관부처 전체</option>
             {sources.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
             ))}
           </select>
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.7rem] text-faint">
-            ▼
-          </span>
+          <ChevronDownIcon className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
         </div>
         {src !== "전체" && (
           <button
             onClick={() => setSrc("전체")}
-            className="text-xs text-faint hover:text-seal"
+            className="text-xs font-semibold text-faint hover:text-seal"
           >
             초기화
           </button>
         )}
+        <p className="ml-auto text-xs font-medium text-faint">
+          수록 {filtered.length}건
+        </p>
       </div>
 
-      <p className="mb-1 font-mono text-xs text-faint">
-        수록 {filtered.length}건
-      </p>
-
-      <div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
         {filtered.map((p) => (
           <PolicyCard key={p.id} p={p} />
         ))}
-        {filtered.length === 0 && (
-          <p className="py-16 text-center text-sm text-muted">
-            조건에 맞는 정책이 없습니다.
-          </p>
-        )}
       </div>
+      {filtered.length === 0 && (
+        <p className="py-16 text-center text-sm text-muted">
+          조건에 맞는 정책이 없습니다.
+        </p>
+      )}
     </div>
   );
 }

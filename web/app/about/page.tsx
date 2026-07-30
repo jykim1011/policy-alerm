@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <article className="mx-auto max-w-prose">
+    <article className="card mx-auto max-w-2xl p-6 sm:p-10">
       <p className="doc-eyebrow mb-2">서비스 소개</p>
       <h1 className="mb-6 text-2xl font-bold text-ink">정책알람이란</h1>
 

@@ -1,38 +1,42 @@
 @import "tailwindcss";
 
 /* =============================================================
- * 정책알람 웹 디자인 시스템
- * 색상은 Android 앱(ui/theme/Color.kt)과 동일하게 통일 — 거브블루 액센트 +
- * Tailwind 회색조 + 연블루 틴트. 웹 가독성을 위해 Pretendard 본문 + 넉넉한 행간.
+ * 정책알람 웹 디자인 시스템 — 토스류 클린 UI
+ * 연회색 캔버스(#f2f4f6) 위에 흰색 라운드 카드(그림자 분리), 토스블루
+ * (#3182f6) 액센트, Pretendard 볼드 타이포. 모바일은 하단 탭바로 앱처럼.
  *
- * 토큰 이름은 유지하되(컴포넌트 클래스 보존) 값만 앱 팔레트로 매핑한다:
- *   ink → fg-strong, ink-soft → fg-default, muted → fg-muted, faint → fg-faint,
- *   rule → border, rule-strong → border-strong, paper → bgApp, surface → white,
- *   seal/seal-ink/seal-soft → accent / accent-hover / gov-tint (앱 강조색)
+ * 토큰 이름은 유지하되(컴포넌트 클래스 보존) 값만 새 팔레트로 매핑한다:
+ *   ink → gray900, ink-soft → gray800, muted → gray700, faint → gray500,
+ *   rule/rule-strong → 옅은 구분선, paper → 캔버스 회색, surface → 흰 카드,
+ *   seal/seal-ink/seal-soft → 토스블루 / hover / 연블루 틴트
  * ============================================================= */
 @theme {
   /* 배경 / 면 */
-  --color-paper: #f4f6fb; /* 앱 bgApp */
-  --color-surface: #ffffff; /* 앱 surface */
-  --color-muted-bg: #f3f4f6; /* 앱 bgMuted */
+  --color-paper: #f2f4f6; /* 캔버스 회색 */
+  --color-surface: #ffffff; /* 카드 흰색 */
+  --color-muted-bg: #f2f4f6;
 
   /* 글자 */
-  --color-ink: #111827; /* fg-strong (gray-900) */
-  --color-ink-soft: #374151; /* fg-default (gray-700) */
-  --color-muted: #4b5563; /* fg-muted (gray-600) */
-  --color-faint: #6b7280; /* fg-subtle (gray-500) — 가독성 위해 한 단계 진하게 */
+  --color-ink: #191f28; /* gray900 */
+  --color-ink-soft: #333d4b; /* gray800 */
+  --color-muted: #4e5968; /* gray700 */
+  --color-faint: #8b95a1; /* gray500 */
 
-  /* 선 */
-  --color-rule: #e5e7eb; /* border (gray-200) */
-  --color-rule-strong: #d1d5db; /* border-strong (gray-300) */
+  /* 선 — 카드 분리는 그림자가 담당하므로 괘선은 아주 옅게 */
+  --color-rule: #eaedf0;
+  --color-rule-strong: #d9dee3;
 
-  /* 강조 — 앱 거브블루 */
-  --color-seal: #1d4ed8; /* accent (blue-700) */
-  --color-seal-ink: #1e40af; /* accent-hover (blue-800) */
-  --color-seal-soft: #eff6ff; /* gov-tint (blue-50) */
-  --color-danger: #ef4444;
+  /* 강조 — 토스블루 */
+  --color-seal: #3182f6;
+  --color-seal-ink: #1b64da;
+  --color-seal-soft: #e8f3ff;
+  --color-danger: #f04452;
 
-  /* 글꼴 — 가독성 높은 Pretendard로 통일 */
+  /* 카드 그림자 */
+  --shadow-card: 0 1px 2px rgba(25, 31, 40, 0.04), 0 6px 20px rgba(25, 31, 40, 0.05);
+  --shadow-card-hover: 0 4px 10px rgba(25, 31, 40, 0.06), 0 14px 32px rgba(25, 31, 40, 0.1);
+
+  /* 글꼴 — Pretendard 단일 체계 */
   --font-sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo",
     system-ui, sans-serif;
   --font-serif: var(--font-sans);
@@ -50,7 +54,7 @@ body {
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.65;
-  letter-spacing: -0.003em;
+  letter-spacing: -0.01em;
 }
 
 ::selection {
@@ -58,26 +62,48 @@ body {
   color: #fff;
 }
 
+/* ---- 흰색 라운드 카드 ---- */
+.card {
+  background: var(--color-surface);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ---- 가로 스크롤 칩 줄 — 스크롤바 숨김 ---- */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ---- 섹션 라벨 (강조색 소제목) ---- */
 .doc-eyebrow {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.01em;
-  color: var(--color-seal-ink);
+  color: var(--color-seal);
 }
 
 /* ---- 발행 부처 칩 ---- */
 .seal {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   font-size: 0.74rem;
-  font-weight: 500;
-  color: var(--color-seal-ink);
-  border: 1px solid var(--color-rule-strong);
+  font-weight: 600;
+  color: var(--color-muted);
   border-radius: 9999px;
-  padding: 0.15rem 0.55rem;
-  background: var(--color-surface);
+  padding: 0.25rem 0.65rem;
+  background: var(--color-paper);
   white-space: nowrap;
 }
 .seal::before {
@@ -89,26 +115,18 @@ body {
 }
 .seal--lg {
   font-size: 0.82rem;
-  font-weight: 600;
-  padding: 0.35rem 0.7rem;
+  font-weight: 700;
+  padding: 0.4rem 0.8rem;
   background: var(--color-seal-soft);
-  border-color: var(--color-seal);
   color: var(--color-seal-ink);
 }
 
-/* ---- 제호 강조 괘선 ---- */
-.rule-seal {
-  height: 2px;
-  background: var(--color-seal);
-  border-radius: 2px;
-}
-
-/* ---- 공고 행 hover ---- */
+/* ---- 목록 행 hover ---- */
 .notice {
   transition: background 0.16s ease;
 }
 .notice:hover {
-  background: var(--color-seal-soft);
+  background: var(--color-paper);
 }
 
 @media (prefers-reduced-motion: reduce) {

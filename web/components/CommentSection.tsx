@@ -72,14 +72,16 @@ export function CommentSection({ policyId }: { policyId: string }) {
   const totalCount = threads.reduce((n, t) => n + 1 + t.replies.length, 0);
 
   return (
-    <section className="mt-10">
-      <p className="doc-eyebrow mb-3">시민 의견 {totalCount}</p>
+    <section className="card mt-6 p-5 sm:p-7">
+      <p className="mb-3 text-[1.02rem] font-bold text-ink">
+        시민 의견 <span className="text-seal">{totalCount}</span>
+      </p>
 
-      <div className="mb-6 rounded-[4px] border border-rule-strong bg-paper p-3">
+      <div className="mb-6 rounded-2xl bg-paper p-3.5">
         {replyTo && (
-          <div className="mb-2 flex items-center gap-2 font-mono text-xs text-muted">
+          <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted">
             <span>↳ {replyTo.nick} 님에게 답글</span>
-            <button onClick={() => setReplyTo(null)} className="text-seal">
+            <button onClick={() => setReplyTo(null)} className="font-semibold text-seal">
               취소
             </button>
           </div>
@@ -92,13 +94,13 @@ export function CommentSection({ policyId }: { policyId: string }) {
           placeholder={
             user ? "이 정책에 대한 의견을 남겨주세요" : "로그인하고 의견을 남겨주세요"
           }
-          className="w-full resize-none rounded-[3px] border border-rule bg-surface px-3 py-2 text-sm text-ink outline-none placeholder:text-faint focus:border-seal"
+          className="w-full resize-none rounded-xl bg-surface px-3.5 py-2.5 text-sm text-ink outline-none ring-seal/60 transition placeholder:text-faint focus:ring-2"
         />
         <div className="mt-2 flex justify-end">
           <button
             onClick={submit}
             disabled={busy}
-            className="rounded-md bg-seal px-4 py-1.5 text-sm font-medium text-white hover:bg-seal-ink disabled:opacity-50"
+            className="rounded-full bg-seal px-4 py-2 text-sm font-bold text-white transition hover:bg-seal-ink disabled:opacity-50"
           >
             {user ? "등록" : "로그인"}
           </button>
@@ -106,7 +108,7 @@ export function CommentSection({ policyId }: { policyId: string }) {
       </div>
 
       {loading ? (
-        <p className="font-mono text-xs text-faint">불러오는 중…</p>
+        <p className="text-xs font-medium text-faint">불러오는 중…</p>
       ) : threads.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted">
           이 정책에 첫 의견을 남겨보세요.
@@ -181,7 +183,7 @@ function CommentRow({
       </span>
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
-          <span className="text-[0.9rem] font-bold text-seal-ink">{nickname}</span>
+          <span className="text-[0.9rem] font-bold text-ink">{nickname}</span>
           {mine && (
             <span className="rounded-full bg-seal-soft px-1.5 py-px text-[0.65rem] font-medium text-seal-ink">
               나
