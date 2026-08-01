@@ -30,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -88,16 +90,15 @@ fun PolicyAppIcon(size: Int = 84, corner: Int = 23, modifier: Modifier = Modifie
     }
 }
 
-/** Selectable category pill used in the home filter row. */
+/** Selectable category pill used in the home filter row — 토스풍(활성 = 잉크 솔리드). */
 @Composable
 fun CategoryChip(
     label: String,
-    emoji: String?,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
     val c = LocalAppColors.current
-    val bg by animateColorAsState(if (selected) c.accent else c.bgMuted, label = "chipBg")
+    val bg by animateColorAsState(if (selected) c.fgStrong else c.bgMuted, label = "chipBg")
     val fg by animateColorAsState(if (selected) Color.White else c.fgMuted, label = "chipFg")
     Row(
         modifier = Modifier
@@ -109,8 +110,8 @@ fun CategoryChip(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        if (emoji != null) Emoji(emoji, 14)
-        Text(label, color = fg, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        CategoryIcon(label, 15.dp, fg)
+        Text(label, color = fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -126,8 +127,8 @@ fun SubcatChip(category: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Emoji(catEmoji(category), 13)
-        Text(category, color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        CategoryIcon(category, 13.dp, c.accent)
+        Text(category, color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -269,19 +270,25 @@ fun Segmented(
     }
 }
 
-/** Card with border + surface used across detail / settings sections. */
+/** 흰색 라운드 카드 — 웹 .card 와 동일하게 옅은 그림자로 면을 분리(테두리 없음). */
 @Composable
 fun SurfaceCard(
     modifier: Modifier = Modifier,
-    corner: Int = 16,
+    corner: Int = 20,
     content: @Composable () -> Unit,
 ) {
     val c = LocalAppColors.current
+    val shape = RoundedCornerShape(corner.dp)
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(corner.dp))
-            .background(c.bgSurface)
-            .border(1.dp, c.border, RoundedCornerShape(corner.dp)),
+            .shadow(
+                elevation = 2.dp,
+                shape = shape,
+                ambientColor = Color(0x33191F28),
+                spotColor = Color(0x33191F28),
+            )
+            .clip(shape)
+            .background(c.bgSurface),
     ) { content() }
 }
 

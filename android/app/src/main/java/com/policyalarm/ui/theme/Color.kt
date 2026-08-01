@@ -40,21 +40,22 @@ val FileBlue = Color(0xFF2563EB) // HWP / HWPX
 val FileRed = Color(0xFFDC2626)  // PDF
 val FileGreen = Color(0xFF16A34A) // HTML
 
-// ---- Light role colors ----
-val LightBgApp = Color(0xFFF4F6FB)
+// ---- Light role colors — 웹(globals.css)과 동일한 토스풍 팔레트 ----
+// 연회색 캔버스(#F2F4F6) 위 흰 카드 + 토스블루(#3182F6) 액센트 + 토스 그레이 글자.
+val LightBgApp = Color(0xFFF2F4F6)
 val LightBgSurface = Color(0xFFFFFFFF)
-val LightBgSurface2 = Color(0xFFF4F6FB)
-val LightBgMuted = Gray100
-val LightFgStrong = Gray900
-val LightFgDefault = Gray700
-val LightFgMuted = Gray600
-val LightFgSubtle = Gray500
-val LightFgFaint = Gray400
-val LightBorder = Gray200
-val LightBorderStrong = Gray300
-val LightAccent = GovBlue
-val LightAccentHover = Blue800
-val LightGovTint = Blue50
+val LightBgSurface2 = Color(0xFFF2F4F6)
+val LightBgMuted = Color(0xFFF2F4F6)
+val LightFgStrong = Color(0xFF191F28)  // toss gray900
+val LightFgDefault = Color(0xFF333D4B) // gray800
+val LightFgMuted = Color(0xFF4E5968)   // gray700
+val LightFgSubtle = Color(0xFF6B7684)  // gray600 — 흰 배경 대비 AA
+val LightFgFaint = Color(0xFF8B95A1)   // gray500
+val LightBorder = Color(0xFFEAEDF0)
+val LightBorderStrong = Color(0xFFD9DEE3)
+val LightAccent = Color(0xFF3182F6)    // 토스블루
+val LightAccentHover = Color(0xFF1B64DA)
+val LightGovTint = Color(0xFFE8F3FF)
 
 // ---- Dark role colors ----
 val DarkBgApp = Gray950

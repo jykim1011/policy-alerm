@@ -142,7 +142,7 @@ private fun HistoryRow(item: NotificationItem, onClick: () -> Unit) {
                 .clip(RoundedCornerShape(11.dp))
                 .background(c.govTint),
             contentAlignment = Alignment.Center,
-        ) { Emoji(catEmoji(item.category), 21) }
+        ) { com.policyalarm.ui.components.CategoryIcon(item.category, 21.dp, c.accent) }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

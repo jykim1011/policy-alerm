@@ -197,7 +197,7 @@ fun SettingsScreen(
                             .padding(horizontal = 16.dp, vertical = 13.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Emoji(cat.emoji, 20)
+                        com.policyalarm.ui.components.CategoryIcon(cat.key, 20.dp, c.accent)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(cat.key, color = c.fgStrong, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold)

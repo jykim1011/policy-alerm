@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +41,9 @@ fun SplashScreen(onLoggedIn: () -> Unit, onNotLoggedIn: () -> Unit) {
                 Brush.linearGradient(
                     listOf(Color(0xFF2F63F0), Color(0xFF1D4ED8), Color(0xFF16245E))
                 )
-            ),
+            )
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         contentAlignment = Alignment.Center,
     ) {
         Column(

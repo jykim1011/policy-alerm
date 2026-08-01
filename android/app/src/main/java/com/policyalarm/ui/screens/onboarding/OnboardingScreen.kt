@@ -177,7 +177,12 @@ private fun CategoryCard(
                     .clip(RoundedCornerShape(11.dp))
                     .background(if (selected) c.govTint else c.bgMuted),
                 contentAlignment = Alignment.Center,
-            ) { Emoji(cat.emoji, 22) }
+            ) {
+                com.policyalarm.ui.components.CategoryIcon(
+                    cat.key, 22.dp,
+                    if (selected) c.accent else c.fgMuted,
+                )
+            }
             Spacer(Modifier.height(11.dp))
             Text(cat.key, color = c.fgStrong, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             Text(cat.full, color = c.fgSubtle, fontSize = 11.5.sp)

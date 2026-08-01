@@ -47,11 +47,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.draw.shadow
 import com.policyalarm.data.model.PolicyItem
 import java.time.Instant
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import com.policyalarm.ui.components.CATEGORY_LIST
 import com.policyalarm.ui.components.CategoryChip
+import com.policyalarm.ui.components.CommentCountBadge
 import com.policyalarm.ui.components.PolicyAppIcon
 import com.policyalarm.ui.components.SubcatChip
 import com.policyalarm.ui.theme.LocalAppColors
@@ -154,7 +157,6 @@ fun HomeScreen(
                     items(CATEGORY_LIST) { cat ->
                         CategoryChip(
                             label = cat.key,
-                            emoji = if (cat.key == "전체") null else cat.emoji,
                             selected = state.selectedCategory == cat.key,
                             onClick = { vm.selectCategory(cat.key) },
                         )
@@ -197,12 +199,24 @@ fun HomeScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                items(state.policies, key = { it.id }) { policy ->
-                    PolicyCard(
-                        policy = policy,
-                        isRead = policy.id in state.readIds,
-                        onClick = { onPolicyClick(policy.id) },
-                    )
+                // 발행일이 같은 카드끼리 "오늘/어제/M월 D일 (요일)" 헤더로 묶는다.
+                dateGroups(state.policies).forEach { (label, groupItems) ->
+                    item(key = "header-$label") {
+                        Text(
+                            label,
+                            color = c.fgMuted,
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 2.dp, top = 6.dp),
+                        )
+                    }
+                    items(groupItems, key = { it.id }) { policy ->
+                        PolicyCard(
+                            policy = policy,
+                            isRead = policy.id in state.readIds,
+                            onClick = { onPolicyClick(policy.id) },
+                        )
+                    }
                 }
                 item {
                     Text(
@@ -220,6 +234,34 @@ fun HomeScreen(
     }
 }
 
+/** 발행일 기준 피드 그룹 라벨 — 오늘/어제, 그 외 "M월 D일 (요일)". */
+private fun dateGroupLabel(publishedAt: String): String {
+    val date = runCatching { OffsetDateTime.parse(publishedAt).toLocalDate() }
+        .getOrElse { return publishedAt.take(10) }
+    val today = LocalDate.now()
+    return when (java.time.temporal.ChronoUnit.DAYS.between(date, today)) {
+        0L -> "오늘"
+        1L -> "어제"
+        else -> {
+            val dow = "일월화수목금토"[date.dayOfWeek.value % 7]
+            val year = if (date.year != today.year) "${date.year}년 " else ""
+            "$year${date.monthValue}월 ${date.dayOfMonth}일 ($dow)"
+        }
+    }
+}
+
+/** 목록을 발행일 라벨 기준 연속 그룹으로 묶는다(순서 유지). */
+private fun dateGroups(policies: List<PolicyItem>): List<Pair<String, List<PolicyItem>>> {
+    val out = mutableListOf<Pair<String, MutableList<PolicyItem>>>()
+    for (p in policies) {
+        val label = dateGroupLabel(p.publishedAt)
+        val last = out.lastOrNull()
+        if (last != null && last.first == label) last.second.add(p)
+        else out.add(label to mutableListOf(p))
+    }
+    return out
+}
+
 /** 발행 3일 이내이고 아직 읽지 않은 정책에만 NEW 뱃지를 표시한다. */
 private fun isNewPolicy(publishedAt: String, isRead: Boolean): Boolean {
     if (isRead) return false
@@ -234,12 +276,18 @@ private fun isNewPolicy(publishedAt: String, isRead: Boolean): Boolean {
 fun PolicyCard(policy: PolicyItem, isRead: Boolean, onClick: () -> Unit) {
     val c = LocalAppColors.current
     val isNew = isNewPolicy(policy.publishedAt, isRead)
+    val shape = RoundedCornerShape(20.dp)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(
+                elevation = 2.dp,
+                shape = shape,
+                ambientColor = androidx.compose.ui.graphics.Color(0x33191F28),
+                spotColor = androidx.compose.ui.graphics.Color(0x33191F28),
+            )
+            .clip(shape)
             .background(c.bgSurface)
-            .border(1.dp, c.border, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .alpha(if (isRead) 0.62f else 1f)
             .padding(16.dp),
@@ -258,6 +306,8 @@ fun PolicyCard(policy: PolicyItem, isRead: Boolean, onClick: () -> Unit) {
             }
             Spacer(Modifier.weight(1f))
             Text(policy.publishedAt.take(10), color = c.fgSubtle, fontSize = 12.sp)
+            Spacer(Modifier.width(8.dp))
+            CommentCountBadge(policy.id)
         }
         Spacer(Modifier.height(9.dp))
         Text(
@@ -312,8 +362,15 @@ private fun SourceFilter(
                 .padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Icon(
+                imageVector = com.policyalarm.ui.components.BuildingIconVector,
+                contentDescription = null,
+                tint = if (active) c.accent else c.fgMuted,
+                modifier = Modifier.size(15.dp),
+            )
+            Spacer(Modifier.width(5.dp))
             Text(
-                if (active) "🏛 $selected" else "🏛 주관부처 전체",
+                if (active) selected else "주관부처 전체",
                 color = if (active) c.accent else c.fgMuted,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
