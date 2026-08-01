@@ -20,7 +20,7 @@
   --color-ink: #191f28; /* gray900 */
   --color-ink-soft: #333d4b; /* gray800 */
   --color-muted: #4e5968; /* gray700 */
-  --color-faint: #8b95a1; /* gray500 */
+  --color-faint: #6b7684; /* gray600 — 흰 배경 대비 4.6:1(WCAG AA)로 작은 메타 텍스트도 판독 가능 */
 
   /* 선 — 카드 분리는 그림자가 담당하므로 괘선은 아주 옅게 */
   --color-rule: #eaedf0;

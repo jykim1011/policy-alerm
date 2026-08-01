@@ -279,6 +279,14 @@ export function CheckIcon(p: IconProps) {
   );
 }
 
+export function ChatIcon(p: IconProps) {
+  return (
+    <Base {...p}>
+      <path d="M12 4.3c4.6 0 8 2.9 8 6.5s-3.4 6.5-8 6.5c-.9 0-1.8-.1-2.6-.3l-3.3 2.1a.7.7 0 0 1-1.05-.75l.55-2.6C4.6 14.6 4 12.8 4 10.8c0-3.6 3.4-6.5 8-6.5Z" />
+    </Base>
+  );
+}
+
 export function HomeIcon(p: IconProps) {
   return (
     <Base {...p}>

@@ -107,6 +107,28 @@ export async function commentCount(policyId: string): Promise<number> {
   return snap.data().count;
 }
 
+// 목록 카드용 캐시 카운트 — 같은 정책은 세션당 1회만 조회하고,
+// 동시 요청은 하나의 in-flight Promise 를 공유한다 (읽기 비용 절약).
+const countCache = new Map<string, number>();
+const countInflight = new Map<string, Promise<number>>();
+
+export function getCachedCommentCount(policyId: string): Promise<number> {
+  const cached = countCache.get(policyId);
+  if (cached !== undefined) return Promise.resolve(cached);
+  const inflight = countInflight.get(policyId);
+  if (inflight) return inflight;
+  const p = commentCount(policyId)
+    .then((n) => {
+      countCache.set(policyId, n);
+      return n;
+    })
+    .finally(() => {
+      countInflight.delete(policyId);
+    });
+  countInflight.set(policyId, p);
+  return p;
+}
+
 /** 평탄 리스트를 2단계(댓글→대댓글, 각각 작성순)로 묶는다. 고아 대댓글은 버린다. */
 export function groupComments(flat: Comment[]): CommentThread[] {
   const parents = flat

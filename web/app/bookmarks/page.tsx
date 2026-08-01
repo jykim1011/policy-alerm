@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { LoginGate } from "@/components/LoginGate";
 import { resolveBookmarks } from "@/lib/bookmarkResolver";
 import { CategoryIcon } from "@/components/icons";
+import { CommentCount } from "@/components/CommentCount";
 import { formatDate } from "@/lib/format";
 import type { PolicyDetail } from "@/lib/types";
 
@@ -61,6 +62,7 @@ function BookmarkList() {
             <time className="font-medium text-faint">
               {formatDate(p.published_at)}
             </time>
+            <CommentCount policyId={p.id} className="ml-auto" />
           </div>
           <h3 className="line-clamp-2 break-keep font-semibold leading-snug text-ink transition group-hover:text-seal">
             {p.title}

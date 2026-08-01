@@ -33,6 +33,18 @@ export function catEmoji(key: string): string {
   return catMeta(key).emoji;
 }
 
+// 앱(HomeViewModel.kt)과 동일한 분류 매칭 — 청약·대출·세금·재개발·전월세는
+// 파이프라인이 "부동산"의 하위분류(subcategory)로 저장하므로 subcategory 로 걸러야 한다.
+// (부동산 외 카테고리는 subcategory == category 로 저장된다.)
+export function matchesCategory(
+  p: { category: string; subcategory?: string | null },
+  key: string,
+): boolean {
+  if (key === "전체") return true;
+  if (key === "부동산") return p.category === "부동산";
+  return (p.subcategory || p.category) === key;
+}
+
 export interface FileMeta {
   label: string;
   // Tailwind 텍스트/배경에 쓸 hex (Color.kt 의 File* 토큰).

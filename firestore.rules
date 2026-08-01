@@ -29,9 +29,9 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // 정책 댓글 — 로그인 사용자 읽기, 본인 작성/소프트삭제만
+    // 정책 댓글 — 읽기 공개(웹 목록의 댓글 수·비로그인 열람), 본인 작성/소프트삭제만
     match /comments/{policyId}/items/{commentId} {
-      allow read: if request.auth != null;
+      allow read: if true;
 
       allow create: if request.auth != null
         && request.resource.data.authorUid == request.auth.uid

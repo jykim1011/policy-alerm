@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { PolicyDetail, PolicyIndex, PolicyItem } from "./types";
 import { sanitizeSummary } from "./format";
+import { matchesCategory } from "./categoryMeta";
 
 const DOCS_DIR = path.join(process.cwd(), "..", "docs");
 const POLICIES_DIR = path.join(DOCS_DIR, "policies");
@@ -53,8 +54,7 @@ export function getCategoryPolicies(category: string): PolicyItem[] {
   const all = getArchivedPolicies().sort((a, b) =>
     b.published_at.localeCompare(a.published_at),
   );
-  if (category === "전체") return all;
-  return all.filter((p) => p.category === category);
+  return all.filter((p) => matchesCategory(p, category));
 }
 
 /**

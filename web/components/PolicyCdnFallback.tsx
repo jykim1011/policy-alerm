@@ -145,7 +145,7 @@ export function PolicyCdnFallback() {
       </header>
 
       {s?.background && (
-        <p className="card mt-3 break-keep bg-seal-soft px-5 py-4 text-[0.95rem] leading-relaxed text-ink-soft shadow-none">
+        <p className="card mt-3 break-keep bg-seal-soft px-5 py-4 text-base leading-relaxed text-ink-soft shadow-none">
           {s.background}
         </p>
       )}
@@ -160,7 +160,7 @@ export function PolicyCdnFallback() {
           {s.key_points && s.key_points.length > 0 && (
             <div className="py-5">
               <p className="mb-2.5 text-[1.02rem] font-bold text-ink">핵심 정리</p>
-              <ul className="flex flex-col gap-2 text-[0.95rem] leading-relaxed text-ink-soft">
+              <ul className="flex flex-col gap-2 text-base leading-relaxed text-ink-soft">
                 {s.key_points.map((kp, i) => (
                   <li key={i} className="flex gap-2.5">
                     <span className="mt-px select-none font-bold text-seal">•</span>
@@ -176,7 +176,7 @@ export function PolicyCdnFallback() {
       {s?.eligibility && s.eligibility.length > 0 && (
         <div className="card mt-3 p-5 sm:p-7">
           <p className="mb-3 text-[1.02rem] font-bold text-ink">나에게 해당되나요?</p>
-          <ul className="flex flex-col gap-2 text-[0.95rem] leading-relaxed text-ink-soft">
+          <ul className="flex flex-col gap-2 text-base leading-relaxed text-ink-soft">
             {s.eligibility.map((e, i) => (
               <li key={i} className="flex gap-2.5">
                 <span className="mt-0.5 select-none font-bold text-seal">✓</span>
@@ -190,7 +190,7 @@ export function PolicyCdnFallback() {
       {s?.how_to_apply && (
         <div className="card mt-3 p-5 sm:p-7">
           <p className="mb-2 text-[1.02rem] font-bold text-ink">신청 방법·기간</p>
-          <p className="whitespace-pre-wrap break-keep text-[0.95rem] leading-[1.75] text-ink-soft">
+          <p className="whitespace-pre-wrap break-keep text-base leading-[1.75] text-ink-soft">
             {s.how_to_apply}
           </p>
         </div>
@@ -254,7 +254,7 @@ function Section({ title, body }: { title: string; body: string }) {
   return (
     <div className="py-5">
       <p className="mb-2 text-[1.02rem] font-bold text-ink">{title}</p>
-      <p className="whitespace-pre-wrap break-keep text-[0.95rem] leading-[1.75] text-ink-soft">
+      <p className="whitespace-pre-wrap break-keep text-base leading-[1.75] text-ink-soft">
         {body}
       </p>
     </div>
