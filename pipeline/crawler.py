@@ -17,7 +17,7 @@ RSS_URL = "https://www.korea.kr/rss/pressReleaseList.do"
 # 정책브리핑 보도자료 OpenAPI (공공데이터포털, 문화체육관광부 1371000).
 # 정부 사이트 직접 크롤링은 해외/데이터센터 IP를 차단(Connection reset)하므로
 # 차단되지 않는 apis.data.go.kr 게이트웨이를 사용한다.
-PRESS_RELEASE_API = "http://apis.data.go.kr/1371000/pressReleaseService/pressReleaseList"
+PRESS_RELEASE_API = "https://apis.data.go.kr/1371000/pressReleaseService/pressReleaseList"
 
 # 카테고리별 매칭 키워드. 순서가 우선순위 — 창업은 복지보다 앞에 있어야
 # "소상공인 지원금" 같은 중의적 제목이 창업으로 분류된다.
