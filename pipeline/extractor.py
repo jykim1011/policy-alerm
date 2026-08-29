@@ -97,9 +97,13 @@ def _extract_hwp(content: bytes) -> str:
         f.write(content)
         tmp_path = f.name
     try:
+        # hwp5txt는 UTF-8로 출력한다. encoding을 지정하지 않으면 text=True가
+        # 로케일 인코딩으로 디코딩해(윈도우 cp949) 한글에서 UnicodeDecodeError로
+        # 죽는다. 실행 환경과 무관하게 동작하도록 인코딩을 못 박는다.
         result = subprocess.run(
             ["hwp5txt", tmp_path],
-            capture_output=True, text=True, timeout=30
+            capture_output=True, text=True, timeout=30,
+            encoding="utf-8", errors="replace",
         )
         if result.returncode != 0:
             raise subprocess.SubprocessError(f"hwp5txt failed: {result.stderr}")
