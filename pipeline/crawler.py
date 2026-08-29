@@ -7,6 +7,7 @@ from email.utils import parsedate_to_datetime
 import requests
 from bs4 import BeautifulSoup
 
+from pipeline.extractor import _clean_noise
 from pipeline.models import RawPolicy
 
 SEEN_FILE = "pipeline/seen_policies.json"
@@ -110,10 +111,16 @@ def _text(node, tag: str) -> str:
 
 
 def _strip_html(raw_html: str) -> str:
+    """OpenAPI 본문(DataContents)의 태그를 걷고 기사 하단 상용구를 제거한다.
+
+    구분자를 공백이 아니라 줄바꿈으로 둔 것은 문단 경계를 남겨 두기 위해서다.
+    한 줄로 이어붙이면 저작권 고지 같은 상용구를 라인 단위로 걸러낼 수 없고,
+    그 문구가 요약 모델에 그대로 들어가 용어 풀이에 실려 나갔다.
+    """
     if not raw_html:
         return ""
-    text = BeautifulSoup(raw_html, "lxml").get_text(separator=" ", strip=True)
-    return html.unescape(text)
+    text = BeautifulSoup(raw_html, "lxml").get_text(separator="\n", strip=True)
+    return _clean_noise(html.unescape(text))
 
 
 class PolicyBriefingApiCrawler:

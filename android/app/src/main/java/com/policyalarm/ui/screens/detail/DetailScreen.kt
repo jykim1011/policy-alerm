@@ -27,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.CircularProgressIndicator
@@ -144,7 +146,9 @@ fun DetailScreen(
                         Spacer(Modifier.height(12.dp))
                         SummaryCard("👥", "누가 대상인가", summary.whoIsAffected)
                         Spacer(Modifier.height(12.dp))
-                        summary.whenEffective?.let {
+                        // 시점이 아니라 서술("곧 발표될 예정입니다")인 값은 카드로 띄우지 않는다.
+                        // 요약기에서도 걸러내지만, 이미 발행된 정책에는 소급되지 않아 화면에서도 막는다.
+                        summary.whenEffective?.takeIf { it.any(Char::isDigit) }?.let {
                             SummaryCard("📅", "언제부터 적용되나", it)
                         }
 
@@ -163,7 +167,9 @@ fun DetailScreen(
                         }
                         summary.glossary?.takeIf { it.isNotEmpty() }?.let {
                             Spacer(Modifier.height(12.dp))
-                            GlossaryCard(it)
+                            // 요약기 상한(5개)과 같은 값으로 자른다. 기존 발행분에는 43개까지
+                            // 들어 있어 화면에서도 막아야 한다.
+                            GlossaryCard(it.take(MAX_GLOSSARY))
                         }
                         summary.faq?.takeIf { it.isNotEmpty() }?.let {
                             Spacer(Modifier.height(12.dp))
@@ -253,6 +259,9 @@ fun DetailScreen(
         }
     }
 }
+
+/** 용어 풀이 노출 상한. 파이프라인 summarizer.MAX_GLOSSARY 와 같은 값. */
+private const val MAX_GLOSSARY = 5
 
 private const val WEB_BASE = "https://policy-alerm.web.app"
 
@@ -411,30 +420,47 @@ private fun EligibilityCard(items: List<String>) {
 @Composable
 private fun GlossaryCard(items: List<com.policyalarm.data.model.GlossaryItem>) {
     val c = LocalAppColors.current
+    // 용어 풀이는 요약 분량의 28%를 차지하는데(평균 459자) 정작 본문을 이해한 뒤
+    // 필요할 때 보는 보조 정보다. FAQ와 같은 방식으로 접어 두고, 필요한 사람만 펼친다.
+    var expanded by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(c.bgSurface)
             .border(1.dp, c.border, RoundedCornerShape(16.dp))
+            .clickable { expanded = !expanded }
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             Emoji("📖", 15)
             Text("용어 풀이", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "${items.size}개",
+                color = c.fgFaint,
+                fontSize = 12.sp,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                if (expanded) "접기" else "펼치기",
+                tint = c.fgFaint,
+                modifier = Modifier.size(18.dp),
+            )
         }
-        Spacer(Modifier.height(12.dp))
-        items.forEachIndexed { i, g ->
-            Column(modifier = Modifier.padding(bottom = if (i == items.lastIndex) 0.dp else 12.dp)) {
-                Text(g.term, color = c.fgStrong, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(3.dp))
-                Text(g.definition, color = c.fgSubtle, fontSize = 13.5.sp, lineHeight = 21.sp)
+        if (expanded) {
+            Spacer(Modifier.height(12.dp))
+            items.forEachIndexed { i, g ->
+                Column(modifier = Modifier.padding(bottom = if (i == items.lastIndex) 0.dp else 12.dp)) {
+                    Text(g.term, color = c.fgStrong, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(3.dp))
+                    Text(g.definition, color = c.fgSubtle, fontSize = 13.5.sp, lineHeight = 21.sp)
+                }
             }
         }
     }
 }
 
-/** 자주 묻는 질문 — 탭하면 답이 펼쳐진다. */
 @Composable
 private fun FaqCard(items: List<com.policyalarm.data.model.FaqItem>) {
     val c = LocalAppColors.current

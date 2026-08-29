@@ -21,6 +21,18 @@ export function generateStaticParams() {
 
 type Props = { params: Promise<{ id: string }> };
 
+/** 용어 풀이 노출 상한. 파이프라인 summarizer.MAX_GLOSSARY 와 같은 값. */
+const MAX_GLOSSARY = 5;
+
+/**
+ * "언제부터인가요" 값이 실제 시점인지 판별한다.
+ * 요약 모델이 "관련 대책들은 곧 발표될 예정입니다" 처럼 시점이 아닌 서술을 넣는 경우가
+ * 있어(발행분의 13.9%), 숫자가 하나도 없으면 시점 정보로 보지 않는다.
+ */
+function hasDate(v?: string | null): boolean {
+  return !!v && /\d/.test(v);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const p = getPolicy(decodeURIComponent(id));
@@ -52,6 +64,8 @@ export default async function PolicyPage({ params }: Props) {
 
   const file = fileMeta(p.file_type);
   const related = getRelatedPolicies(p.id, p.category, p.source);
+  // 기존 발행분에는 용어가 최대 43개까지 들어 있어 화면에서도 상한을 건다.
+  const glossary = (p.summary?.glossary ?? []).slice(0, MAX_GLOSSARY);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
@@ -162,8 +176,8 @@ export default async function PolicyPage({ params }: Props) {
         <div className="card mt-3 flex flex-col divide-y divide-rule px-5 sm:px-7">
           <Section title="무엇이 달라지나요" body={p.summary.what_changed} />
           <Section title="누가 영향을 받나요" body={p.summary.who_is_affected} />
-          {p.summary.when_effective && (
-            <Section title="언제부터인가요" body={p.summary.when_effective} />
+          {hasDate(p.summary.when_effective) && (
+            <Section title="언제부터인가요" body={p.summary.when_effective!} />
           )}
           {p.summary.key_points && p.summary.key_points.length > 0 && (
             <div className="py-5">
@@ -206,12 +220,15 @@ export default async function PolicyPage({ params }: Props) {
         </div>
       )}
 
-      {/* 용어 풀이 */}
-      {p.summary?.glossary && p.summary.glossary.length > 0 && (
-        <div className="card mt-3 p-5 sm:p-7">
-          <p className="mb-3 text-[1.02rem] font-bold text-ink">용어 풀이</p>
-          <dl className="flex flex-col gap-3">
-            {p.summary.glossary.map((g, i) => (
+      {/* 용어 풀이 — 요약 분량의 28%를 차지하지만 본문을 읽은 뒤 필요할 때 보는
+          보조 정보다. 기본은 접어 두고 필요한 사람만 펼치게 한다(details는 JS 불필요). */}
+      {glossary.length > 0 && (
+        <details className="card mt-3 p-5 sm:p-7">
+          <summary className="cursor-pointer list-none text-[1.02rem] font-bold text-ink">
+            용어 풀이 <span className="font-normal text-muted">{glossary.length}개</span>
+          </summary>
+          <dl className="mt-3 flex flex-col gap-3">
+            {glossary.map((g, i) => (
               <div key={i}>
                 <dt className="text-[0.95rem] font-bold text-ink">{g.term}</dt>
                 <dd className="break-keep text-[0.92rem] leading-relaxed text-muted">
@@ -220,7 +237,7 @@ export default async function PolicyPage({ params }: Props) {
               </div>
             ))}
           </dl>
-        </div>
+        </details>
       )}
 
       {/* 자주 묻는 질문 (FAQPage 구조화데이터와 연동) */}

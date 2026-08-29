@@ -74,7 +74,7 @@ def run(batch: str) -> None:
 
             # AI 요약
             try:
-                summary = summarize_policy(raw.title, text)
+                summary = summarize_policy(raw.title, text, published_at=raw.published_at)
             except Exception as e:
                 # 요약 실패(일시적 할당량/네트워크 등)는 seen에 넣지 않아 다음 실행에서 재시도한다.
                 print(f"  요약 실패, 다음 실행에서 재시도: {e}", file=sys.stderr)
