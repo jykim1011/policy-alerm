@@ -242,18 +242,19 @@ AdBanner(Modifier.fillMaxWidth())
 - Hosting 배포 설정: `firebase.json`의 `ignore`에서 `**/.*` 제거 ✅ (안 그러면 `.well-known/`이 배포에서 빠진다)
 - `firebase.json`에 `"appAssociation": "NONE"` ✅ — 기본값 AUTO면 Firebase가 자체 assetlinks.json을
   생성해 우리 파일 대신 내려준다(실제로 라이브에 다른 지문 `DF:9F:A8:...`이 떠 있었다)
+- 앱 서명 키 지문 추가 ✅ — Play App Signing은 구글이 앱을 다시 서명하므로
+  **업로드 키**와 **앱 서명 키** 두 지문이 모두 배열에 있어야 한다. 둘 다 등록됨:
+  - `7F:C3:D8:...` 업로드 키
+  - `DF:9F:A8:...` Play 앱 서명 키
 
-**남은 일** — Play App Signing을 쓰면 구글이 앱을 다시 서명하므로,
-Play 배포본에서 링크가 열리려면 **앱 서명 키**의 SHA-256도 같은 배열에 넣어야 한다.
+**남은 확인** — Play 배포본을 실제 단말에 설치한 뒤:
 
-1. Play Console → 해당 앱 → 테스트 및 출시 → 앱 무결성 → **앱 서명 키 인증서**의 SHA-256 복사
-2. `web/public/.well-known/assetlinks.json`의 `sha256_cert_fingerprints` 배열에 추가
-3. 웹 배포 후 확인:
-   `https://policy-alerm.web.app/.well-known/assetlinks.json` 가 200으로 떨어지는지
-4. 단말에서 검증 상태 확인:
-   `adb shell pm get-app-links com.policyalarm` → `verified`
+```bash
+adb shell pm get-app-links com.policyalarm   # policy-alerm.web.app → verified
+```
 
 검증이 안 돼도 링크는 브라우저로 열리므로 사용자 경험이 깨지지는 않는다.
+지문을 바꿨을 때는 단말 재설치나 `adb shell pm verify-app-links --re-verify com.policyalarm` 필요.
 
 ---
 
