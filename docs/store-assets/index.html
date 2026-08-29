@@ -39,9 +39,9 @@
 <div class="section">
   <h2>피처 그래픽 (1024 × 500 PNG)</h2>
   <div class="canvas-wrap">
-    <canvas id="feature" width="1024" height="500" style="max-width:100%;height:auto;"></canvas>
+    <canvas id="feature" width="2048" height="1000" style="max-width:100%;height:auto;"></canvas>
   </div>
-  <button onclick="download('feature','policy-alarm-feature-1024x500.png')">PNG 다운로드</button>
+  <button onclick="downloadScaled('feature','policy-alarm-feature-1024x500.png',1024,500)">PNG 다운로드</button>
 </div>
 
 <!-- ───── 텍스트 애셋 ───── -->
@@ -96,6 +96,23 @@ function download(id, filename) {
   a.click();
 }
 
+/* 슈퍼샘플링 캔버스를 목표 해상도로 축소해 다운로드 */
+function downloadScaled(id, filename, w, h) {
+  const src = document.getElementById(id);
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const octx = out.getContext('2d');
+  octx.imageSmoothingEnabled = true;
+  octx.imageSmoothingQuality = 'high';
+  octx.drawImage(src, 0, 0, w, h);
+  const a = document.createElement('a');
+  a.href = out.toDataURL('image/png');
+  a.download = filename;
+  a.click();
+}
+
+const KR_FONT = "'Malgun Gothic', 'Apple SD Gothic Neo', -apple-system, sans-serif";
+
 function drawBell(ctx, cx, cy, scale, color) {
   ctx.save();
   ctx.translate(cx - 12 * scale, cy - 12 * scale);
@@ -138,11 +155,12 @@ function drawBell(ctx, cx, cy, scale, color) {
   drawBell(ctx, S/2, S/2 - 10, 17, '#fff');
 })();
 
-/* ── 피처 그래픽 1024×500 ── */
+/* ── 피처 그래픽 1024×500 (2배 슈퍼샘플링으로 렌더 후 다운로드 시 축소) ── */
 (function() {
   const c = document.getElementById('feature');
   const ctx = c.getContext('2d');
   const W = 1024, H = 500;
+  ctx.scale(2, 2);
 
   // 배경
   const g = ctx.createLinearGradient(0, 0, W, H);
@@ -171,22 +189,22 @@ function drawBell(ctx, cx, cy, scale, color) {
   // 오른쪽: 텍스트
   const tx = 280;
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 58px -apple-system, sans-serif';
+  ctx.font = 'bold 58px ' + KR_FONT;
   ctx.fillText('정책 알리미', tx, H/2 - 36);
 
-  ctx.globalAlpha = 0.75;
-  ctx.font = '26px -apple-system, sans-serif';
+  ctx.globalAlpha = 0.8;
+  ctx.font = '26px ' + KR_FONT;
   ctx.fillText('흩어진 부동산 정책 발표를 한 곳에서', tx, H/2 + 18);
   ctx.fillText('AI 3줄 요약 · 카테고리 알림 · 북마크', tx, H/2 + 56);
   ctx.globalAlpha = 1;
 
   // 뱃지 태그
-  const tags = ['청약', '대출', '세금', '재개발', '전월세'];
+  const tags = ['부동산', '청약', '대출', '세금', '재개발', '전월세'];
   let bx = tx;
   const by = H/2 + 110;
   tags.forEach(tag => {
     const pad = 14;
-    ctx.font = '18px -apple-system, sans-serif';
+    ctx.font = '600 18px ' + KR_FONT;
     const tw = ctx.measureText(tag).width;
     ctx.fillStyle = 'rgba(255,255,255,0.18)';
     ctx.beginPath();

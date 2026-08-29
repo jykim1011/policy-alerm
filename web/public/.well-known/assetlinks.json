@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.policyalarm",
+      "sha256_cert_fingerprints": [
+        "7F:C3:D8:9B:42:BC:34:F6:09:7D:A3:AA:D3:D8:71:6A:20:50:3A:70:15:F2:AD:99:67:FA:52:21:CD:44:49:28"
+      ]
+    }
+  }
+]

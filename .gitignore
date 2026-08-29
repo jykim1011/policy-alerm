@@ -18,3 +18,7 @@ google-services.json
 .playwright-mcp/
 node_modules/
 *.log
+
+# Next.js / Firebase CLI 로컬 산출물 (web/out은 CI가 빌드해 배포)
+.next/
+.firebase/

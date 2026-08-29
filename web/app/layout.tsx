@@ -35,9 +35,10 @@ export const metadata: Metadata = {
     url: SITE_URL,
     title: `${SITE_NAME} — 정부 정책·지원금 알리미`,
     description: SITE_DESC,
-    images: [{ url: "/icon-512.png", width: 512, height: 512, alt: SITE_NAME }],
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: SITE_NAME }],
   },
-  twitter: { card: "summary", images: ["/icon-512.png"] },
+  // 카카오톡/X/페이스북은 1200x630 가로 이미지를 큰 카드로 렌더한다 — 링크 클릭률에 직결.
+  twitter: { card: "summary_large_image", images: ["/og-default.png"] },
   alternates: { canonical: "/" },
   appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
   other: { "google-adsense-account": "ca-pub-4710152968528474" },

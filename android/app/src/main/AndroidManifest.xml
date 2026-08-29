@@ -37,6 +37,21 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!--
+                Android App Links — 웹(policy-alerm.web.app)에서 공유된 정책 링크를
+                앱이 설치돼 있으면 브라우저 대신 앱 상세 화면으로 연다.
+                autoVerify는 https://policy-alerm.web.app/.well-known/assetlinks.json 과
+                앱 서명 SHA-256 지문이 일치해야 동작한다(불일치 시 링크는 그냥 브라우저로 감).
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"
+                    android:host="policy-alerm.web.app"
+                    android:pathPrefix="/policy/"/>
+            </intent-filter>
         </activity>
 
         <service

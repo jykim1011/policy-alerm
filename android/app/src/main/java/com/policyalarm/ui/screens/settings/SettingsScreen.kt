@@ -75,6 +75,7 @@ fun SettingsScreen(
     val state by vm.uiState.collectAsStateWithLifecycle()
     val c = LocalAppColors.current
     val themeController = LocalThemeController.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) { vm.refreshBookmarkCount() }
 
@@ -228,6 +229,18 @@ fun SettingsScreen(
 
             // 기타
             SettingsSection("기타") {
+                SettingRow(dividerBelow = true, onClick = { context.shareApp() }) {
+                    Emoji("📤", 20)
+                    Spacer(Modifier.width(12.dp))
+                    Text("친구에게 앱 추천", color = c.fgStrong, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Icon(Icons.Filled.ChevronRight, null, tint = c.fgFaint, modifier = Modifier.size(18.dp))
+                }
+                SettingRow(dividerBelow = true, onClick = { context.openPlayStoreListing() }) {
+                    Emoji("⭐", 20)
+                    Spacer(Modifier.width(12.dp))
+                    Text("앱 평가하기", color = c.fgStrong, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Icon(Icons.Filled.ChevronRight, null, tint = c.fgFaint, modifier = Modifier.size(18.dp))
+                }
                 SettingRow(dividerBelow = true, onClick = onLicensesClick) {
                     Text("오픈소스 라이선스", color = c.fgDefault, fontSize = 14.5.sp, modifier = Modifier.weight(1f))
                     Icon(Icons.Filled.ChevronRight, null, tint = c.fgFaint, modifier = Modifier.size(18.dp))
@@ -304,6 +317,40 @@ private fun NotificationDisabledBanner() {
         Spacer(Modifier.width(10.dp))
         Text("켜기", color = c.danger, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         Icon(Icons.Filled.ChevronRight, null, tint = c.danger, modifier = Modifier.size(18.dp))
+    }
+}
+
+private const val PLAY_STORE_URL =
+    "https://play.google.com/store/apps/details?id=com.policyalarm"
+
+/**
+ * 앱 자체를 공유한다. 지금 단계의 설치 유입은 거의 입소문이므로
+ * 사용자가 한 번에 보낼 수 있는 경로를 설정에 두었다.
+ */
+private fun Context.shareApp() {
+    val text = buildString {
+        append("📲 정책알람\n")
+        append("청약·대출·창업·고용 등 새 정부 정책을 요약해서 알려줍니다.\n")
+        append(PLAY_STORE_URL)
+    }
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, "정책알람")
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+    startActivity(Intent.createChooser(send, "앱 추천하기"))
+}
+
+/** Play 스토어 리스팅을 열어 리뷰를 유도한다 — 초기 랭킹에 리뷰 수·평점이 크게 작용한다. */
+private fun Context.openPlayStoreListing() {
+    val storeIntent = Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_STORE_URL)).apply {
+        setPackage("com.android.vending")
+    }
+    // Play 스토어 앱이 없는 단말(에뮬레이터 등)에서는 브라우저로 폴백.
+    try {
+        startActivity(storeIntent)
+    } catch (e: android.content.ActivityNotFoundException) {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_STORE_URL)))
     }
 }
 

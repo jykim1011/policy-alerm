@@ -254,12 +254,12 @@ fun DetailScreen(
     }
 }
 
-private const val PLAY_STORE_URL =
-    "https://play.google.com/store/apps/details?id=com.policyalarm"
+private const val WEB_BASE = "https://policy-alerm.web.app"
 
 /**
- * 정책 내용을 공유한다. 주 목적은 앱 홍보 — 정책 요약 한 토막 뒤에 홍보 문구와 Play 스토어
- * 링크를 붙여, 받은 사람이 자연스럽게 설치 페이지로 가도록 한다.
+ * 정책 내용을 공유한다. 링크는 Play 스토어가 아니라 웹 정책 상세 페이지로 보낸다 —
+ * 받은 사람이 설치 없이 바로 내용을 읽을 수 있어야 열어보고, 그 페이지의 설치 배너가
+ * 설치로 이어진다. 앱이 이미 깔린 사람은 App Links가 이 링크를 앱 상세로 연결한다.
  */
 private fun sharePolicy(context: android.content.Context, detail: com.policyalarm.data.model.PolicyDetail) {
     val text = buildString {
@@ -275,9 +275,8 @@ private fun sharePolicy(context: android.content.Context, detail: com.policyalar
         }
 
         append("\n\n──────────")
-        append("\n📲 정책 알리미")
-        append("\n청약·대출·창업·고용 등 새 정책을 가장 먼저 받아보세요")
-        append("\n$PLAY_STORE_URL")
+        append("\n📲 정책알람 — 청약·대출·창업·고용 등 새 정책을 가장 먼저")
+        append("\n$WEB_BASE/policy/${Uri.encode(detail.id)}/")
     }
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"

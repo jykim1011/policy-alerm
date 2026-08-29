@@ -10,6 +10,7 @@ import { BookmarkButton } from "@/components/BookmarkButton";
 import { ShareButton } from "@/components/ShareButton";
 import { CommentSection } from "@/components/CommentSection";
 import { RelatedPolicies } from "@/components/RelatedPolicies";
+import { AppInstallCta } from "@/components/AppInstallCta";
 import { Seal } from "@/components/Seal";
 
 export const dynamicParams = false;
@@ -38,7 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: SITE_NAME,
       locale: "ko_KR",
       publishedTime: p.published_at,
+      images: [{ url: "/og-default.png", width: 1200, height: 630, alt: SITE_NAME }],
     },
+    twitter: { card: "summary_large_image", images: ["/og-default.png"] },
   };
 }
 
@@ -254,6 +257,8 @@ export default async function PolicyPage({ params }: Props) {
         </a>
         을 확인하세요.
       </p>
+
+      <AppInstallCta category={p.category} />
 
       <RelatedPolicies items={related} />
 

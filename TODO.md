@@ -232,6 +232,31 @@ AdBanner(Modifier.fillMaxWidth())
 
 ---
 
+## 9. 앱 링크(App Links) 검증 마무리 — 남은 작업 1개
+
+웹에서 공유된 정책 링크(`https://policy-alerm.web.app/policy/...`)를 설치자가 탭했을 때
+브라우저 대신 앱 상세 화면으로 열리게 하는 설정은 상태이다.
+
+- 매니페스트: `android:autoVerify="true"` intent-filter 추가 ✅
+- 검증 파일: `web/public/.well-known/assetlinks.json` 추가 ✅ (현재 **업로드 키** 지문만 들어 있음)
+- Hosting 배포 설정: `firebase.json`의 `ignore`에서 `**/.*` 제거 ✅ (안 그러면 `.well-known/`이 배포에서 빠진다)
+- `firebase.json`에 `"appAssociation": "NONE"` ✅ — 기본값 AUTO면 Firebase가 자체 assetlinks.json을
+  생성해 우리 파일 대신 내려준다(실제로 라이브에 다른 지문 `DF:9F:A8:...`이 떠 있었다)
+
+**남은 일** — Play App Signing을 쓰면 구글이 앱을 다시 서명하므로,
+Play 배포본에서 링크가 열리려면 **앱 서명 키**의 SHA-256도 같은 배열에 넣어야 한다.
+
+1. Play Console → 해당 앱 → 테스트 및 출시 → 앱 무결성 → **앱 서명 키 인증서**의 SHA-256 복사
+2. `web/public/.well-known/assetlinks.json`의 `sha256_cert_fingerprints` 배열에 추가
+3. 웹 배포 후 확인:
+   `https://policy-alerm.web.app/.well-known/assetlinks.json` 가 200으로 떨어지는지
+4. 단말에서 검증 상태 확인:
+   `adb shell pm get-app-links com.policyalarm` → `verified`
+
+검증이 안 돼도 링크는 브라우저로 열리므로 사용자 경험이 깨지지는 않는다.
+
+---
+
 ## 프로젝트 구조 요약
 ```
 D:\policy-alerm\
