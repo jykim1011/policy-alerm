@@ -17,6 +17,8 @@ def _summary_dict(s: PolicySummary) -> dict:
         "when_effective": s.when_effective,
         "key_points": s.key_points,
     }
+    if getattr(s, "easy_title", ""):
+        d["easy_title"] = s.easy_title
     if getattr(s, "background", ""):
         d["background"] = s.background
     if getattr(s, "eligibility", None):
@@ -28,6 +30,12 @@ def _summary_dict(s: PolicySummary) -> dict:
     if getattr(s, "glossary", None):
         d["glossary"] = s.glossary
     return d
+
+
+def _easy_title_field(item: PolicyItem) -> dict:
+    """목록 항목에 쉬운 제목을 싣는다. 없으면 키를 넣지 않아 기존 스키마와 호환된다."""
+    t = getattr(item.summary, "easy_title", "") if item.summary else ""
+    return {"easy_title": t} if t else {}
 
 
 def build_policy_id(source: str, published_at: str, url: str) -> str:
@@ -77,6 +85,7 @@ def update_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "source": item.source,
         "published_at": item.published_at,
         "summary_preview": (item.summary.what_changed[:100] + "...") if item.summary else "",
+        **_easy_title_field(item),
     }
 
     all_items = [entry] + [i for i in index["items"] if i["id"] != item.id]
@@ -107,6 +116,7 @@ def _update_archive_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "source": item.source,
         "published_at": item.published_at,
         "summary_preview": (item.summary.what_changed[:100] + "...") if item.summary else "",
+        **_easy_title_field(item),
     }
     items = [entry] + [i for i in data["items"] if i["id"] != item.id]
     items.sort(key=lambda x: x["published_at"], reverse=True)

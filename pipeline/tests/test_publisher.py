@@ -85,3 +85,25 @@ def test_update_index_keeps_max_50(tmp_path):
         update_index(item, docs_root=str(tmp_path))
     index = json.loads((tmp_path / "policies" / "index.json").read_text(encoding="utf-8"))
     assert len(index["items"]) == 50
+
+
+def test_easy_title_is_published_to_detail_index_and_archive(tmp_path):
+    item = _make_item()
+    item.summary.easy_title = "청약 가점이 늘어나요"
+    publish_policy(item, docs_root=str(tmp_path))
+    update_index(item, docs_root=str(tmp_path))
+
+    detail = json.loads((tmp_path / "policies" / f"{item.id}.json").read_text(encoding="utf-8"))
+    index = json.loads((tmp_path / "policies" / "index.json").read_text(encoding="utf-8"))
+    archive = json.loads((tmp_path / "archive" / "2026.json").read_text(encoding="utf-8"))
+    assert detail["summary"]["easy_title"] == "청약 가점이 늘어나요"
+    assert index["items"][0]["easy_title"] == "청약 가점이 늘어나요"
+    assert archive["items"][0]["easy_title"] == "청약 가점이 늘어나요"
+
+
+def test_index_entry_omits_easy_title_when_missing(tmp_path):
+    item = _make_item()
+    (tmp_path / "policies").mkdir()
+    update_index(item, docs_root=str(tmp_path))
+    index = json.loads((tmp_path / "policies" / "index.json").read_text(encoding="utf-8"))
+    assert "easy_title" not in index["items"][0]

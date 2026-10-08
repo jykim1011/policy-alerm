@@ -26,11 +26,17 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
   부처명·기관명·직책명(예: 고용노동부, 항만국장), 일상어(예: 숙원사업, 답보상태),
   문서 형식어(예: 붙임, 보도자료), 저작권·이용약관 문구는 절대 넣지 마세요.
   넣을 것이 없으면 빈 배열로 두세요.
+- easy_title은 보도자료 제목을 그대로 옮기지 말고, **시민 입장에서 무엇이 달라지는지** 한눈에
+  알 수 있는 쉬운 제목으로 다시 쓰세요. 28자 이내, 존댓말 서술형 종결(~해요/~돼요) 또는 명사형.
+  "[보도자료]", "[참고]" 같은 머리표, 장관·총리 이름, "개최", "점검", "추진" 같은 행정 용어는 빼고,
+  본문에 없는 혜택이나 수치를 과장해 지어내지 마세요.
+  예) "주택 공급 현장 점검" → "3기 신도시 입주, 더 빨라질 수 있어요"
 - faq는 시민이 실제로 궁금해할 질문과 본문 근거에 기반한 답으로 작성하되,
   이미 위 항목에서 답한 내용을 되풀이하지 말고 **새로 알려주는 것만** 담으세요.
 
 응답 형식:
 {{
+  "easy_title": "시민 눈높이의 쉬운 제목 (28자 이내)",
   "what_changed": "무엇이 바뀌었는지 1-2문장 (구체적 수치 포함)",
   "who_is_affected": "누가 대상인지 1-2문장 (대상 범위·조건 중심)",
   "when_effective": "언제부터 적용되는지. 본문에 시점 근거가 없으면 빈 문자열",
@@ -53,6 +59,20 @@ MAX_GLOSSARY = 5
 # "언제부터"에 숫자가 하나도 없으면 시점 정보가 아니라 서술이다
 # (예: "관련 대책들은 곧 발표될 예정입니다"). 카드로 띄울 값이 아니므로 버린다.
 _HAS_DIGIT = re.compile(r"\d")
+
+
+# 쉬운 제목 상한. 카드 2줄을 넘지 않게 한다. 모델이 길게 쓰면 버리고 원제목을 쓰게 둔다.
+MAX_EASY_TITLE = 40
+
+# 모델이 지침을 어기고 붙이는 머리표("[보도자료]" 등)는 지운다.
+_TITLE_TAG = re.compile(r"^\s*(\[[^\]]{1,10}\]|\([^)]{1,10}\))\s*")
+
+
+def _easy_title(v) -> str:
+    t = str(v).strip().strip('"').strip() if isinstance(v, str) else ""
+    while _TITLE_TAG.match(t):
+        t = _TITLE_TAG.sub("", t, count=1)
+    return t if 0 < len(t) <= MAX_EASY_TITLE else ""
 
 
 def _parse_json(text: str) -> dict:
@@ -137,6 +157,7 @@ def summarize_policy(
         how_to_apply = None
 
     return PolicySummary(
+        easy_title=_easy_title(raw.get("easy_title")),
         what_changed=_flatten_str(raw["what_changed"]),
         who_is_affected=_flatten_str(raw["who_is_affected"]),
         when_effective=_when_effective(raw.get("when_effective")),

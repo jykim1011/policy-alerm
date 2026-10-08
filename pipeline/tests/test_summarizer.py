@@ -120,3 +120,11 @@ def test_when_effective_dropped_when_no_date():
 def test_when_effective_kept_when_it_has_a_date():
     m = _model_returning({"when_effective": "2026년 9월 1일부터"})
     assert summarize_policy("제목", "본문", model=m).when_effective == "2026년 9월 1일부터"
+
+
+def test_easy_title_strips_tags_and_rejects_overlong():
+    from pipeline.summarizer import _easy_title, MAX_EASY_TITLE
+    assert _easy_title("[보도자료] 청년 월세 지원이 늘어나요") == "청년 월세 지원이 늘어나요"
+    assert _easy_title("[참고](설명) 전세대출 금리가 내려가요") == "전세대출 금리가 내려가요"
+    assert _easy_title("가" * (MAX_EASY_TITLE + 1)) == ""
+    assert _easy_title(None) == ""

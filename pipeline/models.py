@@ -29,6 +29,7 @@ class PolicySummary:
     how_to_apply: Optional[str] = None        # 신청 방법·창구·기간 (없으면 None)
     faq: list[dict] = field(default_factory=list)          # [{"question","answer"}]
     glossary: list[dict] = field(default_factory=list)     # [{"term","definition"}]
+    easy_title: str = ""                      # 시민 눈높이로 다시 쓴 제목 (없으면 원제목 사용)
 
 @dataclass
 class PolicyItem:
