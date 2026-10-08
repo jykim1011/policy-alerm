@@ -8,7 +8,11 @@ import com.policyalarm.data.remote.RetrofitClient
 import com.policyalarm.data.repository.PolicyRepository
 import com.policyalarm.data.repository.UserRepository
 import com.policyalarm.data.repository.resolveBookmarks
+import com.policyalarm.ui.components.INTEREST_FILTER
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -22,7 +26,25 @@ data class HomeUiState(
     val error: String? = null,
     val showBookmarks: Boolean = false,
     val bookmarkPolicies: List<PolicyItem> = emptyList(),
+    /** 사용자가 구독한 카테고리(온보딩·설정). 비어 있으면 "관심" 칩을 숨긴다. */
+    val interests: Set<String> = emptySet(),
+    /** 대시보드의 "안 읽은 것만 보기" 토글. */
+    val unreadOnly: Boolean = false,
 ) {
+    /** 홈 상단 대시보드 수치. 날짜는 테스트에서 고정할 수 있게 인자로 받는다. */
+    fun dashboard(today: LocalDate = LocalDate.now()): HomeDashboard {
+        val week = allPolicies.filter { daysAgo(it.publishedAt, today) in 0..6 }
+        return HomeDashboard(
+            todayCount = allPolicies.count { daysAgo(it.publishedAt, today) == 0L },
+            weekCount = week.size,
+            weekReadCount = week.count { it.id in readIds },
+            unreadCount = allPolicies.count { it.id !in readIds },
+            weekByCategory = week.groupingBy { it.subcategory }.eachCount()
+                .entries.sortedByDescending { it.value }
+                .map { it.key to it.value },
+        )
+    }
+
     /** 현재 불러온 정책들의 주관부처 목록(빈도 내림차순). 필터 드롭다운에 사용. */
     val sources: List<String>
         get() = allPolicies
@@ -37,12 +59,28 @@ data class HomeUiState(
             val byCategory = when (selectedCategory) {
                 "전체" -> allPolicies
                 "부동산" -> allPolicies.filter { it.category == "부동산" }
+                INTEREST_FILTER -> allPolicies.filter { it.category in interests || it.subcategory in interests }
                 else -> allPolicies.filter { it.subcategory == selectedCategory }
             }
-            return if (selectedSource == "전체") byCategory
+            val bySource = if (selectedSource == "전체") byCategory
             else byCategory.filter { it.source == selectedSource }
+            return if (unreadOnly) bySource.filter { it.id !in readIds } else bySource
         }
 }
+
+data class HomeDashboard(
+    val todayCount: Int,
+    val weekCount: Int,
+    val weekReadCount: Int,
+    val unreadCount: Int,
+    /** 최근 7일 세부 카테고리별 건수(많은 순). */
+    val weekByCategory: List<Pair<String, Int>>,
+)
+
+/** 발행일이 [today]로부터 며칠 전인지. 파싱 실패 시 -1(어느 구간에도 안 들어감). */
+fun daysAgo(publishedAt: String, today: LocalDate): Long = runCatching {
+    ChronoUnit.DAYS.between(OffsetDateTime.parse(publishedAt).toLocalDate(), today)
+}.getOrDefault(-1L)
 
 class HomeViewModel(
     private val repo: PolicyRepository,
@@ -59,6 +97,26 @@ class HomeViewModel(
             }
         }
         loadPolicies()
+        // loadInterests()는 MainScaffold가 홈 탭 진입 때마다 호출한다(첫 진입 포함).
+    }
+
+    /**
+     * 구독 카테고리를 읽어 "관심" 칩을 채운다. 실패해도(미로그인 등) 칩만 안 보일 뿐이다.
+     * 설정 탭에서 구독을 바꾸고 홈으로 돌아올 때도 다시 불러온다.
+     */
+    fun loadInterests() {
+        viewModelScope.launch {
+            val interests = runCatching {
+                (userRepo.getUserSettings()?.get("subscribed_categories") as? List<*>)
+                    ?.filterIsInstance<String>()?.toSet()
+            }.getOrNull().orEmpty()
+            _uiState.update {
+                // 구독을 모두 끈 채 "관심" 필터에 머물면 빈 목록만 남으므로 전체로 되돌린다.
+                val category = if (interests.isEmpty() && it.selectedCategory == INTEREST_FILTER) "전체"
+                else it.selectedCategory
+                it.copy(interests = interests, selectedCategory = category)
+            }
+        }
     }
 
     fun loadPolicies() {
@@ -82,6 +140,10 @@ class HomeViewModel(
 
     fun selectCategory(category: String) {
         _uiState.update { it.copy(selectedCategory = category) }
+    }
+
+    fun toggleUnreadOnly() {
+        _uiState.update { it.copy(unreadOnly = !it.unreadOnly) }
     }
 
     fun selectSource(source: String) {
@@ -128,4 +190,5 @@ private fun PolicyDetail.toItem(): PolicyItem = PolicyItem(
     source = source,
     publishedAt = publishedAt,
     summaryPreview = summary?.whatChanged?.take(100)?.plus("...") ?: "",
+    easyTitle = summary?.easyTitle,
 )

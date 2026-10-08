@@ -36,7 +36,8 @@ fun CommentCountBadge(policyId: String, modifier: Modifier = Modifier) {
     val count by produceState(initialValue = CommentCountCache.peek(policyId), policyId) {
         value = CommentCountCache.fetch(policyId)
     }
-    val n = count ?: return
+    // 0개는 표시하지 않는다 — 목록마다 "0"이 찍히면 휑해 보이고 정보도 없다.
+    val n = count?.takeIf { it > 0 } ?: return
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,

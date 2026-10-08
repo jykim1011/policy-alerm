@@ -4,6 +4,8 @@ package com.policyalarm.ui.components
 // 24px 그리드, 1.7px 라운드 스트로크 + 12% 듀오톤 필. 검정으로 그리고 Icon tint 로 물들인다.
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -220,6 +222,7 @@ fun categoryIconVector(key: String): ImageVector = when (key) {
     "육아" -> PramIcon
     "교육" -> GradCapIcon
     "금융" -> ChartIcon
+    INTEREST_FILTER -> Icons.Filled.Star
     else -> AllIcon
 }
 

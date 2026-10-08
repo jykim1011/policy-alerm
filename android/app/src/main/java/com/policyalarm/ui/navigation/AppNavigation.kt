@@ -136,6 +136,7 @@ fun AppNavigation(
                 policyId = policyId,
                 onBack = { navController.popBackStack() },
                 vm = vm,
+                onPolicyClick = { id -> navController.navigate(Routes.detail(id)) },
             )
         }
     }

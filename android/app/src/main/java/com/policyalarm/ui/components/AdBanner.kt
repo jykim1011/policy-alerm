@@ -2,7 +2,14 @@ package com.policyalarm.ui.components
 
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -18,12 +25,12 @@ private val BANNER_AD_UNIT_ID =
     if (BuildConfig.DEBUG) TEST_BANNER_AD_UNIT_ID else PROD_BANNER_AD_UNIT_ID
 
 @Composable
-fun AdBanner(modifier: Modifier = Modifier) {
+fun AdBanner(modifier: Modifier = Modifier, size: AdSize = AdSize.BANNER) {
     AndroidView(
         modifier = modifier,
         factory = { context ->
             AdView(context).apply {
-                setAdSize(AdSize.BANNER)
+                setAdSize(size)
                 adUnitId = BANNER_AD_UNIT_ID
                 layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
@@ -33,4 +40,27 @@ fun AdBanner(modifier: Modifier = Modifier) {
             }
         },
     )
+}
+
+/**
+ * 본문 사이에 넣는 300x250 인라인 광고. 하단 고정 배너보다 노출 단가가 높고, 사용자가
+ * 실제로 시간을 보내는 상세·피드 스크롤 안에 놓인다. 같은 배너 광고 단위를 쓰므로
+ * AdMob 콘솔에서 새 단위를 만들 필요가 없다. 오클릭을 줄이려고 위아래에 "광고" 라벨과
+ * 여백을 두어 카드·버튼과 떨어뜨린다.
+ */
+@Composable
+fun InlineAd(modifier: Modifier = Modifier) {
+    val c = com.policyalarm.ui.theme.LocalAppColors.current
+    androidx.compose.foundation.layout.Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("광고", color = c.fgFaint, fontSize = 11.sp, modifier = Modifier.padding(bottom = 4.dp))
+        AdBanner(
+            modifier = Modifier.size(width = 300.dp, height = 250.dp),
+            size = AdSize.MEDIUM_RECTANGLE,
+        )
+    }
 }

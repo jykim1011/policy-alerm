@@ -4,6 +4,7 @@ import com.policyalarm.data.model.PolicyIndex
 import com.policyalarm.data.model.PolicyItem
 import com.policyalarm.data.repository.PolicyRepository
 import com.policyalarm.data.repository.UserRepository
+import com.policyalarm.ui.components.INTEREST_FILTER
 import com.policyalarm.ui.screens.home.HomeViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -85,5 +86,34 @@ class HomeViewModelTest {
         val vm = HomeViewModel(mockRepo, mockUserRepo)
         assertEquals(1, vm.uiState.value.policies.size)
         assertEquals("id-1", vm.uiState.value.policies[0].id)
+    }
+
+    @Test
+    fun `관심 필터는 구독한 대분류-세부 카테고리에 해당하는 정책만 보여준다`() = runTest {
+        val items = listOf(
+            PolicyItem("id-1", "부동산", "청약", "청약 개편", "국토교통부", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-2", "고용",   "고용", "취업 지원", "고용노동부", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-3", "육아",   "육아", "보육 지원", "보건복지부", "2026-06-01T09:00:00+09:00", ""),
+        )
+        coEvery { mockRepo.getPolicyIndex() } returns PolicyIndex("2026-06-01", 3, items)
+        coEvery { mockUserRepo.getUserSettings() } returns mapOf("subscribed_categories" to listOf("부동산", "육아"))
+
+        val vm = HomeViewModel(mockRepo, mockUserRepo)
+        vm.loadInterests()
+        vm.selectCategory(INTEREST_FILTER)
+
+        assertEquals(listOf("id-1", "id-3"), vm.uiState.value.policies.map { it.id })
+    }
+
+    @Test
+    fun `구독이 비면 관심 필터에서 전체로 되돌린다`() = runTest {
+        coEvery { mockRepo.getPolicyIndex() } returns PolicyIndex("2026-06-01", 0, emptyList())
+        coEvery { mockUserRepo.getUserSettings() } returns mapOf("subscribed_categories" to emptyList<String>())
+
+        val vm = HomeViewModel(mockRepo, mockUserRepo)
+        vm.selectCategory(INTEREST_FILTER)
+        vm.loadInterests()
+
+        assertEquals("전체", vm.uiState.value.selectedCategory)
     }
 }

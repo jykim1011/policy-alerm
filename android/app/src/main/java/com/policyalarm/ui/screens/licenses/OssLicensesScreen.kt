@@ -48,6 +48,8 @@ private val OSS_LIBRARIES = listOf(
     OssLibrary("Gson", "Apache License 2.0"),
     OssLibrary("Firebase Android SDK", "Apache License 2.0"),
     OssLibrary("Google Play Services (Auth, Ads)", "Apache License 2.0"),
+    // 글꼴은 Apache가 아니라 OFL이다. 서브셋(수정본)을 번들하므로 고지가 필요하다.
+    OssLibrary("Pretendard (Copyright 2021 Kil Hyung-jin)", "SIL Open Font License 1.1"),
 )
 
 private const val APACHE_2_0_NOTICE =
@@ -58,7 +60,9 @@ private const val APACHE_2_0_NOTICE =
         "http://www.apache.org/licenses/LICENSE-2.0\n\n" +
         "Unless required by applicable law or agreed to in writing, software distributed under " +
         "the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF " +
-        "ANY KIND, either express or implied."
+        "ANY KIND, either express or implied.\n\n" +
+        "Pretendard 글꼴은 SIL Open Font License 1.1에 따라 사용합니다. " +
+        "https://openfontlicense.org"
 
 @Composable
 fun OssLicensesScreen(onBack: () -> Unit) {

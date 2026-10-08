@@ -51,8 +51,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.policyalarm.ui.components.Emoji
 import com.policyalarm.ui.components.FileChip
+import com.policyalarm.ui.components.InlineAd
 import com.policyalarm.ui.components.PrimaryButton
-import com.policyalarm.ui.components.SubcatChip
+import com.policyalarm.ui.components.categoryColor
+import com.policyalarm.ui.screens.home.CategoryBadge
+import com.policyalarm.ui.screens.home.PolicyCard
 import com.policyalarm.ui.theme.LocalAppColors
 
 @Composable
@@ -60,6 +63,7 @@ fun DetailScreen(
     policyId: String,
     onBack: () -> Unit,
     vm: DetailViewModel,
+    onPolicyClick: (String) -> Unit = {},
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -76,20 +80,17 @@ fun DetailScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(c.bgSurface)
+                .background(c.bgApp)
                 .statusBarsPadding()
                 .height(56.dp)
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconCircle(Icons.AutoMirrored.Filled.ArrowBack, "뒤로", c.fgMuted, onBack)
-            Text(
-                "정책 상세",
-                modifier = Modifier.weight(1f).padding(start = 4.dp),
-                color = c.fgMuted,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
+            IconCircle(Icons.AutoMirrored.Filled.ArrowBack, "뒤로", c.fgStrong, onBack)
+            Spacer(Modifier.weight(1f))
+            state.detail?.let { d ->
+                IconCircle(Icons.Filled.Share, "공유하기", c.fgMuted) { sharePolicy(context, d) }
+            }
             IconCircle(
                 if (state.isBookmarked) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
                 "북마크",
@@ -114,36 +115,18 @@ fun DetailScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 18.dp),
                 ) {
-                    Spacer(Modifier.height(16.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SubcatChip(detail.category)
-                        Text(detail.source, color = c.fgDefault, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
-                        FileChip(detail.fileType)
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        detail.title,
-                        color = c.fgStrong,
-                        fontSize = 22.sp,
-                        lineHeight = 31.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
                     Spacer(Modifier.height(8.dp))
-                    Text(
-                        "${detail.publishedAt.take(10)} 발표",
-                        color = c.fgSubtle,
-                        fontSize = 12.5.sp,
-                    )
+                    DetailHeader(detail)
 
                     val summary = detail.summary
                     if (summary != null) {
+                        Spacer(Modifier.height(20.dp))
+                        HighlightCard(summary.whatChanged)
+                        Spacer(Modifier.height(12.dp))
                         summary.background?.takeIf { it.isNotBlank() }?.let {
-                            Spacer(Modifier.height(20.dp))
                             BackgroundCard(it)
                             Spacer(Modifier.height(12.dp))
-                        } ?: Spacer(Modifier.height(20.dp))
-                        SummaryCard("🔄", "무엇이 바뀌었나", summary.whatChanged)
-                        Spacer(Modifier.height(12.dp))
+                        }
                         SummaryCard("👥", "누가 대상인가", summary.whoIsAffected)
                         Spacer(Modifier.height(12.dp))
                         // 시점이 아니라 서술("곧 발표될 예정입니다")인 값은 카드로 띄우지 않는다.
@@ -182,10 +165,7 @@ fun DetailScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(c.bgSurface2)
-                            .border(1.dp, c.borderStrong, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 13.dp, vertical = 11.dp),
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
@@ -202,7 +182,28 @@ fun DetailScreen(
                             lineHeight = 18.sp,
                         )
                     }
+                    if (state.related.isNotEmpty()) {
+                        Spacer(Modifier.height(28.dp))
+                        Text(
+                            "함께 보면 좋은 정책",
+                            color = c.fgStrong,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            state.related.forEach { item ->
+                                PolicyCard(
+                                    policy = item,
+                                    isRead = item.id in state.readIds,
+                                    onClick = { onPolicyClick(item.id) },
+                                )
+                            }
+                        }
+                    }
                     Spacer(Modifier.height(16.dp))
+                    InlineAd()
+                    Spacer(Modifier.height(8.dp))
                     CommentSection(
                         threads = state.commentThreads,
                         commentCount = state.commentCount,
@@ -217,28 +218,24 @@ fun DetailScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(c.bgApp)
-                        .border(width = 1.dp, color = c.border)
+                        .background(c.bgSurface)
                         .navigationBarsPadding()
                         .padding(horizontal = 18.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .size(width = 52.dp, height = 48.dp)
+                            .height(48.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(c.bgSurface)
-                            .border(1.dp, c.borderStrong, RoundedCornerShape(8.dp))
-                            .clickable { sharePolicy(context, detail) },
-                        contentAlignment = Alignment.Center,
+                            .background(c.bgMuted)
+                            .clickable { sharePolicy(context, detail) }
+                            .padding(horizontal = 18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Icon(
-                            Icons.Filled.Share,
-                            "공유하기",
-                            tint = c.fgMuted,
-                            modifier = Modifier.size(20.dp),
-                        )
+                        Icon(Icons.Filled.Share, null, tint = c.fgMuted, modifier = Modifier.size(18.dp))
+                        Text("공유", color = c.fgDefault, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                     }
                     PrimaryButton(
                         text = "원문 보기",
@@ -317,17 +314,16 @@ private fun SummaryCard(emoji: String, label: String, body: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(c.bgSurface)
-            .border(1.dp, c.border, RoundedCornerShape(16.dp))
-            .padding(16.dp),
+            .padding(20.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            Emoji(emoji, 15)
-            Text(label, color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Emoji(emoji, 17)
+            Text(label, color = c.fgStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
-        Text(body, color = c.fgDefault, fontSize = 14.5.sp, lineHeight = 23.sp)
+        Text(body, color = c.fgDefault, fontSize = 15.5.sp, lineHeight = 25.sp)
     }
 }
 
@@ -337,12 +333,14 @@ private fun KeyPointsCard(points: List<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(c.bgSurface)
-            .border(1.dp, c.border, RoundedCornerShape(16.dp))
-            .padding(16.dp),
+            .padding(20.dp),
     ) {
-        Text("핵심 포인트", color = c.fgStrong, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            Emoji("📌", 17)
+            Text("핵심 포인트", color = c.fgStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
         Spacer(Modifier.height(12.dp))
         points.forEachIndexed { i, pt ->
             Row(
@@ -358,9 +356,74 @@ private fun KeyPointsCard(points: List<String>) {
                 ) {
                     Text("${i + 1}", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
-                Text(pt, color = c.fgDefault, fontSize = 14.5.sp, lineHeight = 22.sp)
+                Text(pt, color = c.fgDefault, fontSize = 15.5.sp, lineHeight = 24.sp)
             }
         }
+    }
+}
+
+/** 상단 헤더 — 분야·부처, 쉬운 제목(크게), 원문 제목(작게), 발표일·읽는 시간. */
+@Composable
+private fun DetailHeader(detail: com.policyalarm.data.model.PolicyDetail) {
+    val c = LocalAppColors.current
+    val tint = categoryColor(detail.subcategory) ?: categoryColor(detail.category) ?: c.accent
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        CategoryBadge(detail.subcategory, size = 28)
+        Spacer(Modifier.width(8.dp))
+        Text(detail.subcategory, color = tint, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("  ·  ${detail.source}", color = c.fgSubtle, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Spacer(Modifier.width(8.dp))
+        FileChip(detail.fileType)
+    }
+    Spacer(Modifier.height(14.dp))
+    Text(
+        detail.displayTitle,
+        color = c.fgStrong,
+        fontSize = 25.sp,
+        lineHeight = 34.sp,
+        fontWeight = FontWeight.Bold,
+    )
+    // 쉬운 제목을 보여줄 때는 보도자료 원제목을 작게 남겨 출처를 확인할 수 있게 한다.
+    if (detail.displayTitle != detail.title) {
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "원문 제목 · ${detail.title}",
+            color = c.fgFaint,
+            fontSize = 13.sp,
+            lineHeight = 19.sp,
+        )
+    }
+    Spacer(Modifier.height(10.dp))
+    Text(
+        "${detail.publishedAt.take(10).replace('-', '.')} 발표 · ${readingMinutes(detail)}분이면 읽어요",
+        color = c.fgSubtle,
+        fontSize = 13.sp,
+    )
+}
+
+/** 요약 분량으로 대략적인 읽는 시간(분)을 잰다. 한국어 평균 분당 500자 기준. */
+private fun readingMinutes(detail: com.policyalarm.data.model.PolicyDetail): Int {
+    val s = detail.summary ?: return 1
+    val chars = listOfNotNull(s.whatChanged, s.whoIsAffected, s.whenEffective, s.background, s.howToApply)
+        .sumOf { it.length } + s.keyPoints.sumOf { it.length } +
+        (s.faq?.sumOf { it.question.length + it.answer.length } ?: 0)
+    return (chars / 500).coerceAtLeast(1)
+}
+
+/** "한눈에 보기" — 무엇이 바뀌었는지를 액센트 카드로 가장 먼저 보여준다. */
+@Composable
+private fun HighlightCard(body: String) {
+    val c = LocalAppColors.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(c.accent)
+            .padding(20.dp),
+    ) {
+        Text("한눈에 보기", color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(8.dp))
+        Text(body, color = Color.White, fontSize = 16.5.sp, lineHeight = 26.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -394,14 +457,13 @@ private fun EligibilityCard(items: List<String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(c.bgSurface)
-            .border(1.dp, c.border, RoundedCornerShape(16.dp))
-            .padding(16.dp),
+            .padding(20.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            Emoji("✅", 15)
-            Text("나에게 해당되나요?", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Emoji("✅", 17)
+            Text("나에게 해당되나요?", color = c.fgStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(12.dp))
         items.forEachIndexed { i, item ->
@@ -426,15 +488,14 @@ private fun GlossaryCard(items: List<com.policyalarm.data.model.GlossaryItem>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(c.bgSurface)
-            .border(1.dp, c.border, RoundedCornerShape(16.dp))
             .clickable { expanded = !expanded }
-            .padding(16.dp),
+            .padding(20.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            Emoji("📖", 15)
-            Text("용어 풀이", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Emoji("📖", 17)
+            Text("용어 풀이", color = c.fgStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Text(
                 "${items.size}개",
                 color = c.fgFaint,
@@ -467,14 +528,13 @@ private fun FaqCard(items: List<com.policyalarm.data.model.FaqItem>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(c.bgSurface)
-            .border(1.dp, c.border, RoundedCornerShape(16.dp))
-            .padding(16.dp),
+            .padding(20.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            Emoji("💬", 15)
-            Text("자주 묻는 질문", color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Emoji("💬", 17)
+            Text("자주 묻는 질문", color = c.fgStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
         items.forEachIndexed { i, f ->

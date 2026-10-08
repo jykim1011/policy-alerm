@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.policyalarm.data.model.CommentThread
 import com.policyalarm.data.model.PolicyDetail
+import com.policyalarm.data.model.PolicyItem
 import com.policyalarm.data.model.groupComments
 import com.policyalarm.data.repository.CommentRepository
 import com.policyalarm.data.repository.PolicyRepository
@@ -13,6 +14,7 @@ import com.policyalarm.data.repository.UserRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class DetailUiState(
@@ -23,7 +25,36 @@ data class DetailUiState(
     val commentThreads: List<CommentThread> = emptyList(),
     val commentCount: Int = 0,
     val myUid: String? = null,
+    /** 상세 하단 "함께 볼 만한 정책" — 다 읽은 뒤 이탈하지 않고 다음 정책으로 이어지게 한다. */
+    val related: List<PolicyItem> = emptyList(),
+    val readIds: Set<String> = emptySet(),
 )
+
+/**
+ * 현재 정책과 함께 보여줄 정책을 고른다. 같은 세부 카테고리 > 같은 대분류 > 나머지 순으로,
+ * 같은 순위 안에서는 안 읽은 것을 먼저, 그다음 최신순(입력 순서 유지)으로 [limit]개.
+ */
+fun pickRelated(
+    all: List<PolicyItem>,
+    currentId: String,
+    category: String,
+    subcategory: String,
+    readIds: Set<String>,
+    limit: Int = RELATED_LIMIT,
+): List<PolicyItem> = all
+    .filter { it.id != currentId }
+    .sortedWith(
+        compareByDescending<PolicyItem> {
+            when {
+                it.subcategory == subcategory -> 2
+                it.category == category -> 1
+                else -> 0
+            }
+        }.thenBy { it.id in readIds }
+    )
+    .take(limit)
+
+const val RELATED_LIMIT = 4
 
 class DetailViewModel(
     private val policyRepo: PolicyRepository,
@@ -48,6 +79,7 @@ class DetailViewModel(
                     isLoading = false,
                 )
                 loadComments(policyId)
+                loadRelated(detail)
             } catch (e: Exception) {
                 _uiState.value = DetailUiState(
                     isLoading = false,
@@ -81,6 +113,23 @@ class DetailViewModel(
             }
         }
         throw err
+    }
+
+    private fun loadRelated(detail: PolicyDetail) {
+        viewModelScope.launch {
+            runCatching {
+                val readIds = policyRepo.observeReadIds().first().toSet()
+                pickRelated(
+                    all = policyRepo.getPolicyIndex().items,
+                    currentId = detail.id,
+                    category = detail.category,
+                    subcategory = detail.subcategory,
+                    readIds = readIds,
+                ) to readIds
+            }.onSuccess { (related, readIds) ->
+                _uiState.value = _uiState.value.copy(related = related, readIds = readIds)
+            }
+        }
     }
 
     fun loadComments(policyId: String) {

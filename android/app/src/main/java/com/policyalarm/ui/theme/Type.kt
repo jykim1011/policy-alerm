@@ -2,13 +2,21 @@ package com.policyalarm.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.policyalarm.R
 
-// Design system uses Geist; on Android we fall back to the platform sans
-// (system default), keeping the same size/weight scale from ds-tokens.css.
-private val Sans = FontFamily.Default
+// 웹과 같은 Pretendard. 용량을 줄이려고 KS X 1001 한글 2,350자 + 기호만 남긴 서브셋을
+// 번들한다 — 빠진 글자는 Android가 글자 단위로 시스템 폰트에 폴백하므로 깨지지 않는다.
+private val Sans = FontFamily(
+    Font(R.font.pretendard_regular, FontWeight.Normal),
+    Font(R.font.pretendard_medium, FontWeight.Medium),
+    Font(R.font.pretendard_semibold, FontWeight.SemiBold),
+    Font(R.font.pretendard_bold, FontWeight.Bold),
+)
 
 val AppTypography = Typography(
     // page H1 (mobile) — text-2xl, bold, tight
@@ -48,11 +56,14 @@ val AppTypography = Typography(
         lineHeight = 22.sp,
         letterSpacing = (-0.15).sp,
     ),
+    // 화면 대부분의 Text는 style 없이 크기만 지정해 이 기본 스타일(LocalTextStyle)을 물려받는다.
+    // Pretendard는 자간을 살짝 좁혀야 단단해 보인다(웹과 동일한 -0.02em).
     bodyLarge = TextStyle(
         fontFamily = Sans,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
+        letterSpacing = (-0.02).em,
     ),
     bodyMedium = TextStyle(
         fontFamily = Sans,

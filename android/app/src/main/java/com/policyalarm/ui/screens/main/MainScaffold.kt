@@ -105,6 +105,8 @@ fun MainScaffold(
 
     val context = LocalContext.current
     val homeVm = viewModel<HomeViewModel>(factory = HomeViewModelFactory(context))
+    // 설정 탭에서 구독 카테고리를 바꿨을 수 있으니 홈으로 돌아올 때 "관심" 필터를 갱신한다.
+    LaunchedEffect(tab) { if (tab == Tab.HOME) homeVm.loadInterests() }
     val notifRepo = remember { NotificationRepository() }
     val unreadCount by notifRepo.observeUnreadCount()
         .collectAsStateWithLifecycle(initialValue = 0)

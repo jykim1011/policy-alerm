@@ -23,6 +23,7 @@ data class PolicySummary(
     @SerializedName("how_to_apply") val howToApply: String? = null,
     val faq: List<FaqItem>? = null,
     val glossary: List<GlossaryItem>? = null,
+    @SerializedName("easy_title") val easyTitle: String? = null,
 )
 
 data class PolicyDetail(
@@ -37,4 +38,7 @@ data class PolicyDetail(
     @SerializedName("published_at") val publishedAt: String,
     @SerializedName("crawled_at") val crawledAt: String,
     val summary: PolicySummary?,
-)
+) {
+    val displayTitle: String
+        get() = summary?.easyTitle?.takeIf { it.isNotBlank() } ?: cleanTitle(title)
+}
