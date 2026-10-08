@@ -1,0 +1,30 @@
+{
+  "id": "고용노동부-2026-10-08-12e4ec07",
+  "category": "고용",
+  "subcategory": "고용",
+  "title": "[사실은 이렇습니다] (설명) 동아일보, \"中동포？중국인, 고용보험료 낸 돈의 2.6배 받아갔다\" 기사 관련",
+  "source": "고용노동부",
+  "source_url": "https://www.korea.kr/briefing/actuallyView.do?newsId=148973250&call_from=openData",
+  "file_url": null,
+  "file_type": null,
+  "published_at": "2026-10-08T21:06:07+09:00",
+  "crawled_at": "2026-10-09T03:16:44.111242+09:00",
+  "summary": {
+    "what_changed": "",
+    "who_is_affected": "",
+    "when_effective": "",
+    "key_points": [],
+    "easy_title": "중국인 고용보험 지급, 궁금증 풀어드려요",
+    "background": "동아일보가 2026년 10월 8일 보도한 '중국 동포 및 중국인이 고용보험료를 낸 돈의 2.6배를 실업급여로 받아갔다'는 기사에 대해 정부가 사실을 설명하기 위해 발표한 자료입니다.",
+    "glossary": [
+      {
+        "term": "고용보험료",
+        "definition": "일자리를 잃었을 때 생활 지원을 받기 위해 고용보험에 가입한 사람이 매달 내는 돈입니다."
+      },
+      {
+        "term": "실업급여",
+        "definition": "고용보험 가입자가 비자발적으로 직장을 잃었을 때, 다시 일자리를 구할 때까지 생활 안정을 위해 일정 기간 동안 받을 수 있는 돈입니다."
+      }
+    ]
+  }
+}
