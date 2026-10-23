@@ -67,7 +67,9 @@ jobs:
           # 빌드 결과가 라이브와 동일하면 firebase가 "current active version" 400으로 실패한다.
           # 이는 배포할 변경이 없다는 뜻이므로 거짓 실패로 취급하지 않는다.
           set -o pipefail
-          out=$(npx --yes firebase-tools@latest deploy --only hosting --project policy-alerm --non-interactive 2>&1) && rc=0 || rc=$?
+          # 15.34.1 출시(2026-10-21) 직후부터 serviceusage API 조회가 403으로 실패한다
+          # (CI SA에 serviceusage.services.get 권한 없음). 그 직전 버전으로 고정한다.
+          out=$(npx --yes firebase-tools@15.34.0 deploy --only hosting --project policy-alerm --non-interactive 2>&1) && rc=0 || rc=$?
           echo "$out"
           if [ "$rc" -ne 0 ] && echo "$out" | grep -q "is the current active version"; then
             echo "::notice::배포할 변경 없음(라이브가 이미 최신). 성공으로 처리."
