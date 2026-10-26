@@ -1,0 +1,38 @@
+{
+  "id": "고용노동부-2026-10-26-3323025c",
+  "category": "고용",
+  "subcategory": "고용",
+  "title": "[사실은 이렇습니다] (설명) 경향신문(온라인), \"임금체불로 고용허가 취소돼도...1년 못 채운 이주노동자 퇴직적립금, 사업주에게 간다\" 기사 관련",
+  "source": "고용노동부",
+  "source_url": "https://www.korea.kr/briefing/actuallyView.do?newsId=148974316&call_from=openData",
+  "file_url": null,
+  "file_type": null,
+  "published_at": "2026-10-26T18:12:37+09:00",
+  "crawled_at": "2026-10-26T21:03:12.155995+09:00",
+  "summary": {
+    "what_changed": "",
+    "who_is_affected": "",
+    "when_effective": "",
+    "key_points": [],
+    "easy_title": "이주노동자 퇴직적립금, 보도내용 설명",
+    "background": "지난 10월 26일 경향신문 온라인 기사에서 임금 체불로 고용 허가가 취소된 이주노동자의 퇴직 적립금이 1년 미만 근무 시 사업주에게 돌아간다는 내용이 보도되었습니다. 이 문서는 해당 보도에 대한 정부의 설명입니다.",
+    "glossary": [
+      {
+        "term": "임금체불",
+        "definition": "사업주가 노동자에게 급여를 제때 지급하지 않거나 적게 주는 것을 말합니다."
+      },
+      {
+        "term": "고용허가",
+        "definition": "외국인 노동자가 국내에서 일할 수 있도록 정부가 허락하는 제도입니다."
+      },
+      {
+        "term": "이주노동자",
+        "definition": "다른 나라에서 일하기 위해 한국에 온 외국인 노동자를 말합니다."
+      },
+      {
+        "term": "퇴직적립금",
+        "definition": "퇴직금을 주기 위해 미리 쌓아두는 돈을 의미하며, 보통 이주노동자의 퇴직금을 말합니다."
+      }
+    ]
+  }
+}
