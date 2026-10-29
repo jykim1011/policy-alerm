@@ -28,4 +28,9 @@ class PolicyRepository(
     suspend fun markAsRead(policyId: String) {
         readPolicyDao.markAsRead(ReadPolicyEntity(policyId))
     }
+
+    suspend fun markAllAsRead(policyIds: List<String>) {
+        if (policyIds.isEmpty()) return
+        readPolicyDao.markAllAsRead(policyIds.map { ReadPolicyEntity(it) })
+    }
 }

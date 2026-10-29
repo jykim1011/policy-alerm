@@ -70,18 +70,22 @@ class NotificationRepository(
         runCatching { notifications().document(policyId).update("read", true).await() }
     }
 
-    /** "모두 읽음": 알림함을 비운다(목록의 모든 내용이 사라짐). */
-    suspend fun clearAll() {
-        val uid = auth.currentUser?.uid ?: return
-        runCatching {
+    /**
+     * "모두 읽음": 알림함을 비운다(목록의 모든 내용이 사라짐).
+     * 지운 알림의 정책 ID를 돌려줘 호출부가 로컬 읽음 기록에도 반영할 수 있게 한다.
+     */
+    suspend fun clearAll(): List<String> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        return runCatching {
             val snap = db.collection("users").document(uid).collection("notifications").get().await()
-            if (snap.isEmpty) return
+            if (snap.isEmpty) return emptyList()
             // Firestore 배치는 최대 500개 작업 제한이 있으므로 청크 단위로 커밋한다.
             snap.documents.chunked(500).forEach { chunk ->
                 val batch = db.batch()
                 chunk.forEach { batch.delete(it.reference) }
                 batch.commit().await()
             }
-        }
+            snap.documents.map { it.id }
+        }.getOrDefault(emptyList())
     }
 }

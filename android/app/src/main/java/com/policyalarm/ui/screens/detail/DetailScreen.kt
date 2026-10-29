@@ -127,8 +127,10 @@ fun DetailScreen(
                             BackgroundCard(it)
                             Spacer(Modifier.height(12.dp))
                         }
-                        SummaryCard("👥", "누가 대상인가", summary.whoIsAffected)
-                        Spacer(Modifier.height(12.dp))
+                        summary.whoIsAffected?.takeIf { it.isNotBlank() }?.let {
+                            SummaryCard("👥", "누가 대상인가", it)
+                            Spacer(Modifier.height(12.dp))
+                        }
                         // 시점이 아니라 서술("곧 발표될 예정입니다")인 값은 카드로 띄우지 않는다.
                         // 요약기에서도 걸러내지만, 이미 발행된 정책에는 소급되지 않아 화면에서도 막는다.
                         summary.whenEffective?.takeIf { it.any(Char::isDigit) }?.let {
@@ -139,6 +141,10 @@ fun DetailScreen(
                             Spacer(Modifier.height(12.dp))
                             KeyPointsCard(summary.keyPoints)
                         }
+                        // 알림으로 들어온 사용자는 핵심 요약까지만 읽고 나가는 경우가 대부분이라,
+                        // 맨 아래(관련 정책 뒤)에 두면 광고가 요청조차 되지 않았다.
+                        Spacer(Modifier.height(12.dp))
+                        InlineAd()
 
                         summary.eligibility?.takeIf { it.isNotEmpty() }?.let {
                             Spacer(Modifier.height(12.dp))
@@ -202,8 +208,6 @@ fun DetailScreen(
                         }
                     }
                     Spacer(Modifier.height(16.dp))
-                    InlineAd()
-                    Spacer(Modifier.height(8.dp))
                     CommentSection(
                         threads = state.commentThreads,
                         commentCount = state.commentCount,

@@ -11,6 +11,9 @@ interface ReadPolicyDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun markAsRead(entity: ReadPolicyEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun markAllAsRead(entities: List<ReadPolicyEntity>)
+
     @Query("SELECT policyId FROM read_policies")
     fun observeReadIds(): Flow<List<String>>
 
