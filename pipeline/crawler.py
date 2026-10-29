@@ -92,6 +92,31 @@ def _classify_category(title: str) -> str | None:
     return None
 
 
+# 첨부 형식 선호 순서. hwpx는 표·줄바꿈이 가장 깨끗하게 추출되고, hwp는 외부 CLI가 필요하다.
+_ATTACHMENT_PREFERENCE = ("hwpx", "pdf", "hwp")
+
+
+def find_page_attachment(page_url: str) -> tuple[str, str] | None:
+    """korea.kr 상세 페이지의 첨부파일 목록에서 추출 가능한 첨부 하나를 고른다.
+
+    OpenAPI가 FileUrl을 비워 보내는 기사가 있다(주로 '사실은 이렇습니다' 설명자료).
+    이런 기사는 본문이 비어 있고 내용이 첨부에만 있어, 제목만으로 요약이 생성됐다.
+    """
+    resp = requests.get(page_url, headers=HEADERS, timeout=30)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.content, "html.parser")
+    found: dict[str, str] = {}
+    for a in soup.select(".filedown a[href*='download.do']"):
+        name = a.get_text(strip=True).lower()
+        for ext in _ATTACHMENT_PREFERENCE:
+            if name.endswith(f".{ext}") and ext not in found:
+                found[ext] = requests.compat.urljoin(page_url, a["href"])
+    for ext in _ATTACHMENT_PREFERENCE:
+        if ext in found:
+            return found[ext], ext
+    return None
+
+
 def load_seen(path: str = SEEN_FILE) -> set[str]:
     with open(path, encoding="utf-8") as f:
         return set(json.load(f)["seen"])

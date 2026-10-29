@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timezone, timedelta
@@ -8,7 +9,7 @@ from urllib.parse import quote
 
 import requests
 
-from pipeline.crawler import CRAWLERS, load_seen, save_seen, is_new_policy
+from pipeline.crawler import CRAWLERS, find_page_attachment, load_seen, save_seen, is_new_policy
 from pipeline.extractor import extract_text
 from pipeline.summarizer import summarize_policy
 from pipeline.publisher import build_policy_id, publish_policy, update_index
@@ -35,6 +36,39 @@ def _needs_attachment(text: str) -> bool:
     return len(text.strip()) < MIN_BODY_CHARS
 
 
+def _with_attachment_text(text: str, file_url, file_type, page_url: str) -> str:
+    """본문이 스텁이면 첨부 원문으로 바꾼다. 실패하거나 더 짧으면 본문을 그대로 둔다.
+
+    OpenAPI가 첨부 정보를 비워 보내면 상세 페이지에서 첨부를 찾는다.
+    """
+    try:
+        if not (file_url and file_type):
+            found = find_page_attachment(page_url)
+            if found is None:
+                return text
+            file_url, file_type = found
+        extracted = extract_text(download_file(file_url), file_type)
+        if len(extracted.strip()) > len(text.strip()):
+            return extracted
+    except Exception as e:
+        print(f"  파일 추출 실패, HTML 폴백: {e}", file=sys.stderr)
+    return text
+
+
+def _title_key(title: str) -> str:
+    """공백·문장부호를 걷은 제목. 부처 합동 보도자료는 부처마다 따로 올라와 제목만 같다."""
+    return re.sub(r"\W", "", title)
+
+
+def _published_title_keys(docs_root: str = "docs") -> set[str]:
+    """최근 발행 목록(index.json)의 제목 키. 합동 보도자료 중복 발행을 막는 데 쓴다."""
+    path = Path(docs_root) / "policies" / "index.json"
+    if not path.exists():
+        return set()
+    items = json.loads(path.read_text(encoding="utf-8")).get("items", [])
+    return {_title_key(i.get("title", "")) for i in items}
+
+
 def download_file(url: str) -> bytes:
     resp = requests.get(url, headers=HEADERS, timeout=30, stream=True)
     resp.raise_for_status()
@@ -44,6 +78,7 @@ def download_file(url: str) -> bytes:
 def run(batch: str) -> None:
     seen = load_seen()
     new_items = []
+    published_titles = _published_title_keys()
 
     for crawler in CRAWLERS:
         print(f"[{crawler.SOURCE}] 크롤링 시작")
@@ -58,19 +93,18 @@ def run(batch: str) -> None:
 
         for raw in new_in_source:
             print(f"  신규 정책 발견: {raw.title}")
+            if _title_key(raw.title) in published_titles:
+                # 같은 합동 보도자료가 다른 부처 이름으로 또 올라온 것. 알림이 중복으로 나가지 않게 건너뛴다.
+                print("  같은 제목이 이미 발행됨(합동 보도자료), 건너뜀")
+                seen.add(raw.url_hash)
+                continue
 
             # 텍스트 추출: 본문이 충분히 길면 그대로 사용한다.
             # (정책브리핑 OpenAPI는 본문을 inline으로 제공. korea.kr 첨부 다운로드는
             #  GitHub Actions IP에서 실패할 수 있으므로 실패 시 본문으로 폴백한다.)
             text = raw.html_content
-            if _needs_attachment(text) and raw.file_url and raw.file_type:
-                try:
-                    file_bytes = download_file(raw.file_url)
-                    extracted = extract_text(file_bytes, raw.file_type)
-                    if len(extracted.strip()) > len(text.strip()):
-                        text = extracted
-                except Exception as e:
-                    print(f"  파일 추출 실패, HTML 폴백: {e}", file=sys.stderr)
+            if _needs_attachment(text):
+                text = _with_attachment_text(text, raw.file_url, raw.file_type, raw.url)
 
             # AI 요약
             try:
@@ -99,6 +133,7 @@ def run(batch: str) -> None:
             update_index(item)
             new_items.append((item, batch))
             seen.add(raw.url_hash)
+            published_titles.add(_title_key(raw.title))
 
     save_seen(seen)
 

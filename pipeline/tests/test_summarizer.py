@@ -128,3 +128,20 @@ def test_easy_title_strips_tags_and_rejects_overlong():
     assert _easy_title("[참고](설명) 전세대출 금리가 내려가요") == "전세대출 금리가 내려가요"
     assert _easy_title("가" * (MAX_EASY_TITLE + 1)) == ""
     assert _easy_title(None) == ""
+
+
+def test_copyright_boilerplate_dropped_from_glossary_and_faq():
+    """기사 하단 저작권 고지에서 뽑힌 용어·질문은 시민에게 쓸모가 없어 버린다."""
+    raw = {
+        "glossary": [
+            {"term": "공공누리 제1유형:출처표시", "definition": "..."},
+            {"term": "갭투자", "definition": "전세를 끼고 집을 사는 것"},
+        ],
+        "faq": [
+            {"question": "이 보도자료를 다른 곳에 사용해도 되나요?", "answer": "..."},
+            {"question": "대출 규제가 바뀌나요?", "answer": "아니요"},
+        ],
+    }
+    result = summarize_policy("제목", "본문", model=_model_returning(raw))
+    assert [g["term"] for g in result.glossary] == ["갭투자"]
+    assert [q["question"] for q in result.faq] == ["대출 규제가 바뀌나요?"]

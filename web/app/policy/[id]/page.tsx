@@ -285,6 +285,8 @@ export default async function PolicyPage({ params }: Props) {
 }
 
 function Section({ title, body }: { title: string; body: string }) {
+  // 요약에 근거가 없어 비어 있는 항목은 제목만 덩그러니 남지 않게 숨긴다.
+  if (!body?.trim()) return null;
   return (
     <div className="py-5">
       <p className="mb-2 text-[1.02rem] font-bold text-ink">{title}</p>

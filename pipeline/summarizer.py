@@ -22,6 +22,11 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
 - who_is_affected는 기대효과나 좋은 점이 아니라 **누가 해당되는지(대상 범위)** 를 쓰세요.
   독자가 "나는 해당되나?"를 판단할 수 있어야 합니다. "전 국민", "모든 국민" 같은
   범용 표현은 본문이 실제로 전 국민 대상일 때만 쓰세요.
+- 언론 보도에 대한 정부 설명·해명자료("보도설명자료", "[설명]", "[해명]", "사실은 이렇습니다")는
+  새 제도가 아니므로 정책처럼 꾸미지 마세요. what_changed에는 "어떤 보도가 무엇이라고 했고,
+  정부는 실제로 어떻다고 설명했는지"를 본문의 수치와 함께 쓰고, easy_title도 그 사실관계가
+  드러나게 쓰세요. 직접 적용되는 대상이 없으면 who_is_affected는 이 내용과 관련 있는 사람
+  (예: 주택 구입을 준비하는 무주택자)을 본문 근거로 쓰되, 근거가 없으면 빈 문자열로 두세요.
 - glossary는 **이 문서를 이해하는 데 꼭 필요한 제도·법령·전문 용어만 최대 5개**만 쓰세요.
   부처명·기관명·직책명(예: 고용노동부, 항만국장), 일상어(예: 숙원사업, 답보상태),
   문서 형식어(예: 붙임, 보도자료), 저작권·이용약관 문구는 절대 넣지 마세요.
@@ -55,6 +60,10 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
 # 용어 풀이 상한. 프롬프트로도 최대 5개를 지시하지만 모델이 초과하는 경우가 있어
 # (관측 최대 43개) 발행 단계에서 한 번 더 자른다.
 MAX_GLOSSARY = 5
+
+# 프롬프트로 금지해도 모델이 기사 하단 저작권 고지에서 뽑아 넣는 항목.
+# 용어 풀이·FAQ에 "공공누리 제1유형", "이 보도자료를 다른 곳에 써도 되나요?"가 실렸다.
+_BOILERPLATE = re.compile(r"공공누리|저작권|출처\s*표시|정책브리핑|보도자료|korea\.kr")
 
 # "언제부터"에 숫자가 하나도 없으면 시점 정보가 아니라 서술이다
 # (예: "관련 대책들은 곧 발표될 예정입니다"). 카드로 띄울 값이 아니므로 버린다.
@@ -165,6 +174,8 @@ def summarize_policy(
         background=str(raw.get("background", "")).strip(),
         eligibility=_str_list(raw.get("eligibility")),
         how_to_apply=how_to_apply,
-        faq=_qa_list(raw.get("faq"), ("question", "answer")),
-        glossary=_qa_list(raw.get("glossary"), ("term", "definition"))[:MAX_GLOSSARY],
+        faq=[q for q in _qa_list(raw.get("faq"), ("question", "answer"))
+             if not _BOILERPLATE.search(q["question"])],
+        glossary=[g for g in _qa_list(raw.get("glossary"), ("term", "definition"))
+                  if not _BOILERPLATE.search(g["term"])][:MAX_GLOSSARY],
     )
