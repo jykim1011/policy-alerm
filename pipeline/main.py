@@ -87,6 +87,9 @@ def download_file(url: str, attempts: int = 3) -> bytes:
         try:
             resp = requests.get(url, headers=HEADERS, timeout=30, stream=True)
             resp.raise_for_status()
+            # 차단 시 korea.kr은 파일 대신 200 + HTML 안내 페이지를 준다(추출기가 "zip 아님"으로 실패).
+            if "text/html" in resp.headers.get("Content-Type", ""):
+                raise ValueError("파일 대신 HTML 응답(다운로드 차단 추정)")
             return resp.content
         except requests.ConnectionError:
             if i == attempts - 1:

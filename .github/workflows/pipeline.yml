@@ -31,8 +31,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r pipeline/requirements.txt
-          # hwp 첨부 추출은 pyhwp의 hwp5txt CLI에 의존한다. 없으면 추출이 조용히 0자가 되므로 여기서 막는다.
-          command -v hwp5txt
+          # hwp 첨부 추출은 pyhwp의 hwp5txt CLI에 의존한다. 깨져 있으면 추출이 0자가 되므로 여기서 막는다.
+          # (있기만 하고 import에서 죽는 경우가 있었다: six 누락) 실제로 실행해 확인한다.
+          hwp5txt --help > /dev/null
 
       - name: Determine batch
         id: batch
