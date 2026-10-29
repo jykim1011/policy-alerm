@@ -57,3 +57,22 @@ def test_keeps_body_when_all_attachments_fail():
     with patch.object(main, "find_page_attachment", side_effect=ConnectionError("reset")), \
          patch.object(main, "download_file", side_effect=ConnectionError("reset")):
         assert main._with_attachment_text("본문", "api-url", "hwp", "https://x") == "본문"
+
+
+def test_run_fails_when_sources_collect_nothing(tmp_path, monkeypatch):
+    """14일 조회에서 0건이면 수집원 고장이다. CI가 초록불로 넘어가지 않게 실패로 끝낸다."""
+    import pytest
+
+    class Empty:
+        SOURCE = "empty"
+
+        def fetch(self):
+            return []
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(main, "CRAWLERS", [Empty()])
+    monkeypatch.setattr(main, "load_seen", lambda: set())
+    monkeypatch.setattr(main, "save_seen", lambda seen: None)
+    monkeypatch.setattr(main, "PENDING_FILE", tmp_path / "pending.json")
+    with pytest.raises(SystemExit, match="수집 0건"):
+        main.run("morning")

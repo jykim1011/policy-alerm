@@ -2,6 +2,7 @@ import io
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import zipfile
 import xml.etree.ElementTree as ET
@@ -73,7 +74,9 @@ def extract_text(file_content: bytes, file_type: str) -> str:
             return _extract_html(file_content.decode("utf-8", errors="ignore"))
         else:
             return ""
-    except Exception:
+    except Exception as e:
+        # 실패를 삼키면 원인이 사라진다(CI에 hwp5txt가 없어 hwp가 몇 달간 조용히 0자였다).
+        print(f"  {file_type} 추출 실패: {type(e).__name__}: {e}", file=sys.stderr)
         return ""
 
 

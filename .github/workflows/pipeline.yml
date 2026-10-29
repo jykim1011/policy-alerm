@@ -29,7 +29,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r pipeline/requirements.txt
+        run: |
+          pip install -r pipeline/requirements.txt
+          # hwp 첨부 추출은 pyhwp의 hwp5txt CLI에 의존한다. 없으면 추출이 조용히 0자가 되므로 여기서 막는다.
+          command -v hwp5txt
 
       - name: Determine batch
         id: batch

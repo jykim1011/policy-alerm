@@ -97,6 +97,7 @@ def download_file(url: str, attempts: int = 3) -> bytes:
 def run(batch: str) -> None:
     seen = load_seen()
     new_items = []
+    collected = 0
     published_titles = _published_title_keys()
 
     for crawler in CRAWLERS:
@@ -107,6 +108,7 @@ def run(batch: str) -> None:
             print(f"[{crawler.SOURCE}] 크롤링 실패: {e}", file=sys.stderr)
             continue
 
+        collected += len(raw_policies)
         new_in_source = [r for r in raw_policies if is_new_policy(r.url_hash, seen)]
         print(f"[{crawler.SOURCE}] 수집 {len(raw_policies)}건 → seen 필터 후 {len(new_in_source)}건 신규")
 
@@ -158,6 +160,11 @@ def run(batch: str) -> None:
 
     # 알림은 여기서 보내지 않는다. docs/가 CDN에 반영된 뒤 별도 단계(notify)에서 보낸다.
     _write_pending(new_items)
+
+    # 조회 기간(14일) 전체에서 0건이면 "오늘 소식 없음"이 아니라 수집원이 고장 난 것이다.
+    # 2026-09 API 폐지 때 CI가 초록불인 채로 8일간 알림이 끊겼다. 실패로 끝내 GitHub이 메일로 알리게 한다.
+    if collected == 0:
+        raise SystemExit("수집 0건: 정책 API 응답·키·엔드포인트를 확인하세요")
 
     print(f"완료: {len(new_items)}건 처리됨 (알림은 push 후 notify 단계에서 발송)")
 
