@@ -41,4 +41,29 @@ class HomeDashboardTest {
         )
         assertEquals(listOf("b"), state.policies.map { it.id })
     }
+
+    @Test
+    fun `안 읽은 정책 수는 구독 분야만 센다`() {
+        val state = HomeUiState(
+            allPolicies = listOf(
+                item("a", "청약", "2026-10-08"),
+                PolicyItem("b", "고용", "고용", "t", "부처", "2026-10-08T09:00:00+09:00", ""),
+            ),
+            interests = setOf("부동산"),
+        )
+        val d = state.dashboard(today)
+        assertEquals(1, d.unreadCount)
+        assertEquals(true, d.unreadInInterestsOnly)
+    }
+
+    @Test
+    fun `구독이 없으면 안 읽은 정책을 전부 센다`() {
+        val state = HomeUiState(
+            allPolicies = listOf(
+                item("a", "청약", "2026-10-08"),
+                PolicyItem("b", "고용", "고용", "t", "부처", "2026-10-08T09:00:00+09:00", ""),
+            ),
+        )
+        assertEquals(2, state.dashboard(today).unreadCount)
+    }
 }

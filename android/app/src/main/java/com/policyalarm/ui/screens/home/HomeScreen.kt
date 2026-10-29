@@ -360,7 +360,11 @@ private fun DashboardCard(
                     Spacer(Modifier.width(6.dp))
                 }
                 Text(
-                    if (unreadOnly) "안 읽은 정책만 보는 중" else "안 읽은 정책 ${dash.unreadCount}건만 보기",
+                    when {
+                        unreadOnly -> "안 읽은 정책만 보는 중"
+                        dash.unreadInInterestsOnly -> "관심 분야 안 읽은 정책 ${dash.unreadCount}건 보기"
+                        else -> "안 읽은 정책 ${dash.unreadCount}건만 보기"
+                    },
                     color = if (unreadOnly) Color.White else c.accent,
                     fontSize = 14.5.sp,
                     fontWeight = FontWeight.SemiBold,

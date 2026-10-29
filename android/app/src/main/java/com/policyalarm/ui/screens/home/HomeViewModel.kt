@@ -31,6 +31,10 @@ data class HomeUiState(
     /** 대시보드의 "안 읽은 것만 보기" 토글. */
     val unreadOnly: Boolean = false,
 ) {
+    /** 구독 분야의 정책인지. 구독이 없으면 모든 정책을 관심 대상으로 본다. */
+    private fun isInterest(p: PolicyItem): Boolean =
+        interests.isEmpty() || p.category in interests || p.subcategory in interests
+
     /** 홈 상단 대시보드 수치. 날짜는 테스트에서 고정할 수 있게 인자로 받는다. */
     fun dashboard(today: LocalDate = LocalDate.now()): HomeDashboard {
         val week = allPolicies.filter { daysAgo(it.publishedAt, today) in 0..6 }
@@ -38,7 +42,9 @@ data class HomeUiState(
             todayCount = allPolicies.count { daysAgo(it.publishedAt, today) == 0L },
             weekCount = week.size,
             weekReadCount = week.count { it.id in readIds },
-            unreadCount = allPolicies.count { it.id !in readIds },
+            // 구독하지 않은 분야까지 세면 알림을 다 읽어도 숫자가 남는다(푸시는 구독 분야만 온다).
+            unreadCount = allPolicies.count { it.id !in readIds && isInterest(it) },
+            unreadInInterestsOnly = interests.isNotEmpty(),
             weekByCategory = week.groupingBy { it.subcategory }.eachCount()
                 .entries.sortedByDescending { it.value }
                 .map { it.key to it.value },
@@ -59,7 +65,7 @@ data class HomeUiState(
             val byCategory = when (selectedCategory) {
                 "전체" -> allPolicies
                 "부동산" -> allPolicies.filter { it.category == "부동산" }
-                INTEREST_FILTER -> allPolicies.filter { it.category in interests || it.subcategory in interests }
+                INTEREST_FILTER -> allPolicies.filter(::isInterest)
                 else -> allPolicies.filter { it.subcategory == selectedCategory }
             }
             val bySource = if (selectedSource == "전체") byCategory
@@ -72,7 +78,10 @@ data class HomeDashboard(
     val todayCount: Int,
     val weekCount: Int,
     val weekReadCount: Int,
+    /** 구독 분야의 안 읽은 정책 수(구독이 없으면 전체). */
     val unreadCount: Int,
+    /** [unreadCount]가 구독 분야로 한정된 값인지. 버튼 문구에 쓴다. */
+    val unreadInInterestsOnly: Boolean = false,
     /** 최근 7일 세부 카테고리별 건수(많은 순). */
     val weekByCategory: List<Pair<String, Int>>,
 )
@@ -143,7 +152,13 @@ class HomeViewModel(
     }
 
     fun toggleUnreadOnly() {
-        _uiState.update { it.copy(unreadOnly = !it.unreadOnly) }
+        _uiState.update {
+            val on = !it.unreadOnly
+            // 버튼의 건수는 구독 분야 기준이므로, "전체"에서 켜면 "관심"으로 옮겨 목록과 건수를 맞춘다.
+            val category = if (on && it.interests.isNotEmpty() && it.selectedCategory == "전체") INTEREST_FILTER
+            else it.selectedCategory
+            it.copy(unreadOnly = on, selectedCategory = category)
+        }
     }
 
     fun selectSource(source: String) {
