@@ -1,0 +1,43 @@
+name: Backfill thin summaries
+
+# 원문 없이 제목만으로 생성된 요약을 첨부 원문으로 다시 만든다(pipeline/backfill_thin.py).
+# 일회성 작업이라 수동 실행만 허용한다. 재실행해도 이미 고친 건은 건너뛴다.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 정기 파이프라인과 같은 파일(docs/)을 고치므로 동시에 돌지 않게 한다.
+concurrency:
+  group: policy-pipeline
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Re-summarize thin policies
+        run: python -m pipeline.backfill_thin
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Commit and push
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add docs/
+          git diff --staged --quiet && exit 0
+          git commit -m "chore: re-summarize thin policies from attachments"
+          git pull --rebase
+          git push
