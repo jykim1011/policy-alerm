@@ -39,20 +39,32 @@ def _needs_attachment(text: str) -> bool:
 def _with_attachment_text(text: str, file_url, file_type, page_url: str) -> str:
     """본문이 스텁이면 첨부 원문으로 바꾼다. 실패하거나 더 짧으면 본문을 그대로 둔다.
 
-    OpenAPI가 첨부 정보를 비워 보내면 상세 페이지에서 첨부를 찾는다.
+    OpenAPI가 첨부 정보를 비워 보내거나 그 첨부에서 원문을 못 얻으면 상세 페이지의
+    첨부(hwpx·pdf 우선)로 다시 시도한다. CI에서는 API가 주는 hwp 추출이 조용히 0자를
+    돌려주는 경우가 많았다(같은 글의 페이지에는 pdf·hwpx가 함께 올라와 있다).
     """
-    try:
-        if not (file_url and file_type):
+    best = text
+
+    def _try(url, ftype) -> None:
+        nonlocal best
+        try:
+            extracted = extract_text(download_file(url), ftype)
+            if len(extracted.strip()) > len(best.strip()):
+                best = extracted
+        except Exception as e:
+            print(f"  파일 추출 실패({ftype}), 본문 폴백: {e}", file=sys.stderr)
+
+    if file_url and file_type:
+        _try(file_url, file_type)
+    if len(best.strip()) < MIN_BODY_CHARS:
+        try:
             found = find_page_attachment(page_url)
-            if found is None:
-                return text
-            file_url, file_type = found
-        extracted = extract_text(download_file(file_url), file_type)
-        if len(extracted.strip()) > len(text.strip()):
-            return extracted
-    except Exception as e:
-        print(f"  파일 추출 실패, HTML 폴백: {e}", file=sys.stderr)
-    return text
+        except Exception as e:
+            print(f"  상세 페이지 첨부 조회 실패: {e}", file=sys.stderr)
+            found = None
+        if found and found[0] != file_url:
+            _try(*found)
+    return best
 
 
 def _title_key(title: str) -> str:
@@ -69,10 +81,17 @@ def _published_title_keys(docs_root: str = "docs") -> set[str]:
     return {_title_key(i.get("title", "")) for i in items}
 
 
-def download_file(url: str) -> bytes:
-    resp = requests.get(url, headers=HEADERS, timeout=30, stream=True)
-    resp.raise_for_status()
-    return resp.content
+def download_file(url: str, attempts: int = 3) -> bytes:
+    # korea.kr은 GitHub Actions IP의 연결을 간헐적으로 끊는다(RemoteDisconnected). 잠시 쉬고 다시 시도한다.
+    for i in range(attempts):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=30, stream=True)
+            resp.raise_for_status()
+            return resp.content
+        except requests.ConnectionError:
+            if i == attempts - 1:
+                raise
+            time.sleep(3 * (i + 1))
 
 
 def run(batch: str) -> None:

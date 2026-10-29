@@ -39,3 +39,21 @@ def test_stub_body_without_api_file_uses_page_attachment():
 def test_title_key_matches_joint_press_releases():
     assert main._title_key("부동산정책, 국민의 목소리를 듣습니다.") == \
         main._title_key("부동산정책, 국민의 목소리를 듣습니다")
+
+
+def test_falls_back_to_page_attachment_when_api_file_yields_nothing():
+    """CI에서 API 첨부(hwp) 추출이 0자를 돌려주면 페이지의 hwpx·pdf로 다시 시도한다."""
+    def fake_extract(_bytes, ftype):
+        return "" if ftype == "hwp" else "페이지 첨부 원문 " * 100
+
+    with patch.object(main, "find_page_attachment", return_value=("page-url", "pdf")), \
+         patch.object(main, "download_file", return_value=b"x"), \
+         patch.object(main, "extract_text", side_effect=fake_extract):
+        text = main._with_attachment_text("짧은 본문", "api-url", "hwp", "https://www.korea.kr/x")
+    assert text.startswith("페이지 첨부 원문")
+
+
+def test_keeps_body_when_all_attachments_fail():
+    with patch.object(main, "find_page_attachment", side_effect=ConnectionError("reset")), \
+         patch.object(main, "download_file", side_effect=ConnectionError("reset")):
+        assert main._with_attachment_text("본문", "api-url", "hwp", "https://x") == "본문"
