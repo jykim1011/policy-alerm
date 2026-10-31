@@ -2,13 +2,16 @@ package com.policyalarm.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.policyalarm.data.local.AppDatabase
 import com.policyalarm.data.remote.PolicyApiService
 import com.policyalarm.data.remote.RetrofitClient
 import com.policyalarm.data.repository.UserRepository
 import com.policyalarm.data.repository.resolveBookmarks
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class SettingsUiState(
     val subscribedCategories: Set<String> = emptySet(),
@@ -18,6 +21,8 @@ data class SettingsUiState(
     val nickname: String = "",
     val bookmarkCount: Int = 0,
     val isLoading: Boolean = true,
+    val isDeletingAccount: Boolean = false,
+    val deleteAccountError: String? = null,
 )
 
 class SettingsViewModel(
@@ -97,4 +102,31 @@ class SettingsViewModel(
     }
 
     fun logout() = userRepo.logout()
+
+    /**
+     * 회원 탈퇴: 서버 데이터·계정 삭제 후 이 기기의 읽음/알림 기록(Room)까지 비운다.
+     * 성공하면 onDeleted(로그인 화면으로 이동), 실패하면 에러 메시지를 상태에 올린다.
+     */
+    fun deleteAccount(localDb: AppDatabase, onDeleted: () -> Unit) {
+        if (_uiState.value.isDeletingAccount) return
+        _uiState.value = _uiState.value.copy(isDeletingAccount = true, deleteAccountError = null)
+        viewModelScope.launch {
+            runCatching { userRepo.deleteAccount() }
+                .onSuccess {
+                    withContext(Dispatchers.IO) { runCatching { localDb.clearAllTables() } }
+                    _uiState.value = _uiState.value.copy(isDeletingAccount = false)
+                    onDeleted()
+                }
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(
+                        isDeletingAccount = false,
+                        deleteAccountError = "탈퇴 처리에 실패했어요. 네트워크 상태를 확인하고 다시 시도해 주세요.",
+                    )
+                }
+        }
+    }
+
+    fun clearDeleteAccountError() {
+        _uiState.value = _uiState.value.copy(deleteAccountError = null)
+    }
 }

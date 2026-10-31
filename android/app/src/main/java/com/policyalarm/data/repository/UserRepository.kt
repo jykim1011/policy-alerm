@@ -3,6 +3,8 @@ package com.policyalarm.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
 
 class UserRepository(
@@ -96,4 +98,15 @@ class UserRepository(
     fun email(): String? = auth.currentUser?.email
 
     fun logout() = auth.signOut()
+
+    /**
+     * 회원 탈퇴. Cloud Function `deleteAccount`가 댓글 익명화 + users/{uid} 전체 삭제 +
+     * Auth 계정 삭제를 서버에서 한 번에 처리한다(클라이언트 삭제는 재인증이 필요해서).
+     * 성공하면 로컬 로그인 상태도 정리한다.
+     */
+    suspend fun deleteAccount() {
+        FirebaseFunctions.getInstance().getHttpsCallable("deleteAccount").call().await()
+        runCatching { FirebaseMessaging.getInstance().deleteToken().await() }
+        auth.signOut()
+    }
 }

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -59,6 +60,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.policyalarm.BuildConfig
+import com.policyalarm.data.local.AppDatabase
 import com.policyalarm.ui.components.AppSwitch
 import com.policyalarm.ui.components.Emoji
 import com.policyalarm.ui.components.SUBSCRIBABLE_CATEGORIES
@@ -150,6 +152,7 @@ fun SettingsScreen(
             }
 
             var showNicknameDialog by remember { mutableStateOf(false) }
+            var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
             // 닉네임
             SettingsSection("프로필") {
@@ -249,9 +252,59 @@ fun SettingsScreen(
                     Text("앱 버전", color = c.fgDefault, fontSize = 14.5.sp, modifier = Modifier.weight(1f))
                     Text(BuildConfig.VERSION_NAME, color = c.fgSubtle, fontSize = 13.sp)
                 }
-                SettingRow(onClick = { vm.logout(); onLogout() }) {
+                SettingRow(dividerBelow = true, onClick = { vm.logout(); onLogout() }) {
                     Text("로그아웃", color = c.danger, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                 }
+                SettingRow(onClick = { showDeleteAccountDialog = true }) {
+                    Text("회원 탈퇴", color = c.fgSubtle, fontSize = 14.5.sp, modifier = Modifier.weight(1f))
+                    Icon(Icons.Filled.ChevronRight, null, tint = c.fgFaint, modifier = Modifier.size(18.dp))
+                }
+            }
+
+            if (showDeleteAccountDialog) {
+                AlertDialog(
+                    onDismissRequest = { if (!state.isDeletingAccount) showDeleteAccountDialog = false },
+                    title = { Text("회원 탈퇴") },
+                    text = {
+                        Column {
+                            Text(
+                                "탈퇴하면 계정과 함께 아래 정보가 즉시 삭제되며 복구할 수 없어요.\n\n" +
+                                    "· 구독 카테고리·알림 설정·닉네임\n" +
+                                    "· 저장한 북마크와 받은 알림 기록\n" +
+                                    "· 작성한 댓글 (\"삭제된 댓글\"로 표시돼요)",
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                            )
+                            state.deleteAccountError?.let {
+                                Spacer(Modifier.height(10.dp))
+                                Text(it, color = c.danger, fontSize = 12.5.sp, lineHeight = 17.sp)
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                vm.deleteAccount(AppDatabase.getInstance(context)) {
+                                    showDeleteAccountDialog = false
+                                    onLogout()
+                                }
+                            },
+                            enabled = !state.isDeletingAccount,
+                        ) {
+                            if (state.isDeletingAccount) {
+                                CircularProgressIndicator(Modifier.size(16.dp), color = c.danger, strokeWidth = 2.dp)
+                            } else {
+                                Text("탈퇴하기", color = c.danger, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteAccountDialog = false; vm.clearDeleteAccountError() },
+                            enabled = !state.isDeletingAccount,
+                        ) { Text("취소") }
+                    },
+                )
             }
 
             Text(

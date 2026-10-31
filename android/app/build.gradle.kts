@@ -22,8 +22,8 @@ android {
         applicationId = "com.policyalarm"
         minSdk = 26
         targetSdk = 36
-        versionCode = 44
-        versionName = "1.6.3"
+        versionCode = 45
+        versionName = "1.6.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "CDN_BASE_URL",
             "\"https://jykim1011.github.io/policy-alerm/\"")
@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.messaging.ktx)
+    implementation(libs.firebase.functions.ktx)
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.play.services.auth)

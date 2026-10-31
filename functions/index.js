@@ -1,8 +1,10 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
+const { getAuth } = require("firebase-admin/auth");
 const { computeUserDigest, formatBreakdown, formatDigestBody } = require("./digest");
 
 initializeApp();
@@ -267,3 +269,43 @@ exports.morningDigest = onSchedule(
     console.log(`[morningDigest] DONE — pushed to ${messages.length}, reset ${resetRefs.length}`);
   }
 );
+
+// 회원 탈퇴 — 앱/웹 설정 화면에서 호출(callable). 호출자 본인 계정만 삭제한다.
+// 클라이언트에서 직접 지우면 (1) 댓글은 rules 상 delete 불가, (2) Auth 계정 삭제는
+// 최근 로그인(재인증)이 필요해 한 번에 끝나지 않으므로 Admin SDK로 서버에서 처리한다.
+// 순서: 댓글 익명화 → users/{uid} 전체(하위 북마크·알림 포함) 삭제 → Auth 계정 삭제.
+// Auth 삭제를 마지막에 두어, 중간에 실패해도 같은 계정으로 다시 호출해 이어서 지울 수 있다.
+exports.deleteAccount = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "로그인이 필요합니다.");
+
+  const db = getFirestore();
+  console.log(`[deleteAccount] START uid=${uid}`);
+
+  // 댓글은 하드 삭제하면 달린 대댓글 스레드가 깨지므로, 내용·작성자 정보를 지우고
+  // 삭제 상태로 남긴다(앱/웹은 deleted 댓글을 "삭제된 댓글"로 표시).
+  // collectionGroup 단일 필드 쿼리 → firestore.indexes.json 의 authorUid fieldOverride 필요.
+  const comments = await db.collectionGroup("items").where("authorUid", "==", uid).get();
+  const writer = db.bulkWriter();
+  comments.forEach((doc) => {
+    writer.update(doc.ref, {
+      authorUid: "",
+      authorNickname: "탈퇴한 사용자",
+      text: "",
+      mentionNickname: null,
+      deleted: true,
+    });
+  });
+  await writer.close();
+
+  await db.recursiveDelete(db.collection("users").doc(uid));
+
+  try {
+    await getAuth().deleteUser(uid);
+  } catch (err) {
+    if (err.code !== "auth/user-not-found") throw err;
+  }
+
+  console.log(`[deleteAccount] DONE uid=${uid} comments=${comments.size}`);
+  return { ok: true };
+});

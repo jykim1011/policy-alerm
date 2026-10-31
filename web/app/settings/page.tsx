@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { LoginGate } from "@/components/LoginGate";
-import { getNickname, updateNickname } from "@/lib/user";
+import { deleteAccount, getNickname, updateNickname } from "@/lib/user";
 
 export default function SettingsPage() {
   return (
@@ -22,7 +23,8 @@ export default function SettingsPage() {
 }
 
 function SettingsForm() {
-  const { user, refreshNickname } = useAuth();
+  const { user, refreshNickname, logout } = useAuth();
+  const router = useRouter();
   const [nick, setNick] = useState("");
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -44,6 +46,29 @@ function SettingsForm() {
       setTimeout(() => setSaved(false), 2000);
     } finally {
       setBusy(false);
+    }
+  }
+
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function withdraw() {
+    if (
+      !window.confirm(
+        "탈퇴하면 계정과 함께 구독·알림 설정, 닉네임, 북마크, 알림 기록이 즉시 삭제되며 복구할 수 없어요.\n" +
+          "작성한 댓글은 \"삭제된 댓글\"로 표시됩니다.\n\n정말 탈퇴하시겠어요?",
+      )
+    )
+      return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+      await logout();
+      router.replace("/");
+    } catch {
+      setDeleteError("탈퇴 처리에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      setDeleting(false);
     }
   }
 
@@ -73,6 +98,17 @@ function SettingsForm() {
         <span className="text-xs font-semibold text-faint">계정</span>
         <span className="truncate text-ink-soft">{user?.email}</span>
       </div>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <p className="text-xs text-muted">계정과 모든 데이터를 삭제합니다.</p>
+        <button
+          onClick={withdraw}
+          disabled={deleting}
+          className="shrink-0 rounded-full border border-rule px-4 py-1.5 text-xs font-semibold text-danger transition hover:border-danger disabled:opacity-50"
+        >
+          {deleting ? "처리 중…" : "회원 탈퇴"}
+        </button>
+      </div>
+      {deleteError && <p className="mt-2 text-xs font-semibold text-danger">{deleteError}</p>}
     </div>
   );
 }
