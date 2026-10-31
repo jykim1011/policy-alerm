@@ -11,7 +11,8 @@ import {
   updateDoc,
   type DocumentData,
 } from "firebase/firestore";
-import { getDb } from "./firebase";
+import { httpsCallable } from "firebase/functions";
+import { getDb, getFirebaseFunctions } from "./firebase";
 import { generateNickname } from "./nickname";
 import type { NotificationItem } from "./types";
 
@@ -97,4 +98,14 @@ export async function markNotificationRead(uid: string, notifId: string) {
 
 export async function deleteNotification(uid: string, notifId: string) {
   await deleteDoc(doc(notifications(uid), notifId));
+}
+
+// ---- 회원 탈퇴 ----
+
+/**
+ * Cloud Function `deleteAccount` 호출 — 댓글 익명화 + users/{uid} 전체 삭제 + Auth 계정 삭제를
+ * 서버에서 한 번에 처리한다(앱 UserRepository.deleteAccount 와 동일). 호출 후 로그아웃은 호출부에서.
+ */
+export async function deleteAccount() {
+  await httpsCallable(getFirebaseFunctions(), "deleteAccount")();
 }
