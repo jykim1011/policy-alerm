@@ -11,16 +11,16 @@ MOCK_RESPONSE_JSON = """{
 
 def test_summarize_policy_returns_policy_summary():
     mock_model = MagicMock()
-    mock_model.generate_content.return_value.text = MOCK_RESPONSE_JSON
+    mock_model.complete.return_value = MOCK_RESPONSE_JSON
     result = summarize_policy("청약 제도 개편", "긴 정책 내용...", model=mock_model)
     assert isinstance(result, PolicySummary)
     assert result.what_changed == "청약 가점 우대 폭 확대"
     assert len(result.key_points) == 2
 
 def test_summarize_policy_handles_markdown_code_fence():
-    """Gemini가 ```json 펜스로 감싸 응답해도 파싱되어야 한다."""
+    """모델이 ```json 펜스로 감싸 응답해도 파싱되어야 한다."""
     mock_model = MagicMock()
-    mock_model.generate_content.return_value.text = "```json\n" + MOCK_RESPONSE_JSON + "\n```"
+    mock_model.complete.return_value = "```json\n" + MOCK_RESPONSE_JSON + "\n```"
     result = summarize_policy("청약 제도 개편", "내용", model=mock_model)
     assert result.what_changed == "청약 가점 우대 폭 확대"
 
@@ -28,7 +28,7 @@ def test_summarize_policy_handles_markdown_code_fence():
 def test_summarize_policy_handles_surrounding_text():
     """JSON 앞뒤에 설명이 붙어도 {...} 블록을 추출해야 한다."""
     mock_model = MagicMock()
-    mock_model.generate_content.return_value.text = (
+    mock_model.complete.return_value = (
         "다음은 분석 결과입니다:\n" + MOCK_RESPONSE_JSON + "\n이상입니다."
     )
     result = summarize_policy("청약 제도 개편", "내용", model=mock_model)
@@ -42,7 +42,7 @@ def test_summarize_policy_flattens_object_when_effective():
     웹 프리렌더("Objects are not valid as a React child")와 Android Gson 파싱이 깨졌다.
     """
     mock_model = MagicMock()
-    mock_model.generate_content.return_value.text = """{
+    mock_model.complete.return_value = """{
       "what_changed": "지속가능성 공시 의무화",
       "who_is_affected": "코스피 상장사",
       "when_effective": {
@@ -63,10 +63,10 @@ def test_summarize_policy_truncates_long_text():
     # 첨부 원문은 붙임 표까지 포함해 길다. 20,000자까지는 살려서
     # 뒷부분 붙임(지역 목록·일정표)이 잘리지 않게 한다.
     mock_model = MagicMock()
-    mock_model.generate_content.return_value.text = MOCK_RESPONSE_JSON
+    mock_model.complete.return_value = MOCK_RESPONSE_JSON
     long_text = "가" * 40000
     summarize_policy("제목", long_text, model=mock_model)
-    prompt = mock_model.generate_content.call_args.args[0]
+    prompt = mock_model.complete.call_args.args[0]
     assert len(prompt) < 25000  # 상한 초과분은 잘림
     assert "가" * 20000 in prompt  # 20,000자까지는 보존
 
@@ -84,7 +84,7 @@ def _model_returning(payload):
         "key_points": ["포인트"],
     }
     base.update(payload)
-    m.generate_content.return_value.text = _json.dumps(base, ensure_ascii=False)
+    m.complete.return_value = _json.dumps(base, ensure_ascii=False)
     return m
 
 
@@ -92,7 +92,7 @@ def test_prompt_includes_published_at():
     """본문의 축약 날짜에 모델이 연도를 지어내지 않도록 발행일을 프롬프트에 넣는다."""
     m = _model_returning({})
     summarize_policy("제목", "본문", model=m, published_at="2026-07-16T18:51:12+09:00")
-    prompt = m.generate_content.call_args[0][0]
+    prompt = m.complete.call_args[0][0]
     assert "2026-07-16" in prompt
     assert "발행일" in prompt
 
@@ -100,7 +100,7 @@ def test_prompt_includes_published_at():
 def test_prompt_published_at_defaults_when_missing():
     m = _model_returning({})
     summarize_policy("제목", "본문", model=m)
-    prompt = m.generate_content.call_args[0][0]
+    prompt = m.complete.call_args[0][0]
     assert "알 수 없음" in prompt
 
 

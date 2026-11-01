@@ -11,13 +11,11 @@ docs/archive/{year}.json 의 각 항목(easy_title). 이미 있는 항목은 건
   - 인자가 없으면 전체, 숫자를 주면 최신순 그 개수만 처리.
 """
 import json
-import os
 import sys
 import time
 from pathlib import Path
 
-import google.generativeai as genai
-
+from pipeline.llm import ClaudeModel
 from pipeline.summarizer import _easy_title, _parse_json
 
 DOCS_ROOT = Path("docs")
@@ -33,10 +31,28 @@ _PROMPT = """당신은 정부 보도자료 제목을 시민 눈높이로 다시 
 - 요약에 없는 혜택이나 수치를 지어내지 마세요.
 - 예) "한성숙 국무총리 주택공급현장 점검" → "3기 신도시 입주, 더 빨라질 수 있어요"
 
-JSON 객체 하나로만 답하세요. 키는 입력의 id, 값은 쉬운 제목입니다.
+입력의 각 id마다 쉬운 제목 하나씩 titles 배열로 답하세요.
 
 입력:
 {items}"""
+
+# 키가 정책 id라 고정 스키마로 표현할 수 없어 [{id, title}] 배열로 받는다.
+_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "titles": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"id": {"type": "string"}, "title": {"type": "string"}},
+                "required": ["id", "title"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["titles"],
+    "additionalProperties": False,
+}
 
 
 def _load(path: Path) -> dict:
@@ -54,9 +70,11 @@ def _generate(model, batch: list[dict]) -> dict[str, str]:
                    ensure_ascii=False)
         for d in batch
     )
-    resp = model.generate_content(_PROMPT.format(items=items), request_options={"timeout": 120})
-    raw = _parse_json(resp.text)
-    return {k: t for k, v in raw.items() if (t := _easy_title(v))}
+    raw = _parse_json(model.complete(_PROMPT.format(items=items), schema=_SCHEMA, timeout=120))
+    return {
+        x["id"]: t for x in raw.get("titles", [])
+        if isinstance(x, dict) and (t := _easy_title(x.get("title")))
+    }
 
 
 def _apply_to_list(path: Path, titles: dict[str, str]) -> None:
@@ -75,8 +93,7 @@ def _apply_to_list(path: Path, titles: dict[str, str]) -> None:
 
 def main() -> None:
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else None
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"].strip())
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    model = ClaudeModel()
 
     files = sorted(
         (f for f in (DOCS_ROOT / "policies").glob("*.json") if f.name != "index.json"),
