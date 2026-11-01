@@ -1,8 +1,7 @@
 import json
-import os
 import re
 from typing import Optional
-import google.generativeai as genai
+from pipeline.llm import ClaudeModel
 from pipeline.models import PolicySummary
 
 _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해하기 쉽게 풀어주는 정책 해설가입니다.
@@ -16,7 +15,11 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
 
 작성 지침:
 - 쉬운 우리말로, 공무원 용어를 풀어서 설명하세요.
-- **문서 본문에 근거가 없는 내용은 절대 지어내지 마세요.** 근거가 없으면 빈 배열([]) 또는 null로 두세요.
+- **모든 문장은 해요체(~해요/~돼요/~예요)로 통일하세요.** "~다", "~습니다"로 끝내지 마세요.
+  (key_points·eligibility처럼 짧은 항목은 명사형으로 끝내도 됩니다.)
+- **문서 본문에 근거가 없는 내용은 절대 지어내지 마세요.** 근거가 없으면 빈 배열([]) 또는 빈 문자열로 두세요.
+- "본문에 나와 있지 않아요", "본문에 따르면" 같이 문서 자체를 언급하는 말은 쓰지 마세요.
+  모르는 부분은 그 문장을 빼고, 아는 내용만 쓰세요.
 - **날짜는 위 발행일을 기준으로 해석하세요.** 본문에 "7.16.", "'25.3.2." 처럼 연도가 없거나
   축약된 날짜가 나오면 발행일의 연도로 해석하고, 연도를 임의로 추측하지 마세요.
 - who_is_affected는 기대효과나 좋은 점이 아니라 **누가 해당되는지(대상 범위)** 를 쓰세요.
@@ -48,7 +51,7 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
   "key_points": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
   "background": "이 정책이 나온 배경·이유 1-2문장 (본문 근거 없으면 빈 문자열)",
   "eligibility": ["대상에 해당하는지 스스로 확인할 수 있는 조건들 (없으면 빈 배열)"],
-  "how_to_apply": "신청 방법·창구·기간 등 (해당 없으면 null)",
+  "how_to_apply": "신청 방법·창구·기간 등 (해당 없으면 빈 문자열)",
   "faq": [
     {{"question": "예상 질문", "answer": "본문 근거에 기반한 답변"}}
   ],
@@ -56,6 +59,39 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
     {{"term": "전문용어", "definition": "쉬운 풀이"}}
   ]
 }}"""
+
+_QA = lambda a, b: {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {a: {"type": "string"}, b: {"type": "string"}},
+        "required": [a, b],
+        "additionalProperties": False,
+    },
+}
+
+# 구조화 출력 스키마. 형식만 강제하고 값 검증(평탄화·상한·필터)은 아래에서 그대로 한다.
+# how_to_apply는 해당 없으면 빈 문자열로 받아 None으로 바꾼다.
+_SUMMARY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "easy_title": {"type": "string"},
+        "what_changed": {"type": "string"},
+        "who_is_affected": {"type": "string"},
+        "when_effective": {"type": "string"},
+        "key_points": {"type": "array", "items": {"type": "string"}},
+        "background": {"type": "string"},
+        "eligibility": {"type": "array", "items": {"type": "string"}},
+        "how_to_apply": {"type": "string"},
+        "faq": _QA("question", "answer"),
+        "glossary": _QA("term", "definition"),
+    },
+    "required": [
+        "easy_title", "what_changed", "who_is_affected", "when_effective", "key_points",
+        "background", "eligibility", "how_to_apply", "faq", "glossary",
+    ],
+    "additionalProperties": False,
+}
 
 # 용어 풀이 상한. 프롬프트로도 최대 5개를 지시하지만 모델이 초과하는 경우가 있어
 # (관측 최대 43개) 발행 단계에서 한 번 더 자른다.
@@ -85,9 +121,9 @@ def _easy_title(v) -> str:
 
 
 def _parse_json(text: str) -> dict:
-    """Gemini 응답에서 JSON을 견고하게 추출한다.
+    """모델 응답에서 JSON을 견고하게 추출한다.
 
-    모델이 ```json ... ``` 코드펜스로 감싸거나 앞뒤에 설명을 붙이는 경우가 있어
+    구조화 출력을 쓰면 순수 JSON이 오지만, 테스트·다른 모델 대비로 남겨 둔다. 모델이 ```json ... ``` 코드펜스로 감싸거나 앞뒤에 설명을 붙이는 경우가 있어
     그대로 json.loads하면 실패한다. 펜스를 벗기고, 실패 시 첫 번째 {...} 블록을 추출한다.
     """
     cleaned = text.strip()
@@ -111,13 +147,10 @@ def summarize_policy(
     published_at: str = "",
 ) -> PolicySummary:
     if model is None:
-        # 키에 줄바꿈/공백이 섞이면 gRPC 인증 헤더가 깨져("Illegal header value")
-        # 클라이언트가 무한 재시도하므로 반드시 strip 한다.
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"].strip())
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = ClaudeModel()
 
     # 첨부 원문은 붙임 표(지역 목록·일정 등)가 뒤에 붙어 8,000자로는 잘렸다.
-    # gemini-2.5-flash 컨텍스트·비용 여유가 커서 20,000자까지 살린다.
+    # 모델 컨텍스트·비용 여유가 커서 20,000자까지 살린다.
     truncated = text[:20000]
     # 발행일을 넘기지 않으면 본문의 "7.16." 같은 축약 날짜에 모델이 연도를 임의로
     # 채워 넣는다(발행 2026년 문서에 "2020년"이 적히는 사례가 14.5%였다).
@@ -127,10 +160,9 @@ def summarize_policy(
         published_at=(published_at or "알 수 없음")[:10],
     )
 
-    # 2.5-flash는 호출당 지연이 길 수 있어 타임아웃을 둔다. 초과/실패 건은
-    # 호출부(main.py)에서 seen에 넣지 않고 건너뛰어 다음 실행에서 재시도한다.
-    response = model.generate_content(prompt, request_options={"timeout": 60})
-    raw = _parse_json(response.text)
+    # 타임아웃·거절 등 실패 건은 호출부(main.py)에서 seen에 넣지 않고
+    # 건너뛰어 다음 실행에서 재시도한다.
+    raw = _parse_json(model.complete(prompt, schema=_SUMMARY_SCHEMA, timeout=60))
 
     # 보강 필드는 모델이 누락하거나 형식이 어긋날 수 있어 견고하게 받는다(없으면 기본값).
     def _flatten_str(v):
