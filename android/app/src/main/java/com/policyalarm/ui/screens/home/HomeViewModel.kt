@@ -161,6 +161,26 @@ class HomeViewModel(
         }
     }
 
+    /**
+     * 불러온 정책 중 안 읽은 것을 모두 읽음 처리한다. 하나씩 열어 보지 않아도 배지·건수를 비울 수 있게.
+     * 실행 취소에 쓰도록 이번에 새로 읽음 처리한 id만 [onDone]으로 돌려준다(이미 읽은 건 건드리지 않는다).
+     */
+    fun markAllRead(onDone: (List<String>) -> Unit = {}) {
+        val s = _uiState.value
+        val ids = s.allPolicies.map { it.id }.filter { it !in s.readIds }.distinct()
+        if (ids.isEmpty()) return
+        // "안 읽은 것만 보기" 중이면 목록이 통째로 비므로 필터를 풀어 전체 목록으로 돌아간다.
+        _uiState.update { it.copy(unreadOnly = false) }
+        viewModelScope.launch {
+            repo.markAllAsRead(ids)
+            onDone(ids)
+        }
+    }
+
+    fun undoMarkAllRead(ids: List<String>) {
+        viewModelScope.launch { repo.unmarkRead(ids) }
+    }
+
     fun selectSource(source: String) {
         _uiState.update { it.copy(selectedSource = source) }
     }

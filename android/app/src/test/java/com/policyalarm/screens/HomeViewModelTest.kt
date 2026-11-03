@@ -7,6 +7,9 @@ import com.policyalarm.data.repository.UserRepository
 import com.policyalarm.ui.components.INTEREST_FILTER
 import com.policyalarm.ui.screens.home.HomeViewModel
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.Runs
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -115,5 +118,30 @@ class HomeViewModelTest {
         vm.loadInterests()
 
         assertEquals("전체", vm.uiState.value.selectedCategory)
+    }
+
+    @Test
+    fun `모두 읽음은 안 읽은 정책만 읽음 처리하고 안 읽은 것만 보기를 끈다`() = runTest {
+        val items = listOf(
+            PolicyItem("id-1", "고용", "고용", "a", "고용노동부", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-2", "고용", "고용", "b", "고용노동부", "2026-06-01T09:00:00+09:00", ""),
+            PolicyItem("id-3", "고용", "고용", "c", "고용노동부", "2026-06-01T09:00:00+09:00", ""),
+        )
+        coEvery { mockRepo.observeReadIds() } returns flowOf(listOf("id-2"))
+        coEvery { mockRepo.getPolicyIndex() } returns PolicyIndex("2026-06-01", 3, items)
+        coEvery { mockRepo.markAllAsRead(any()) } just Runs
+        coEvery { mockRepo.unmarkRead(any()) } just Runs
+
+        val vm = HomeViewModel(mockRepo, mockUserRepo)
+        vm.toggleUnreadOnly()
+        var marked: List<String> = emptyList()
+        vm.markAllRead { marked = it }
+
+        assertEquals(listOf("id-1", "id-3"), marked)
+        assertEquals(false, vm.uiState.value.unreadOnly)
+        coVerify { mockRepo.markAllAsRead(listOf("id-1", "id-3")) }
+
+        vm.undoMarkAllRead(marked)
+        coVerify { mockRepo.unmarkRead(listOf("id-1", "id-3")) }
     }
 }

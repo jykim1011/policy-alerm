@@ -14,6 +14,10 @@ interface ReadPolicyDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun markAllAsRead(entities: List<ReadPolicyEntity>)
 
+    /** "모두 읽음" 실행 취소용 — 방금 읽음 처리한 것만 되돌린다. */
+    @Query("DELETE FROM read_policies WHERE policyId IN (:policyIds)")
+    suspend fun unmarkRead(policyIds: List<String>)
+
     @Query("SELECT policyId FROM read_policies")
     fun observeReadIds(): Flow<List<String>>
 
