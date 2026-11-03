@@ -29,17 +29,23 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,9 +71,9 @@ import com.policyalarm.ui.components.InlineAd
 import com.policyalarm.ui.components.PolicyAppIcon
 import com.policyalarm.ui.components.categoryColor
 import com.policyalarm.ui.theme.LocalAppColors
-import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -82,6 +88,23 @@ fun HomeScreen(
     // 북마크 모드에서 시스템 뒤로가기를 누르면 앱을 종료하지 않고 일반 홈으로 돌아간다.
     BackHandler(enabled = state.showBookmarks) { vm.exitBookmarksMode() }
 
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val onMarkAllRead: () -> Unit = {
+        vm.markAllRead { ids ->
+            scope.launch {
+                snackbar.currentSnackbarData?.dismiss()
+                val r = snackbar.showSnackbar(
+                    message = "${ids.size}건을 모두 읽음 처리했어요",
+                    actionLabel = "실행 취소",
+                    duration = SnackbarDuration.Short,
+                )
+                if (r == SnackbarResult.ActionPerformed) vm.undoMarkAllRead(ids)
+            }
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -163,6 +186,7 @@ fun HomeScreen(
                             dash = dash,
                             unreadOnly = state.unreadOnly,
                             onToggleUnread = vm::toggleUnreadOnly,
+                            onMarkAllRead = onMarkAllRead,
                         )
                     }
                     if (dash.weekByCategory.isNotEmpty()) {
@@ -246,6 +270,13 @@ fun HomeScreen(
             }
         }
     }
+    SnackbarHost(
+        hostState = snackbar,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    )
+    }
 }
 
 /** 피드에서 이만큼의 정책을 보여준 뒤(섹션 경계에서) 인라인 광고를 한 번 넣는다. */
@@ -278,6 +309,7 @@ private fun DashboardCard(
     dash: HomeDashboard,
     unreadOnly: Boolean,
     onToggleUnread: () -> Unit,
+    onMarkAllRead: () -> Unit,
 ) {
     val c = LocalAppColors.current
     Column(
@@ -345,9 +377,10 @@ private fun DashboardCard(
 
         if (dash.unreadCount > 0 || unreadOnly) {
             Spacer(Modifier.height(14.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
                     .height(40.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(if (unreadOnly) c.accent else c.govTint)
@@ -362,13 +395,33 @@ private fun DashboardCard(
                 Text(
                     when {
                         unreadOnly -> "안 읽은 정책만 보는 중"
-                        dash.unreadInInterestsOnly -> "관심 분야 안 읽은 정책 ${dash.unreadCount}건 보기"
+                        dash.unreadInInterestsOnly -> "관심 분야 안 읽음 ${dash.unreadCount}건 보기"
                         else -> "안 읽은 정책 ${dash.unreadCount}건만 보기"
                     },
                     color = if (unreadOnly) Color.White else c.accent,
                     fontSize = 14.5.sp,
                     fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
+            }
+            // 하나씩 열어 보지 않아도 안 읽은 표시를 한 번에 비운다(스낵바로 실행 취소 가능).
+            if (dash.unreadCount > 0) {
+                Spacer(Modifier.width(8.dp))
+                Row(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(c.bgMuted)
+                        .clickable(onClick = onMarkAllRead)
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Filled.DoneAll, null, tint = c.fgMuted, modifier = Modifier.size(17.dp))
+                    Spacer(Modifier.width(5.dp))
+                    Text("모두 읽음", color = c.fgDefault, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
             }
         }
     }
@@ -555,15 +608,12 @@ private fun dateGroups(policies: List<PolicyItem>): List<Pair<String, List<Polic
     return out
 }
 
-/** 발행 3일 이내이고 아직 읽지 않은 정책에만 NEW 뱃지를 표시한다. */
-private fun isNewPolicy(publishedAt: String, isRead: Boolean): Boolean {
-    if (isRead) return false
-    return runCatching {
-        val published = OffsetDateTime.parse(publishedAt).toInstant()
-        val cutoff = Instant.now().minusSeconds(3L * 24 * 3600)
-        published.isAfter(cutoff)
-    }.getOrDefault(false)
-}
+/**
+ * 오늘 발행됐고 아직 읽지 않은 정책에만 NEW 뱃지를 표시한다.
+ * (3일 기준이면 안 읽은 행 대부분에 붙어 화면이 붐비고 "새것"의 의미가 흐려진다.)
+ */
+private fun isNewPolicy(publishedAt: String, isRead: Boolean): Boolean =
+    !isRead && daysAgo(publishedAt, LocalDate.now()) == 0L
 
 /**
  * 정책 한 줄 — 왼쪽 분야 배지, 오른쪽에 쉬운 제목·한 줄 요약·부처.
@@ -585,7 +635,8 @@ fun PolicyRow(
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
-        CategoryBadge(policy.subcategory, size = 40)
+        // 읽은 정책은 배지·제목·요약을 함께 흐리게 해, 남은 것만 한눈에 들어오게 한다.
+        Box(Modifier.alpha(if (isRead) 0.45f else 1f)) { CategoryBadge(policy.subcategory, size = 40) }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -617,6 +668,7 @@ fun PolicyRow(
                     lineHeight = 19.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.alpha(if (isRead) 0.6f else 1f),
                 )
             }
             Spacer(Modifier.height(6.dp))

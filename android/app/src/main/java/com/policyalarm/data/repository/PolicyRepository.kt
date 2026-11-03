@@ -33,4 +33,9 @@ class PolicyRepository(
         if (policyIds.isEmpty()) return
         readPolicyDao.markAllAsRead(policyIds.map { ReadPolicyEntity(it) })
     }
+
+    suspend fun unmarkRead(policyIds: List<String>) {
+        if (policyIds.isEmpty()) return
+        readPolicyDao.unmarkRead(policyIds)
+    }
 }
