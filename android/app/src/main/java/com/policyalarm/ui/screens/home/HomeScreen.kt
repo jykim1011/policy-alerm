@@ -312,6 +312,42 @@ private fun DashboardCard(
     onMarkAllRead: () -> Unit,
 ) {
     val c = LocalAppColors.current
+    // 다 읽었으면 큰 숫자·진행률·버튼은 할 일이 없으니 한 줄 완료 표시로 접어 목록을 위로 올린다.
+    if (dash.unreadCount == 0 && !unreadOnly) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(c.bgSurface)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(c.govTint),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.DoneAll, null, tint = c.accent, modifier = Modifier.size(15.dp))
+            }
+            Spacer(Modifier.width(10.dp))
+            Text(
+                if (dash.unreadInInterestsOnly) "관심 분야 정책을 모두 읽었어요" else "새 정책을 모두 읽었어요",
+                color = c.fgDefault,
+                fontSize = 14.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (dash.weekCount > 0) {
+                Text("이번 주 ${dash.weekCount}건", color = c.fgSubtle, fontSize = 13.sp)
+            }
+        }
+        return
+    }
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 4.dp)
