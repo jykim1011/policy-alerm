@@ -21,7 +21,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import android.os.Bundle
+import android.util.Log
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.policyalarm.BuildConfig
@@ -75,6 +80,28 @@ fun AdBanner(
             AdView(context).apply {
                 setAdSize(size)
                 adUnitId = BANNER_AD_UNIT_ID
+                // 실패 기록: 로드가 안 되면 원인 코드를 Firebase Analytics(ad_load_fail)로 남긴다.
+                // 0 내부 오류 · 1 잘못된 요청 · 2 네트워크 · 3 채울 광고 없음
+                adListener = object : AdListener() {
+                    private var fails = 0
+                    override fun onAdLoaded() {
+                        fails = 0
+                    }
+
+                    override fun onAdFailedToLoad(error: LoadAdError) {
+                        fails++
+                        Log.w("AdBanner", "banner load failed #$fails: ${error.code} ${error.message}")
+                        if (fails > 3) return // 새로고침마다 보내지 않게
+                        runCatching {
+                            FirebaseAnalytics.getInstance(context).logEvent("ad_load_fail", Bundle().apply {
+                                putString("ad_format", if (size == AdSize.MEDIUM_RECTANGLE) "inline" else "banner")
+                                putLong("code", error.code.toLong())
+                                putString("reason", error.message.take(100))
+                                putLong("attempt", fails.toLong())
+                            })
+                        }
+                    }
+                }
                 layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT,
