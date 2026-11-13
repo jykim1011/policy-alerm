@@ -62,6 +62,12 @@ class UserRepository(
             .update("subscribed_categories", categories).await()
     }
 
+    /** 관심 업종. Cloud Function이 정책의 관련 업종과 맞춰 "관심 업종 관련 정책" 푸시를 보낸다. */
+    suspend fun updateSubscribedSectors(sectors: List<String>) {
+        db.collection("users").document(uid)
+            .set(mapOf("subscribed_sectors" to sectors), SetOptions.merge()).await()
+    }
+
     suspend fun updateNotificationSchedule(schedule: String) {
         db.collection("users").document(uid)
             .update("notification_schedule", schedule).await()

@@ -38,6 +38,8 @@ data class PolicyDetail(
     @SerializedName("published_at") val publishedAt: String,
     @SerializedName("crawled_at") val crawledAt: String,
     val summary: PolicySummary?,
+    /** 관련 업종·시장 영향. 기업 실적과 관계없는 정책은 null. */
+    val market: PolicyMarket? = null,
 ) {
     val displayTitle: String
         get() = summary?.easyTitle?.takeIf { it.isNotBlank() } ?: cleanTitle(title)

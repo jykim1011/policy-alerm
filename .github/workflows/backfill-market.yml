@@ -1,0 +1,52 @@
+name: Backfill market tags
+
+# 기존 정책에 관련 업종(market)을 소급 판정한다(pipeline/backfill_market.py).
+# 반응 통계의 과거 표본을 만드는 일회성 작업이라 수동 실행만 허용한다. 재실행해도 판정한 건은 건너뛴다.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: '최신순 처리 개수 (비우면 전체)'
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: policy-pipeline
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Tag past policies
+        run: python -m pipeline.backfill_market ${{ github.event.inputs.limit }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Update market stats
+        run: python -m pipeline.market_stats
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+
+      - name: Commit and push
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add docs/
+          git diff --staged --quiet && exit 0
+          git commit -m "chore: backfill market tags for past policies [skip ci]"
+          git pull --rebase
+          git push

@@ -30,6 +30,8 @@ class PolicySummary:
     faq: list[dict] = field(default_factory=list)          # [{"question","answer"}]
     glossary: list[dict] = field(default_factory=list)     # [{"term","definition"}]
     easy_title: str = ""                      # 시민 눈높이로 다시 쓴 제목 (없으면 원제목 사용)
+    # 시장 영향(업종 key·방향·근거). 기업 실적과 관계없는 정책은 빈 dict. pipeline/market.py 참고.
+    market: dict = field(default_factory=dict)
 
 @dataclass
 class PolicyItem:

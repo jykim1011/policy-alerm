@@ -165,6 +165,10 @@ fun DetailScreen(
                             FaqCard(it)
                         }
                     }
+                    detail.market?.takeIf { !it.sectors.isNullOrEmpty() }?.let {
+                        Spacer(Modifier.height(12.dp))
+                        MarketImpactCard(it, state.marketContext)
+                    }
 
                     Spacer(Modifier.height(16.dp))
                     // AI disclaimer

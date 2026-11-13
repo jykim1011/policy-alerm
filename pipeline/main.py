@@ -14,7 +14,8 @@ from pipeline.extractor import extract_text
 from pipeline.summarizer import summarize_policy
 from pipeline.publisher import build_policy_id, publish_policy, update_index
 from pipeline.notifier import notify_new_batch
-from pipeline.models import PolicyItem
+from pipeline.models import PolicyItem, PolicySummary
+from pipeline.market import sector_names
 
 KST = timezone(timedelta(hours=9))
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PolicyBot/1.0)"}
@@ -190,6 +191,7 @@ def _write_pending(new_items: list[tuple[PolicyItem, str]]) -> None:
             "category": item.category,
             "subcategory": item.subcategory,
             "title": item.title,
+            "sectors": sector_names(item.summary.market if item.summary else None),
             "batch": b,
         }
         for item, b in new_items
@@ -270,6 +272,7 @@ def notify_pending() -> None:
                 id=p["id"], category=p["category"], subcategory=p["subcategory"],
                 title=p["title"], source="", source_url="",
                 file_url=None, file_type=None, published_at="",
+                summary=_market_only_summary(p.get("sectors")),
             )
             for p in confirmed_raw
         ]
@@ -286,6 +289,16 @@ def notify_pending() -> None:
         PENDING_FILE.write_text(json.dumps(failures, ensure_ascii=False), encoding="utf-8")
         raise SystemExit(f"알림 발송 미완료 {len(failures)}건: {[p['id'] for p in failures]}")
     PENDING_FILE.unlink(missing_ok=True)
+
+
+def _market_only_summary(sectors):
+    """pending 항목의 업종만 실은 요약. notifier가 관심 업종 매칭용 sectors를 꺼내 쓴다."""
+    if not sectors:
+        return None
+    return PolicySummary(
+        what_changed="", who_is_affected="", when_effective="", key_points=[],
+        market={"sectors": [{"sector": s} for s in sectors]},
+    )
 
 
 def _classify_subcategory(title: str, category: str) -> str:

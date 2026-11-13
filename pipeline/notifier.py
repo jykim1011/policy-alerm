@@ -5,6 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 from pipeline.models import PolicyItem
+from pipeline.market import sector_names
 
 
 def _load_service_account(raw: str) -> dict:
@@ -47,6 +48,8 @@ def notify_new_batch(items, batch: str, run_id: str, db=None) -> None:
                 "category": item.category,
                 "subcategory": item.subcategory,
                 "title": item.title,
+                # 관심 업종 알림 매칭용(functions/index.js). 업종이 없으면 빈 배열.
+                "sectors": sector_names(item.summary.market if item.summary else None),
             }
             for item in items
         ],

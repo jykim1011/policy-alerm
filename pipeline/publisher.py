@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from pipeline.models import PolicyItem, PolicySummary
+from pipeline.market import build_market_block, sector_names
 
 DOCS_ROOT = "docs"
 KST = timezone(timedelta(hours=9))
@@ -30,6 +31,18 @@ def _summary_dict(s: PolicySummary) -> dict:
     if getattr(s, "glossary", None):
         d["glossary"] = s.glossary
     return d
+
+
+def _market_of(item: PolicyItem) -> dict:
+    if not item.summary:
+        return {}
+    return getattr(item.summary, "market", None) or {}
+
+
+def _sectors_field(item: PolicyItem) -> dict:
+    """목록 항목에 관련 업종 key를 싣는다(관심 업종 필터·배지용). 없으면 키를 넣지 않는다."""
+    names = sector_names(_market_of(item))
+    return {"sectors": names} if names else {}
 
 
 def _easy_title_field(item: PolicyItem) -> dict:
@@ -62,6 +75,10 @@ def publish_policy(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "crawled_at": item.crawled_at,
         "summary": _summary_dict(item.summary) if item.summary else None,
     }
+    # 시장 영향은 시민용 요약과 성격이 달라 최상위에 따로 둔다(없으면 키 자체를 생략).
+    market = build_market_block(_market_of(item))
+    if market:
+        data["market"] = market
 
     out_path = policies_dir / f"{item.id}.json"
     out_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -86,6 +103,7 @@ def update_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "published_at": item.published_at,
         "summary_preview": (item.summary.what_changed[:100] + "...") if item.summary else "",
         **_easy_title_field(item),
+        **_sectors_field(item),
     }
 
     all_items = [entry] + [i for i in index["items"] if i["id"] != item.id]
@@ -117,6 +135,7 @@ def _update_archive_index(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
         "published_at": item.published_at,
         "summary_preview": (item.summary.what_changed[:100] + "...") if item.summary else "",
         **_easy_title_field(item),
+        **_sectors_field(item),
     }
     items = [entry] + [i for i in data["items"] if i["id"] != item.id]
     items.sort(key=lambda x: x["published_at"], reverse=True)

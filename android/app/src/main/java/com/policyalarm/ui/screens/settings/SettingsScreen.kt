@@ -212,6 +212,17 @@ fun SettingsScreen(
                 }
             }
 
+            // 관심 업종 — 선택한 업종과 관련된 정책이 나오면 분야 구독과 별도로 알린다.
+            if (state.availableSectors.isNotEmpty()) {
+                SettingsSection("관심 업종 알림") {
+                    SectorPicker(
+                        sectors = state.availableSectors,
+                        selected = state.subscribedSectors,
+                        onToggle = vm::toggleSector,
+                    )
+                }
+            }
+
             // 화면
             SettingsSection("화면") {
                 SettingRow(dividerBelow = true) {
@@ -471,4 +482,42 @@ private fun Modifier.dividerBottom(color: Color): Modifier = this.drawBehind {
         end = Offset(size.width, size.height - stroke / 2f),
         strokeWidth = stroke,
     )
+}
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun SectorPicker(
+    sectors: List<com.policyalarm.data.model.SectorInfo>,
+    selected: Set<String>,
+    onToggle: (String) -> Unit,
+) {
+    val c = LocalAppColors.current
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+        Text(
+            "고른 업종과 관련된 정책이 나오면 구독 분야와 상관없이 알려 드려요.",
+            color = c.fgSubtle,
+            fontSize = 12.sp,
+            lineHeight = 17.sp,
+        )
+        Spacer(Modifier.height(10.dp))
+        androidx.compose.foundation.layout.FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            sectors.forEach { s ->
+                val on = s.key in selected
+                Text(
+                    s.key,
+                    color = if (on) Color.White else c.fgDefault,
+                    fontSize = 13.sp,
+                    fontWeight = if (on) FontWeight.Bold else FontWeight.Medium,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(if (on) c.accent else c.bgMuted)
+                        .clickable { onToggle(s.key) }
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
+                )
+            }
+        }
+    }
 }

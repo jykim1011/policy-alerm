@@ -57,3 +57,32 @@ test("formatDigestBody: N>=4 분야 카운트", () => {
   ];
   assert.strictEqual(formatDigestBody(matched, { 부동산: 2, 고용: 1, 복지: 1 }), "부동산 2·고용 1·복지 1");
 });
+
+const S = (id, category, sectors) => ({ id, category, subcategory: category, title: id, sectors });
+
+test("computeUserDigest: 관심 업종으로도 매칭하고 sectorOnly·marketCount 집계", () => {
+  const policies = [
+    S("a", "금융", ["증권"]),       // 분야+업종
+    S("b", "부동산", ["건설"]),     // 업종만
+    S("c", "복지", []),             // 매칭 없음
+    S("d", "금융", []),             // 분야만
+  ];
+  const r = computeUserDigest(["금융"], policies, ["건설", "증권"]);
+  assert.deepStrictEqual(r.matched.map((p) => p.id), ["a", "b", "d"]);
+  assert.deepStrictEqual(r.sectorOnly, { b: ["건설"] });
+  assert.strictEqual(r.marketCount, 2);
+});
+
+test("computeUserDigest: sectors 필드가 없는 기존 배치도 안전", () => {
+  const r = computeUserDigest(["청약"], [P("a", "부동산", "청약", "x")], ["건설"]);
+  assert.strictEqual(r.count, 1);
+  assert.strictEqual(r.marketCount, 0);
+});
+
+test("singleTitle·marketSuffix", () => {
+  const { singleTitle, marketSuffix } = require("../digest");
+  assert.strictEqual(singleTitle({ id: "b", category: "부동산" }, { b: ["건설"] }), "📈 관심 업종(건설) 관련 정책");
+  assert.strictEqual(singleTitle({ id: "a", category: "금융" }, {}), "새 금융 정책");
+  assert.strictEqual(marketSuffix(0), "");
+  assert.strictEqual(marketSuffix(2), " · 📈 시장 관련 2건");
+});

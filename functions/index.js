@@ -5,7 +5,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 const { getAuth } = require("firebase-admin/auth");
-const { computeUserDigest, formatBreakdown, formatDigestBody } = require("./digest");
+const { computeUserDigest, formatBreakdown, formatDigestBody, singleTitle, marketSuffix } = require("./digest");
 
 initializeApp();
 
@@ -52,6 +52,16 @@ exports.onNewPolicyBatch = onDocumentCreated(
         .get();
       snap.forEach((doc) => usersById.set(doc.id, doc));
     }
+    // 관심 업종 구독자(subscribed_sectors)도 같은 방식으로 찾아 합친다.
+    const sectorValues = [...new Set(policies.flatMap((p) => p.sectors || []))];
+    for (let i = 0; i < sectorValues.length; i += 30) {
+      const chunk = sectorValues.slice(i, i + 30);
+      const snap = await db
+        .collection("users")
+        .where("subscribed_sectors", "array-contains-any", chunk)
+        .get();
+      snap.forEach((doc) => usersById.set(doc.id, doc));
+    }
     const userDocs = [...usersById.values()];
     console.log(`[onNewPolicyBatch] matched ${userDocs.length} subscribers`);
 
@@ -60,7 +70,7 @@ exports.onNewPolicyBatch = onDocumentCreated(
       .map((doc) => ({
         doc,
         user: doc.data(),
-        ...computeUserDigest(doc.data().subscribed_categories, policies),
+        ...computeUserDigest(doc.data().subscribed_categories, policies, doc.data().subscribed_sectors),
       }))
       .filter((d) => d.count > 0);
 
@@ -78,6 +88,7 @@ exports.onNewPolicyBatch = onDocumentCreated(
           title: policy.title,
           category: policy.category,
           subcategory: policy.subcategory,
+          sectors: policy.sectors || [],
           received_at: FieldValue.serverTimestamp(),
           read: false,
         });
@@ -95,6 +106,7 @@ exports.onNewPolicyBatch = onDocumentCreated(
         const batch = db.batch();
         digests.slice(i, i + 500).forEach((d) => {
           const update = { overnight_pending: FieldValue.increment(d.count) };
+          if (d.marketCount > 0) update.overnight_market = FieldValue.increment(d.marketCount);
           for (const [cat, n] of Object.entries(d.breakdown)) {
             update[`overnight_breakdown.${cat}`] = FieldValue.increment(n);
           }
@@ -114,7 +126,7 @@ exports.onNewPolicyBatch = onDocumentCreated(
       messageTokens.push(d.user.fcm_token);
       if (d.count === 1) {
         const p = d.matched[0];
-        const title = `새 ${p.category} 정책`;
+        const title = singleTitle(p, d.sectorOnly);
         messages.push({
           token: d.user.fcm_token,
           notification: { title, body: p.title },
@@ -132,7 +144,7 @@ exports.onNewPolicyBatch = onDocumentCreated(
           token: d.user.fcm_token,
           notification: {
             title: `새 정책 ${d.count}건`,
-            body: formatDigestBody(d.matched, d.breakdown),
+            body: formatDigestBody(d.matched, d.breakdown) + marketSuffix(d.marketCount),
           },
           data: { open_tab: "history" },
           android: { priority: "high", notification: { channelId: FCM_CHANNEL_ID } },
@@ -210,7 +222,7 @@ exports.morningDigest = onSchedule(
           token: user.fcm_token,
           notification: {
             title: "정책 알리미",
-            body: `밤사이 새 정책 ${count}건${detail}`,
+            body: `밤사이 새 정책 ${count}건${detail}${marketSuffix(user.overnight_market || 0)}`,
           },
           // 묶음 알림은 특정 정책이 아니므로, 탭하면 앱의 알림 탭으로 연다.
           data: { open_tab: "history" },
@@ -252,6 +264,7 @@ exports.morningDigest = onSchedule(
         batch.update(ref, {
           overnight_pending: FieldValue.delete(),
           overnight_breakdown: FieldValue.delete(),
+          overnight_market: FieldValue.delete(),
         });
       });
       await batch.commit();

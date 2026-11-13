@@ -19,7 +19,7 @@ on:
       - "firebase.json"
       - ".github/workflows/web-deploy.yml"
   workflow_run:
-    workflows: ["Policy Pipeline"]
+    workflows: ["Policy Pipeline", "Market Data"]
     types: [completed]
 
 concurrency:

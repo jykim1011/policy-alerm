@@ -3,6 +3,7 @@ import re
 from typing import Optional
 from pipeline.llm import ClaudeModel
 from pipeline.models import PolicySummary
+from pipeline import market as mkt
 
 _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해하기 쉽게 풀어주는 정책 해설가입니다.
 다음 정책 문서를 분석하여 JSON 형식으로만 응답하세요. 설명 없이 JSON만 출력하세요.
@@ -39,6 +40,7 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
   "[보도자료]", "[참고]" 같은 머리표, 장관·총리 이름, "개최", "점검", "추진" 같은 행정 용어는 빼고,
   본문에 없는 혜택이나 수치를 과장해 지어내지 마세요.
   예) "주택 공급 현장 점검" → "3기 신도시 입주, 더 빨라질 수 있어요"
+{market_guide}
 - faq는 시민이 실제로 궁금해할 질문과 본문 근거에 기반한 답으로 작성하되,
   이미 위 항목에서 답한 내용을 되풀이하지 말고 **새로 알려주는 것만** 담으세요.
 
@@ -57,7 +59,12 @@ _PROMPT_TEMPLATE = """당신은 정부 보도자료를 일반 시민이 이해�
   ],
   "glossary": [
     {{"term": "전문용어", "definition": "쉬운 풀이"}}
-  ]
+  ],
+  "market": {{
+    "sectors": [{{"sector": "업종 목록 중 하나", "direction": "긍정|부정|혼재", "reason": "본문 근거 1문장"}}],
+    "policy_type": "예산·지원|규제 강화|규제 완화|세제|금리·금융|공급 확대|통상·대외|기타",
+    "investor_note": "시장 관점 1문장 (업종 없으면 빈 문자열)"
+  }}
 }}"""
 
 _QA = lambda a, b: {
@@ -85,10 +92,11 @@ _SUMMARY_SCHEMA = {
         "how_to_apply": {"type": "string"},
         "faq": _QA("question", "answer"),
         "glossary": _QA("term", "definition"),
+        "market": mkt.market_schema(),
     },
     "required": [
         "easy_title", "what_changed", "who_is_affected", "when_effective", "key_points",
-        "background", "eligibility", "how_to_apply", "faq", "glossary",
+        "background", "eligibility", "how_to_apply", "faq", "glossary", "market",
     ],
     "additionalProperties": False,
 }
@@ -158,6 +166,7 @@ def summarize_policy(
         title=title,
         text=truncated,
         published_at=(published_at or "알 수 없음")[:10],
+        market_guide=mkt.PROMPT_GUIDE.format(sectors=mkt.prompt_sector_list()),
     )
 
     # 타임아웃·거절 등 실패 건은 호출부(main.py)에서 seen에 넣지 않고
@@ -210,4 +219,5 @@ def summarize_policy(
              if not _BOILERPLATE.search(q["question"])],
         glossary=[g for g in _qa_list(raw.get("glossary"), ("term", "definition"))
                   if not _BOILERPLATE.search(g["term"])][:MAX_GLOSSARY],
+        market=mkt.normalize_market(raw.get("market")),
     )

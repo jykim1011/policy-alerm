@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.policyalarm.data.model.CommentThread
+import com.policyalarm.data.model.MarketContext
 import com.policyalarm.data.model.PolicyDetail
 import com.policyalarm.data.model.PolicyItem
 import com.policyalarm.data.model.groupComments
@@ -28,6 +29,8 @@ data class DetailUiState(
     /** 상세 하단 "함께 볼 만한 정책" — 다 읽은 뒤 이탈하지 않고 다음 정책으로 이어지게 한다. */
     val related: List<PolicyItem> = emptyList(),
     val readIds: Set<String> = emptySet(),
+    /** 시장 카드 부가 데이터(과거 반응 통계·이 정책 반응·공시). 정책에 market이 있을 때만 로드. */
+    val marketContext: MarketContext = MarketContext(),
 )
 
 /**
@@ -80,6 +83,7 @@ class DetailViewModel(
                 )
                 loadComments(policyId)
                 loadRelated(detail)
+                if (!detail.market?.sectors.isNullOrEmpty()) loadMarket(detail)
             } catch (e: Exception) {
                 _uiState.value = DetailUiState(
                     isLoading = false,
@@ -113,6 +117,13 @@ class DetailViewModel(
             }
         }
         throw err
+    }
+
+    private fun loadMarket(detail: PolicyDetail) {
+        viewModelScope.launch {
+            runCatching { policyRepo.getMarketContext(detail) }
+                .onSuccess { _uiState.value = _uiState.value.copy(marketContext = it) }
+        }
     }
 
     private fun loadRelated(detail: PolicyDetail) {

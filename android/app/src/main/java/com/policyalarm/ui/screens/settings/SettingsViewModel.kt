@@ -3,6 +3,7 @@ package com.policyalarm.ui.screens.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.policyalarm.data.local.AppDatabase
+import com.policyalarm.data.model.SectorInfo
 import com.policyalarm.data.remote.PolicyApiService
 import com.policyalarm.data.remote.RetrofitClient
 import com.policyalarm.data.repository.UserRepository
@@ -15,6 +16,10 @@ import kotlinx.coroutines.withContext
 
 data class SettingsUiState(
     val subscribedCategories: Set<String> = emptySet(),
+    /** 관심 업종(알림용). */
+    val subscribedSectors: Set<String> = emptySet(),
+    /** 선택할 수 있는 업종 목록(CDN market/sectors.json). 불러오지 못하면 비어 있고 섹션을 숨긴다. */
+    val availableSectors: List<SectorInfo> = emptyList(),
     val notificationSchedule: String = "both",
     val userName: String = "사용자",
     val userEmail: String = "",
@@ -33,7 +38,27 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState
 
-    init { loadSettings() }
+    init {
+        loadSettings()
+        loadSectors()
+    }
+
+    private fun loadSectors() {
+        viewModelScope.launch {
+            runCatching { policyApi.getSectors().sectors.orEmpty() }
+                .onSuccess { _uiState.value = _uiState.value.copy(availableSectors = it) }
+        }
+    }
+
+    /** 관심 업종을 켜고 끄고 즉시 저장한다(live save). */
+    fun toggleSector(sector: String) {
+        val current = _uiState.value.subscribedSectors
+        val next = if (sector in current) current - sector else current + sector
+        _uiState.value = _uiState.value.copy(subscribedSectors = next)
+        viewModelScope.launch {
+            runCatching { userRepo.updateSubscribedSectors(next.toList()) }
+        }
+    }
 
     private fun loadSettings() {
         viewModelScope.launch {
@@ -42,6 +67,8 @@ class SettingsViewModel(
             var categories = (settings?.get("subscribed_categories") as? List<String>)
                 ?.toSet() ?: emptySet()
             val schedule = settings?.get("notification_schedule") as? String ?: "both"
+            @Suppress("UNCHECKED_CAST")
+            val sectors = (settings?.get("subscribed_sectors") as? List<String>)?.toSet() ?: emptySet()
 
             // 부동산 서브카테고리를 구독 중인데 상위 "부동산"이 없는 기존 유저를 조용히 마이그레이션
             val realEstateSubs = setOf("청약", "대출", "세금", "재개발", "전월세")
@@ -54,6 +81,7 @@ class SettingsViewModel(
 
             _uiState.value = _uiState.value.copy(
                 subscribedCategories = categories,
+                subscribedSectors = sectors,
                 notificationSchedule = schedule,
                 userName = userRepo.displayName() ?: "사용자",
                 userEmail = userRepo.email() ?: "",

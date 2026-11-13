@@ -12,6 +12,7 @@ import { CommentSection } from "@/components/CommentSection";
 import { RelatedPolicies } from "@/components/RelatedPolicies";
 import { AppInstallCta } from "@/components/AppInstallCta";
 import { Seal } from "@/components/Seal";
+import { MarketImpact } from "@/components/MarketImpact";
 
 export const dynamicParams = false;
 
@@ -258,6 +259,10 @@ export default async function PolicyPage({ params }: Props) {
             ))}
           </div>
         </div>
+      )}
+
+      {p.market && (
+        <MarketImpact market={p.market} policyId={p.id} publishedAt={p.published_at} />
       )}
 
       {/* 출처·면책 고지 — 가공 콘텐츠임을 명시해 신뢰도와 차별성을 더한다. */}
