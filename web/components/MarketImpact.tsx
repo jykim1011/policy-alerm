@@ -2,7 +2,7 @@
 // 매수·매도 권유가 아니라 정책과 관련될 수 있는 업종·기업을 정보로 정리한 것이므로
 // 항상 고지문을 함께 보여준다. 수익률은 한국 관례대로 상승=빨강, 하락=파랑.
 
-import type { PolicyMarket, PolicyReaction, ReactionAgg, SectorStats } from "@/lib/types";
+import { SHOW_IMPACT, type PolicyMarket, type PolicyReaction, type ReactionAgg, type SectorStats } from "@/lib/types";
 import { getDisclosuresSince, getMinSamples, getPolicyReactions, getSectorStats } from "@/lib/market";
 
 const DIRECTION_LABEL: Record<string, { text: string; cls: string }> = {
@@ -10,6 +10,16 @@ const DIRECTION_LABEL: Record<string, { text: string; cls: string }> = {
   부정: { text: "부정적 영향 가능", cls: "bg-seal-soft text-seal-ink" },
   혼재: { text: "영향 엇갈림", cls: "bg-paper text-muted" },
 };
+
+const IMPACT_CLS: Record<string, string> = {
+  높음: "bg-danger text-white",
+  보통: "bg-ink-soft text-white",
+};
+
+/** "2026-11-09" → "2026.11.09", "2027-01" → "2027.01" */
+function fmtDate(d: string) {
+  return d.replaceAll("-", ".");
+}
 
 function quoteUrl(code: string) {
   return `https://finance.naver.com/item/main.naver?code=${code}`;
@@ -33,7 +43,8 @@ export function MarketImpact({
   policyId: string;
   publishedAt: string;
 }) {
-  if (!market?.sectors?.length) return null;
+  // 중요도 "낮음"(재확인·계획 단계 등)과 중요도 판정 전 데이터는 보여주지 않는다.
+  if (!market?.sectors?.length || !SHOW_IMPACT.includes(market.impact ?? "")) return null;
   const stats = getSectorStats();
   const minSamples = getMinSamples();
   const reactions = getPolicyReactions(policyId);
@@ -44,12 +55,23 @@ export function MarketImpact({
         <h2 id="market-heading" className="text-[1.02rem] font-bold text-ink">
           📈 관련 산업·시장
         </h2>
-        <span className="rounded-md bg-paper px-1.5 py-0.5 text-[0.7rem] font-semibold text-muted">
-          {market.policy_type}
+        <span className={`rounded-md px-1.5 py-0.5 text-[0.7rem] font-bold ${IMPACT_CLS[market.impact!]}`}>
+          중요도 {market.impact}
         </span>
       </div>
+
+      {/* 핵심 사실: 신규 여부 · 단계 · 시행 시점 · 정량 수치 */}
+      <dl className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {market.novelty && <Fact label="새 정보" value={market.novelty} />}
+        {market.stage && <Fact label="단계" value={market.stage} />}
+        {market.effective_date && <Fact label="시행" value={fmtDate(market.effective_date)} />}
+        {(market.figures ?? []).map((f) => (
+          <Fact key={f.label + f.value} label={f.label} value={f.value} />
+        ))}
+      </dl>
+
       {market.investor_note && (
-        <p className="mb-1 break-keep text-[0.93rem] leading-relaxed text-ink-soft">
+        <p className="mt-3 break-keep text-[0.93rem] leading-relaxed text-ink-soft">
           {market.investor_note}
         </p>
       )}
@@ -68,11 +90,21 @@ export function MarketImpact({
       </div>
 
       <p className="mt-4 rounded-xl bg-paper px-3.5 py-3 text-[0.75rem] leading-relaxed text-faint">
+        중요도는 새 정보인지(신규·확대), 규모(1조원·1만 호 이상), 확정 단계(의결·시행)로 계산해요.
         투자 권유가 아닙니다. 정책과 관련될 수 있는 업종·기업을 AI와 편집 기준으로 정리한
         참고 정보이며, 과거 수익률은 미래 수익을 보장하지 않습니다. 투자 판단과 그 책임은
         본인에게 있습니다.
       </p>
     </section>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-paper px-3 py-2">
+      <dt className="text-[0.7rem] font-semibold text-faint">{label}</dt>
+      <dd className="break-keep text-[0.88rem] font-bold text-ink">{value}</dd>
+    </div>
   );
 }
 

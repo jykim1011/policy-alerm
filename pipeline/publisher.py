@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from pipeline.models import PolicyItem, PolicySummary
-from pipeline.market import build_market_block, sector_names
+from pipeline.market import MARKET_VERSION, SHOW_IMPACT, build_market_block, sector_names
 
 DOCS_ROOT = "docs"
 KST = timezone(timedelta(hours=9))
@@ -41,7 +41,7 @@ def _market_of(item: PolicyItem) -> dict:
 
 def _sectors_field(item: PolicyItem) -> dict:
     """목록 항목에 관련 업종 key를 싣는다(관심 업종 필터·배지용). 없으면 키를 넣지 않는다."""
-    names = sector_names(_market_of(item))
+    names = sector_names(_market_of(item), SHOW_IMPACT)
     return {"sectors": names} if names else {}
 
 
@@ -79,6 +79,8 @@ def publish_policy(item: PolicyItem, docs_root: str = DOCS_ROOT) -> None:
     market = build_market_block(_market_of(item))
     if market:
         data["market"] = market
+    if item.summary:
+        data["market_version"] = MARKET_VERSION  # 백필이 이 정책을 다시 판정하지 않게 한다
 
     out_path = policies_dir / f"{item.id}.json"
     out_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -25,7 +25,7 @@ from xml.etree import ElementTree
 
 import requests
 
-from pipeline.market import load_sectors
+from pipeline.market import SHOW_IMPACT, load_sectors
 
 KST = timezone(timedelta(hours=9))
 DOCS_ROOT = Path("docs")
@@ -191,7 +191,10 @@ def _policies_with_market() -> list[dict]:
             d = json.loads(f.read_text(encoding="utf-8"))
         except Exception:
             continue
-        if (d.get("market") or {}).get("sectors"):
+        m = d.get("market") or {}
+        # 통계 표본은 화면에 보이는 정책(중요도 보통 이상)만. 재확인·계획 단계까지 섞으면
+        # "그 기간 시장 흐름"만 남아 정책 반응을 볼 수 없다.
+        if m.get("sectors") and m.get("impact") in SHOW_IMPACT:
             out.append(d)
     return out
 

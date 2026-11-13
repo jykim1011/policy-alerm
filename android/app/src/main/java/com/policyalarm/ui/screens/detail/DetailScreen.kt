@@ -165,7 +165,7 @@ fun DetailScreen(
                             FaqCard(it)
                         }
                     }
-                    detail.market?.takeIf { !it.sectors.isNullOrEmpty() }?.let {
+                    detail.market?.takeIf { it.isShown }?.let {
                         Spacer(Modifier.height(12.dp))
                         MarketImpactCard(it, state.marketContext)
                     }

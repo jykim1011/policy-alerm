@@ -19,11 +19,33 @@ data class MarketSector(
     val stocks: List<Ticker>? = null,
 )
 
+data class MarketFigure(
+    val label: String,
+    val value: String,
+)
+
 data class PolicyMarket(
     val sectors: List<MarketSector>? = null,
     @SerializedName("policy_type") val policyType: String? = null,
+    /** 신규 | 확대 | 연장 | 재확인 */
+    val novelty: String? = null,
+    /** 검토·계획 | 발표 | 입법예고 | 의결·통과 | 시행 */
+    val stage: String? = null,
+    val figures: List<MarketFigure>? = null,
+    /** YYYY-MM-DD 또는 YYYY-MM */
+    @SerializedName("effective_date") val effectiveDate: String? = null,
+    /** 높음 | 보통 | 낮음 — 파이프라인 market.impact_of 규칙으로 계산 */
+    val impact: String? = null,
     @SerializedName("investor_note") val investorNote: String? = null,
-)
+) {
+    /** 카드를 보여줄지. 낮음(재확인·계획 단계 등)과 중요도 판정 전 데이터는 숨긴다. 파이프라인 SHOW_IMPACT 와 같은 기준. */
+    val isShown: Boolean
+        get() = !sectors.isNullOrEmpty() && impact in SHOW_IMPACT
+
+    companion object {
+        val SHOW_IMPACT = setOf("높음", "보통")
+    }
+}
 
 /** docs/market/sector_stats.json — 업종별 과거 정책 발표 후 5거래일 반응 집계. */
 data class ReactionAgg(

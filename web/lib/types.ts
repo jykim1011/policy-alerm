@@ -48,8 +48,21 @@ export interface MarketSector {
 export interface PolicyMarket {
   sectors: MarketSector[];
   policy_type: string;
+  /** 신규 | 확대 | 연장 | 재확인 */
+  novelty?: string;
+  /** 검토·계획 | 발표 | 입법예고 | 의결·통과 | 시행 */
+  stage?: string;
+  figures?: { label: string; value: string }[];
+  /** YYYY-MM-DD 또는 YYYY-MM */
+  effective_date?: string;
+  /** 높음 | 보통 | 낮음 — 파이프라인 market.impact_of 규칙으로 계산 */
+  impact?: string;
+  impact_score?: number;
   investor_note?: string;
 }
+
+/** 카드를 보여줄 중요도. 파이프라인 market.SHOW_IMPACT 와 같은 값. */
+export const SHOW_IMPACT = ["높음", "보통"];
 
 // docs/market/sector_stats.json — 업종별 과거 정책 발표 후 5거래일 반응 집계.
 export interface ReactionAgg {

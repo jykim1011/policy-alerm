@@ -111,11 +111,13 @@ def _item(market):
 
 def test_publish_writes_market_block_and_index_sectors(tmp_path):
     m = {"sectors": [{"sector": "은행", "direction": "부정", "reason": "대출 규제"}],
-         "policy_type": "규제 강화", "investor_note": "n"}
+         "policy_type": "규제 강화", "investor_note": "n", "impact": "보통"}
     publish_policy(_item(m), docs_root=str(tmp_path))
     update_index(_item(m), docs_root=str(tmp_path))
     d = json.loads((tmp_path / "policies" / "p-2026-11-01-aaaa.json").read_text(encoding="utf-8"))
     assert d["market"]["sectors"][0]["stocks"]
+    assert d["market"]["impact"] == "보통"
+    assert d["market_version"] == mkt.MARKET_VERSION
     idx = json.loads((tmp_path / "policies" / "index.json").read_text(encoding="utf-8"))
     assert idx["items"][0]["sectors"] == ["은행"]
     arch = json.loads((tmp_path / "archive" / "2026.json").read_text(encoding="utf-8"))
@@ -133,12 +135,78 @@ def test_publish_without_market_omits_keys(tmp_path):
 
 # ── backfill ───────────────────────────────────────────────────────────
 
-def test_tag_policy_marks_checked_even_without_sectors():
+def test_tag_policy_marks_version_even_without_sectors():
     model = MagicMock()
     model.complete.return_value = json.dumps(
         {"market": {"sectors": [], "policy_type": "기타", "investor_note": ""}})
-    d = tag_policy({"id": "a", "title": "육아휴직 확대", "summary": {"what_changed": "w"}}, model)
-    assert d["market_checked"] is True and "market" not in d
+    d = tag_policy({"id": "a", "title": "육아휴직 확대", "summary": {"what_changed": "w"},
+                    "market_checked": True}, model)
+    assert d["market_version"] == mkt.MARKET_VERSION and "market" not in d
+    assert "market_checked" not in d
+
+
+def test_publish_hides_low_impact_from_index(tmp_path):
+    m = {"sectors": [{"sector": "건설", "direction": "긍정", "reason": "r"}],
+         "policy_type": "공급 확대", "investor_note": "", "impact": "낮음"}
+    publish_policy(_item(m), docs_root=str(tmp_path))
+    update_index(_item(m), docs_root=str(tmp_path))
+    idx = json.loads((tmp_path / "policies" / "index.json").read_text(encoding="utf-8"))
+    assert "sectors" not in idx["items"][0]
+    d = json.loads((tmp_path / "policies" / "p-2026-11-01-aaaa.json").read_text(encoding="utf-8"))
+    assert d["market"]["impact"] == "낮음"  # 데이터는 남기고 화면에서만 숨긴다
+
+
+# ── 중요도 ─────────────────────────────────────────────────────────────
+
+F = lambda *vals: [{"label": "예산", "value": v} for v in vals]
+
+
+def test_impact_rules():
+    assert mkt.impact_of("신규", "발표", F("3.2조원")) == ("높음", 5)
+    assert mkt.impact_of("신규", "발표", F("500억원")) == ("보통", 4)
+    assert mkt.impact_of("신규", "의결·통과", F("500억원")) == ("보통", 5)  # 규모 작으면 높음 아님
+    assert mkt.impact_of("신규", "의결·통과", F("2조원")) == ("높음", 6)
+    assert mkt.impact_of("확대", "발표", F("5만 호")) == ("보통", 4)
+    assert mkt.impact_of("확대", "검토·계획", []) == ("낮음", 1)
+    assert mkt.impact_of("연장", "시행", F("10%")) == ("보통", 3)
+    # 재확인은 규모와 무관하게 낮음
+    assert mkt.impact_of("재확인", "시행", F("10조원"))[0] == "낮음"
+
+
+def test_is_large_parses_korean_amounts():
+    assert mkt._is_large(F("1.5조원"))
+    assert mkt._is_large(F("12,000억원"))
+    assert mkt._is_large(F("3만 세대"))
+    assert not mkt._is_large(F("21만 가구"))  # 수혜 가구 수는 규모가 아니다
+    assert not mkt._is_large(F("9,000억원"))
+    assert not mkt._is_large(F("5천 명"))
+
+
+def test_normalize_market_new_fields_and_validation():
+    raw = {"sectors": [{"sector": "건설", "strength": "직접", "direction": "긍정", "reason": "공급"}],
+           "policy_type": "공급 확대", "novelty": "신규", "stage": "발표",
+           "figures": [{"label": "공급", "value": "5만 호"}, {"label": "규모", "value": "대폭"},
+                       {"label": "예산", "value": "2조원"}, {"label": "a", "value": "1"},
+                       {"label": "b", "value": "2"}],
+           "effective_date": "2027년 1월", "investor_note": ""}
+    m = mkt.normalize_market(raw)
+    assert [f["value"] for f in m["figures"]] == ["5만 호", "2조원", "1"]  # 수치 없는 값 제외, 최대 3개
+    assert m["effective_date"] == ""  # 형식 불일치
+    assert m["impact"] == "높음"
+    raw["effective_date"] = "2027-01"
+    raw["novelty"] = "이상한값"
+    m = mkt.normalize_market(raw)
+    assert m["effective_date"] == "2027-01"
+    assert m["novelty"] == "재확인" and m["impact"] == "낮음"
+
+
+def test_sector_names_impact_filter():
+    m = {"sectors": [{"sector": "건설"}], "impact": "보통"}
+    assert mkt.sector_names(m) == ["건설"]
+    assert mkt.sector_names(m, mkt.SHOW_IMPACT) == ["건설"]
+    assert mkt.sector_names(m, mkt.NOTIFY_IMPACT) == ["건설"]
+    assert mkt.sector_names({**m, "impact": "낮음"}, mkt.NOTIFY_IMPACT) == []
+    assert mkt.sector_names({"sectors": [{"sector": "건설"}]}, mkt.SHOW_IMPACT) == []
 
 
 # ── 반응 통계 ───────────────────────────────────────────────────────────
@@ -203,3 +271,9 @@ def test_normalize_market_drops_indirect_and_self_admitted_weak():
         {"sector": "증권", "strength": "직접", "direction": "긍정", "reason": "결제주기 T+1 단축"},
     ], "policy_type": "규제 완화", "investor_note": ""}
     assert [s["sector"] for s in mkt.normalize_market(raw)["sectors"]] == ["증권"]
+
+
+def test_figures_drop_penalties_and_beneficiary_counts():
+    raw = [{"label": "과태료", "value": "1천만 원"}, {"label": "대상", "value": "21만 가구"},
+           {"label": "예산", "value": "3조원"}]
+    assert [f["label"] for f in mkt._figures(raw)] == ["예산"]

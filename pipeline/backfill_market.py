@@ -5,7 +5,7 @@
 
 사용:  python -m pipeline.backfill_market [개수]
   - 인자가 없으면 전체, 숫자를 주면 최신순 그 개수만.
-  - 이미 판정한 정책(market 블록 또는 market_checked 표시)은 건너뛴다(재실행 안전).
+  - 현재 판정 방식(market_version)으로 이미 판정한 정책은 건너뛴다(재실행 안전).
 """
 import json
 import sys
@@ -62,10 +62,10 @@ def tag_policy(d: dict, model) -> dict:
         timeout=60,
     ))
     block = mkt.build_market_block(mkt.normalize_market(raw.get("market")))
-    d = {k: v for k, v in d.items() if k != "market"}
+    d = {k: v for k, v in d.items() if k not in ("market", "market_checked")}
     if block:
         d["market"] = block
-    d["market_checked"] = True  # 업종 없음도 판정 결과다. 다음 실행에서 다시 묻지 않는다.
+    d["market_version"] = mkt.MARKET_VERSION  # 업종 없음도 판정 결과다. 다음 실행에서 다시 묻지 않는다.
     return d
 
 
@@ -104,7 +104,7 @@ def main() -> None:
         if limit is not None and done >= limit:
             break
         d = json.loads(f.read_text(encoding="utf-8"))
-        if d.get("market") or d.get("market_checked") or not d.get("summary"):
+        if d.get("market_version") == mkt.MARKET_VERSION or not d.get("summary"):
             skipped += 1
             continue
         try:
@@ -114,15 +114,17 @@ def main() -> None:
             failed += 1
             continue
         f.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
-        names = mkt.sector_names(d.get("market"))
+        names = mkt.sector_names(d.get("market"), mkt.SHOW_IMPACT)
         sectors_by_id[d["id"]] = names
         done += 1
         tagged += bool(names)
-        print(f"  OK   {f.name}  {names or '-'}")
+        m = d.get("market") or {}
+        print(f"  OK   {f.name}  {m.get('impact', '-')}({m.get('impact_score', '')}) "
+              f"{m.get('novelty', '')}/{m.get('stage', '')} {mkt.sector_names(m)} {m.get('figures', '')}")
         time.sleep(0.3)
 
     _update_index_sectors(sectors_by_id)
-    print(f"\n판정 {done}건(업종 있음 {tagged}) / 건너뜀 {skipped} / 실패 {failed}")
+    print(f"\n판정 {done}건(카드 노출 {tagged}) / 건너뜀 {skipped} / 실패 {failed}")
 
 
 if __name__ == "__main__":

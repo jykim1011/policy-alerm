@@ -15,7 +15,7 @@ from pipeline.summarizer import summarize_policy
 from pipeline.publisher import build_policy_id, publish_policy, update_index
 from pipeline.notifier import notify_new_batch
 from pipeline.models import PolicyItem, PolicySummary
-from pipeline.market import sector_names
+from pipeline.market import NOTIFY_IMPACT, sector_names
 
 KST = timezone(timedelta(hours=9))
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PolicyBot/1.0)"}
@@ -191,7 +191,8 @@ def _write_pending(new_items: list[tuple[PolicyItem, str]]) -> None:
             "category": item.category,
             "subcategory": item.subcategory,
             "title": item.title,
-            "sectors": sector_names(item.summary.market if item.summary else None),
+            # 관심 업종 알림은 중요도 보통 이상일 때만 보낸다(낮음은 재확인·계획 단계라 알릴 가치가 없다).
+            "sectors": sector_names(item.summary.market if item.summary else None, NOTIFY_IMPACT),
             "batch": b,
         }
         for item, b in new_items

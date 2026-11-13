@@ -83,7 +83,7 @@ class DetailViewModel(
                 )
                 loadComments(policyId)
                 loadRelated(detail)
-                if (!detail.market?.sectors.isNullOrEmpty()) loadMarket(detail)
+                if (detail.market?.isShown == true) loadMarket(detail)
             } catch (e: Exception) {
                 _uiState.value = DetailUiState(
                     isLoading = false,

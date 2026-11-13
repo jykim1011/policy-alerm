@@ -81,7 +81,7 @@ internal fun pickAgg(sector: MarketSector, ctx: MarketContext): Pair<ReactionAgg
 fun MarketImpactCard(market: PolicyMarket, ctx: MarketContext) {
     val c = LocalAppColors.current
     val sectors = market.sectors.orEmpty()
-    if (sectors.isEmpty()) return
+    if (!market.isShown) return
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,21 +92,38 @@ fun MarketImpactCard(market: PolicyMarket, ctx: MarketContext) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             Emoji("📈", 17)
             Text("관련 산업·시장", color = c.fgStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            market.policyType?.takeIf { it.isNotBlank() }?.let {
-                Text(
-                    it,
-                    color = c.fgSubtle,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(c.bgMuted)
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                )
+            Text(
+                "중요도 ${market.impact}",
+                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (market.impact == "높음") c.danger else c.fgDefault)
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
+        // 핵심 사실: 신규 여부 · 단계 · 시행 시점 · 정량 수치
+        val facts = buildList {
+            market.novelty?.takeIf { it.isNotBlank() }?.let { add("새 정보" to it) }
+            market.stage?.takeIf { it.isNotBlank() }?.let { add("단계" to it) }
+            market.effectiveDate?.takeIf { it.isNotBlank() }?.let { add("시행" to it.replace('-', '.')) }
+            market.figures.orEmpty().forEach { add(it.label to it.value) }
+        }
+        if (facts.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            facts.chunked(2).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    row.forEach { (label, value) -> FactCell(label, value, Modifier.weight(1f)) }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                }
             }
         }
         market.investorNote?.takeIf { it.isNotBlank() }?.let {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
             Text(it, color = c.fgDefault, fontSize = 14.sp, lineHeight = 22.sp)
         }
         sectors.forEachIndexed { i, s ->
@@ -115,7 +132,8 @@ fun MarketImpactCard(market: PolicyMarket, ctx: MarketContext) {
         }
         Spacer(Modifier.height(16.dp))
         Text(
-            "투자 권유가 아닙니다. 정책과 관련될 수 있는 업종·기업을 AI와 편집 기준으로 정리한 참고 " +
+            "중요도는 새 정보인지(신규·확대), 규모(1조원·1만 호 이상), 확정 단계(의결·시행)로 계산해요. " +
+                "투자 권유가 아닙니다. 정책과 관련될 수 있는 업종·기업을 AI와 편집 기준으로 정리한 참고 " +
                 "정보이며, 과거 수익률은 미래 수익을 보장하지 않습니다. 투자 판단과 그 책임은 본인에게 있습니다.",
             color = c.fgFaint,
             fontSize = 11.5.sp,
@@ -263,4 +281,18 @@ private fun TickerChip(t: Ticker, isEtf: Boolean, onClick: () -> Unit) {
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 5.dp),
     )
+}
+
+@Composable
+private fun FactCell(label: String, value: String, modifier: Modifier = Modifier) {
+    val c = LocalAppColors.current
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(c.bgMuted)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        Text(label, color = c.fgFaint, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+        Text(value, color = c.fgStrong, fontSize = 14.sp, fontWeight = FontWeight.Bold, lineHeight = 19.sp)
+    }
 }

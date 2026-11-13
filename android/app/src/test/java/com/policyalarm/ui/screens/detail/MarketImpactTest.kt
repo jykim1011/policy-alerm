@@ -57,6 +57,8 @@ class MarketImpactTest {
         )
         assertEquals("102970", withMarket.market!!.sectors!![0].etfs!![0].code)
         assertEquals("규제 완화", withMarket.market!!.policyType)
+        // impact 가 없으면(중요도 판정 전 데이터) 카드를 숨긴다
+        assertEquals(false, withMarket.market!!.isShown)
 
         val without = gson.fromJson(
             """{"id":"a","category":"c","subcategory":"c","title":"t","source":"s","source_url":"u",
@@ -64,5 +66,14 @@ class MarketImpactTest {
             PolicyDetail::class.java,
         )
         assertNull(without.market)
+    }
+
+    @Test
+    fun isShown_onlyForHighOrMedium() {
+        val base = com.policyalarm.data.model.PolicyMarket(sectors = listOf(sector), impact = "보통")
+        assertTrue(base.isShown)
+        assertTrue(base.copy(impact = "높음").isShown)
+        assertEquals(false, base.copy(impact = "낮음").isShown)
+        assertEquals(false, base.copy(sectors = emptyList()).isShown)
     }
 }
