@@ -26,6 +26,7 @@ from xml.etree import ElementTree
 import requests
 
 from pipeline.market import SHOW_IMPACT, load_sectors
+from pipeline.market_calendar import write_calendar
 
 KST = timezone(timedelta(hours=9))
 DOCS_ROOT = Path("docs")
@@ -339,6 +340,8 @@ def update_disclosures(key: str, session=None, days: int = 30, per_stock: int = 
 def main() -> None:
     write_sectors()
     print("sectors.json 갱신")
+    write_calendar()
+    print("calendar.json 갱신")
 
     key = (os.environ.get("DATA_GO_KR_KEY") or "").strip()
     if key:

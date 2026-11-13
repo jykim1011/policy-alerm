@@ -3,7 +3,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import type { Disclosure, PolicyReaction, SectorStats } from "./types";
+import type { Disclosure, MarketCalendar, PolicyReaction, SectorStats } from "./types";
 
 const MARKET_DIR = path.join(process.cwd(), "..", "docs", "market");
 
@@ -46,4 +46,9 @@ export function getDisclosuresSince(code: string, sinceIso: string): Disclosure[
     read<{ stocks?: Record<string, Disclosure[]> }>("disclosures.json", {}).stocks ?? {};
   const since = sinceIso.slice(0, 10);
   return (stocks[code] ?? []).filter((d) => d.date >= since);
+}
+
+export function getCalendar(): MarketCalendar {
+  const c = read<Partial<MarketCalendar>>("calendar.json", {});
+  return { ...c, upcoming: c.upcoming ?? [], momentum: c.momentum ?? [] };
 }

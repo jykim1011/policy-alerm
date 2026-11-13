@@ -4,16 +4,12 @@
 
 import { SHOW_IMPACT, type PolicyMarket, type PolicyReaction, type ReactionAgg, type SectorStats } from "@/lib/types";
 import { getDisclosuresSince, getMinSamples, getPolicyReactions, getSectorStats } from "@/lib/market";
+import { ChartIcon } from "@/components/icons";
 
 const DIRECTION_LABEL: Record<string, { text: string; cls: string }> = {
   긍정: { text: "긍정적 영향 가능", cls: "bg-[#fff0f1] text-danger" },
   부정: { text: "부정적 영향 가능", cls: "bg-seal-soft text-seal-ink" },
   혼재: { text: "영향 엇갈림", cls: "bg-paper text-muted" },
-};
-
-const IMPACT_CLS: Record<string, string> = {
-  높음: "bg-danger text-white",
-  보통: "bg-ink-soft text-white",
 };
 
 /** "2026-11-09" → "2026.11.09", "2027-01" → "2027.01" */
@@ -52,12 +48,14 @@ export function MarketImpact({
   return (
     <section className="card mt-3 p-5 sm:p-7" aria-labelledby="market-heading">
       <div className="mb-1 flex flex-wrap items-center gap-2">
-        <h2 id="market-heading" className="text-[1.02rem] font-bold text-ink">
-          📈 관련 산업·시장
+        <h2 id="market-heading" className="inline-flex items-center gap-1.5 text-[1.02rem] font-bold text-ink">
+          <ChartIcon className="h-[18px] w-[18px] text-seal" />
+          관련 산업·시장
         </h2>
-        <span className={`rounded-md px-1.5 py-0.5 text-[0.7rem] font-bold ${IMPACT_CLS[market.impact!]}`}>
-          중요도 {market.impact}
-        </span>
+        {/* 색 규칙: 빨강·파랑은 영향 방향에만. 중요도는 "주요" 잉크 배지 하나로만 표시한다. */}
+        {market.impact === "높음" && (
+          <span className="rounded-lg bg-ink px-2 py-0.5 text-xs font-bold text-white">주요</span>
+        )}
       </div>
 
       {/* 핵심 사실: 신규 여부 · 단계 · 시행 시점 · 정량 수치 */}

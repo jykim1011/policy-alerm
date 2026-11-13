@@ -110,3 +110,42 @@ data class MarketContext(
     /** 종목코드 → 정책 발표일 이후 공시(최신순) */
     val disclosures: Map<String, List<Disclosure>> = emptyMap(),
 )
+
+/** docs/market/calendar.json — 투자자용 모아보기(pipeline/market_calendar.py). */
+data class CalendarEntry(
+    @SerializedName("policy_id") val policyId: String,
+    val title: String,
+    @SerializedName("published_at") val publishedAt: String,
+    val sectors: List<String>? = null,
+    val impact: String? = null,
+    val novelty: String? = null,
+    val stage: String? = null,
+    val figures: List<MarketFigure>? = null,
+    @SerializedName("effective_date") val effectiveDate: String? = null,
+    @SerializedName("date_exact") val dateExact: Boolean = false,
+)
+
+data class MomentumPolicy(
+    @SerializedName("policy_id") val policyId: String,
+    val title: String,
+    @SerializedName("published_at") val publishedAt: String,
+    val impact: String? = null,
+    val direction: String? = null,
+)
+
+data class SectorMomentum(
+    val sector: String,
+    val count: Int = 0,
+    val high: Int = 0,
+    val positive: Int = 0,
+    val negative: Int = 0,
+    val mixed: Int = 0,
+    val policies: List<MomentumPolicy>? = null,
+)
+
+data class MarketCalendar(
+    @SerializedName("upcoming_days") val upcomingDays: Int = 180,
+    @SerializedName("momentum_days") val momentumDays: Int = 28,
+    val upcoming: List<CalendarEntry>? = null,
+    val momentum: List<SectorMomentum>? = null,
+)

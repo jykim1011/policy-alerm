@@ -29,6 +29,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5,
   }));
 
+  // 시장 모아보기는 정책이 들어올 때마다 바뀐다.
+  const marketUrl: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/market/`, changeFrequency: "daily", priority: 0.7 },
+  ];
+
   const staticUrls: MetadataRoute.Sitemap = [
     "/about",
     "/privacy",
@@ -41,6 +46,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1 },
+    ...marketUrl,
     ...staticUrls,
     ...categoryUrls,
     ...sourceUrls,

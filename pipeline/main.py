@@ -16,6 +16,7 @@ from pipeline.publisher import build_policy_id, publish_policy, update_index
 from pipeline.notifier import notify_new_batch
 from pipeline.models import PolicyItem, PolicySummary
 from pipeline.market import NOTIFY_IMPACT, sector_names
+from pipeline.market_calendar import write_calendar
 
 KST = timezone(timedelta(hours=9))
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; PolicyBot/1.0)"}
@@ -161,6 +162,12 @@ def run(batch: str) -> None:
             published_titles.add(_title_key(raw.title))
 
     save_seen(seen)
+
+    # 투자자용 모아보기(시행 일정·업종 흐름). 새 정책이 없어도 날짜가 바뀌면 지난 일정이 빠져야 해서 매번 만든다.
+    try:
+        write_calendar()
+    except Exception as e:
+        print(f"시장 캘린더 갱신 실패(무시): {e}", file=sys.stderr)
 
     # 알림은 여기서 보내지 않는다. docs/가 CDN에 반영된 뒤 별도 단계(notify)에서 보낸다.
     _write_pending(new_items)

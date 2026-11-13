@@ -2,6 +2,7 @@ package com.policyalarm.data.remote
 
 import com.policyalarm.data.model.ArchiveYears
 import com.policyalarm.data.model.DisclosuresFile
+import com.policyalarm.data.model.MarketCalendar
 import com.policyalarm.data.model.ReactionsFile
 import com.policyalarm.data.model.SectorStatsFile
 import com.policyalarm.data.model.SectorsFile
@@ -39,4 +40,7 @@ interface PolicyApiService {
 
     @GET("market/sectors.json")
     suspend fun getSectors(): SectorsFile
+
+    @GET("market/calendar.json")
+    suspend fun getMarketCalendar(): MarketCalendar
 }

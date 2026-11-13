@@ -92,16 +92,19 @@ fun MarketImpactCard(market: PolicyMarket, ctx: MarketContext) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             Emoji("📈", 17)
             Text("관련 산업·시장", color = c.fgStrong, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text(
-                "중요도 ${market.impact}",
-                color = Color.White,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(if (market.impact == "높음") c.danger else c.fgDefault)
-                    .padding(horizontal = 6.dp, vertical = 2.dp),
-            )
+            // 색 규칙: 빨강·파랑은 영향 방향에만. 중요도는 "주요"(높음) 잉크 배지 하나로만 표시한다.
+            if (market.impact == "높음") {
+                Text(
+                    "주요",
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(c.fgStrong)
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                )
+            }
         }
         // 핵심 사실: 신규 여부 · 단계 · 시행 시점 · 정량 수치
         val facts = buildList {

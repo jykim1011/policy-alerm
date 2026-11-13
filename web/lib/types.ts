@@ -134,3 +134,37 @@ export interface NotificationItem {
   read: boolean;
   createdAtMillis: number;
 }
+
+// docs/market/calendar.json — 투자자용 모아보기(pipeline/market_calendar.py).
+export interface CalendarEntry {
+  policy_id: string;
+  title: string;
+  published_at: string;
+  sectors: string[];
+  directions: Record<string, string>;
+  impact: string;
+  novelty?: string;
+  stage?: string;
+  figures?: { label: string; value: string }[];
+  effective_date?: string;
+  date_exact?: boolean;
+}
+
+export interface SectorMomentum {
+  sector: string;
+  count: number;
+  high: number;
+  positive: number;
+  negative: number;
+  mixed: number;
+  policies: { policy_id: string; title: string; published_at: string; impact: string; direction: string }[];
+}
+
+export interface MarketCalendar {
+  updated_at?: string;
+  today?: string;
+  upcoming_days?: number;
+  momentum_days?: number;
+  upcoming: CalendarEntry[];
+  momentum: SectorMomentum[];
+}

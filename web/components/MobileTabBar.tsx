@@ -1,12 +1,13 @@
-// 모바일 하단 탭바 — 앱과 같은 4탭(홈·보관함·알림·설정). md 이상에서는 숨김.
+// 모바일 하단 탭바 — 홈·시장·보관함·알림·설정. md 이상에서는 숨김.
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BellIcon, BookmarkIcon, GearIcon, HomeIcon } from "./icons";
+import { BellIcon, BookmarkIcon, ChartIcon, GearIcon, HomeIcon } from "./icons";
 
 const TABS = [
   { href: "/", label: "홈", Icon: HomeIcon },
+  { href: "/market", label: "시장", Icon: ChartIcon },
   { href: "/bookmarks", label: "보관함", Icon: BookmarkIcon },
   { href: "/notifications", label: "알림", Icon: BellIcon },
   { href: "/settings", label: "설정", Icon: GearIcon },

@@ -12,6 +12,8 @@ data class PolicyItem(
     @SerializedName("summary_preview") val summaryPreview: String,
     /** 시민 눈높이로 다시 쓴 제목(파이프라인 생성). 없는 옛 항목은 [displayTitle]이 원제목을 다듬어 쓴다. */
     @SerializedName("easy_title") val easyTitle: String? = null,
+    /** 관련 업종(시장 정보가 있는 정책만, 중요도 보통 이상). 없으면 null. */
+    val sectors: List<String>? = null,
 ) {
     val displayTitle: String get() = easyTitle?.takeIf { it.isNotBlank() } ?: cleanTitle(title)
 }

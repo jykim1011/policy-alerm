@@ -8,6 +8,7 @@ import { GooglePlayBadge } from "./GooglePlayBadge";
 import { SITE_NAME } from "@/lib/site";
 
 const NAV = [
+  { href: "/market", label: "시장" },
   { href: "/bookmarks", label: "보관함" },
   { href: "/notifications", label: "알림" },
   { href: "/settings", label: "설정" },

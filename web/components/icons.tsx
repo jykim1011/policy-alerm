@@ -168,7 +168,7 @@ function GradCapIcon(p: IconProps) {
   );
 }
 
-function ChartIcon(p: IconProps) {
+export function ChartIcon(p: IconProps) {
   return (
     <Base {...p}>
       <Tone d="M4.2 17.6l4.6-4.6 3.4 2.9 7.6-7.3v10.8H4.2Z" />

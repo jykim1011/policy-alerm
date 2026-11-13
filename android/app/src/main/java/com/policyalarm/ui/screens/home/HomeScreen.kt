@@ -1,5 +1,6 @@
 package com.policyalarm.ui.screens.home
 
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -683,6 +684,11 @@ fun PolicyRow(
                     Spacer(Modifier.width(3.dp))
                     Text("NEW", color = c.danger, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
+                // 시장 정보가 있는 정책 표시 — 시장 정보만 골라 보려는 사람이 목록에서 바로 알아보게 한다.
+                policy.sectors?.takeIf { it.isNotEmpty() }?.let { sectors ->
+                    Spacer(Modifier.weight(1f))
+                    MarketChip(sectors, Modifier.alpha(if (isRead) 0.5f else 1f))
+                }
             }
             Spacer(Modifier.height(3.dp))
             Text(
@@ -718,6 +724,29 @@ fun PolicyRow(
                 CommentCountBadge(policy.id)
             }
         }
+    }
+}
+
+/** 정책 카드의 시장 정보 표시. 업종은 최대 2개, 나머지는 "외 N". 분야 색과 겹치지 않게 중립색을 쓴다. */
+@Composable
+private fun MarketChip(sectors: List<String>, modifier: Modifier = Modifier) {
+    val c = LocalAppColors.current
+    val label = sectors.take(2).joinToString("·") + if (sectors.size > 2) " 외 ${sectors.size - 2}" else ""
+    Row(
+        modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(c.bgMuted)
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            androidx.compose.material.icons.Icons.AutoMirrored.Filled.ShowChart,
+            contentDescription = "시장 정보",
+            tint = c.accent,
+            modifier = Modifier.size(12.dp),
+        )
+        Spacer(Modifier.width(3.dp))
+        Text(label, color = c.fgMuted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
 

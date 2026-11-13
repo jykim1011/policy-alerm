@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -61,7 +62,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-private enum class Tab { HOME, HISTORY, SETTINGS }
+private enum class Tab { HOME, MARKET, HISTORY, SETTINGS }
 
 @Composable
 fun MainScaffold(
@@ -119,6 +120,7 @@ fun MainScaffold(
         Box(modifier = Modifier.weight(1f)) {
             when (tab) {
                 Tab.HOME -> HomeScreen(onPolicyClick = onPolicyClick, onArchiveClick = onArchiveClick, vm = homeVm)
+                Tab.MARKET -> com.policyalarm.ui.screens.market.MarketScreen(onPolicyClick = onPolicyClick)
                 Tab.HISTORY -> HistoryScreen(onPolicyClick = onPolicyClick)
                 Tab.SETTINGS -> SettingsScreen(
                     onLogout = onLogout,
@@ -171,6 +173,7 @@ private fun BottomTabs(active: Tab, onSelect: (Tab) -> Unit, badge: Int = 0) {
                 .height(64.dp),
         ) {
             TabItem(Modifier.weight(1f), "홈", Icons.Filled.Home, active == Tab.HOME, 0) { onSelect(Tab.HOME) }
+            TabItem(Modifier.weight(1f), "시장", Icons.AutoMirrored.Filled.ShowChart, active == Tab.MARKET, 0) { onSelect(Tab.MARKET) }
             TabItem(Modifier.weight(1f), "알림", Icons.Filled.Notifications, active == Tab.HISTORY, badge) { onSelect(Tab.HISTORY) }
             TabItem(Modifier.weight(1f), "설정", Icons.Filled.Settings, active == Tab.SETTINGS, 0) { onSelect(Tab.SETTINGS) }
         }

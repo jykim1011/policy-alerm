@@ -277,3 +277,59 @@ def test_figures_drop_penalties_and_beneficiary_counts():
     raw = [{"label": "과태료", "value": "1천만 원"}, {"label": "대상", "value": "21만 가구"},
            {"label": "예산", "value": "3조원"}]
     assert [f["label"] for f in mkt._figures(raw)] == ["예산"]
+
+
+# ── 캘린더 ─────────────────────────────────────────────────────────────
+
+from pipeline.market_calendar import build_calendar, write_calendar
+
+
+def _pol(pid, pub, eff, impact="보통", sectors=("건설",), direction="긍정"):
+    return {"id": pid, "title": pid, "published_at": f"{pub}T09:00:00+09:00",
+            "summary": {"easy_title": f"쉬운 {pid}"},
+            "market": {"sectors": [{"sector": s, "direction": direction} for s in sectors],
+                       "impact": impact, "novelty": "신규", "stage": "발표",
+                       "figures": [{"label": "예산", "value": "1조원"}], "effective_date": eff}}
+
+
+def test_build_calendar_upcoming_filters_and_sorts():
+    today = date(2026, 11, 13)
+    cal = build_calendar([
+        _pol("past", "2026-11-01", "2026-11-12"),
+        _pol("month_now", "2026-11-01", "2026-11"),       # 월만 → 이번 달이면 포함
+        _pol("last_month", "2026-10-01", "2026-10"),
+        _pol("dec_high", "2026-11-02", "2026-12-01", impact="높음"),
+        _pol("dec", "2026-11-03", "2026-12-01"),
+        _pol("too_far", "2026-11-03", "2027-12-01"),
+        _pol("nodate", "2026-11-03", ""),
+    ], today)
+    assert [u["policy_id"] for u in cal["upcoming"]] == ["month_now", "dec_high", "dec"]
+    assert cal["upcoming"][0]["date_exact"] is False
+    assert cal["upcoming"][1]["title"] == "쉬운 dec_high"
+
+
+def test_build_calendar_momentum_counts_recent_by_sector():
+    today = date(2026, 11, 13)
+    cal = build_calendar([
+        _pol("a", "2026-11-10", "", sectors=("건설", "은행")),
+        _pol("b", "2026-11-01", "", direction="부정"),
+        _pol("c", "2026-11-05", "", impact="높음"),
+        _pol("old", "2026-09-01", ""),
+    ], today)
+    top = cal["momentum"][0]
+    assert top["sector"] == "건설" and top["count"] == 3
+    assert (top["positive"], top["negative"], top["high"]) == (2, 1, 1)
+    assert top["policies"][0]["policy_id"] == "c"  # 높음 먼저
+    # 건수와 목록이 일치해야 정책별 긍정·부정을 확인할 수 있다
+    assert len(top["policies"]) == top["count"]
+    assert {p["policy_id"]: p["direction"] for p in top["policies"]}["b"] == "부정"
+    assert {m["sector"] for m in cal["momentum"]} == {"건설", "은행"}
+
+
+def test_write_calendar_ignores_low_impact(tmp_path):
+    (tmp_path / "policies").mkdir()
+    for p in [_pol("show", "2026-11-10", "2026-12-01"), _pol("low", "2026-11-10", "2026-12-01", impact="낮음")]:
+        (tmp_path / "policies" / f"{p['id']}.json").write_text(json.dumps(p, ensure_ascii=False), encoding="utf-8")
+    cal = write_calendar(tmp_path, today=date(2026, 11, 13))
+    assert [u["policy_id"] for u in cal["upcoming"]] == ["show"]
+    assert (tmp_path / "market" / "calendar.json").exists()

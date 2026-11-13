@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { PolicyItem } from "@/lib/types";
 import { formatDate } from "@/lib/format";
 import { Seal } from "./Seal";
-import { CategoryIcon } from "./icons";
+import { CategoryIcon, ChartIcon } from "./icons";
 import { CommentCount } from "./CommentCount";
 
 function escapeRegExp(s: string): string {
@@ -52,7 +52,21 @@ export function PolicyCard({
         <time className="text-xs font-medium text-faint">
           {formatDate(p.published_at)}
         </time>
-        <CommentCount policyId={p.id} className="ml-auto" />
+        <div className="ml-auto flex items-center gap-2">
+          {/* 시장 정보가 있는 정책 표시(중요도 보통 이상) — 시장 정보만 골라 보려는 사람이 목록에서 바로 알아보게.
+              분야 배지(파랑)와 겹치지 않게 중립색을 쓴다. */}
+          {p.sectors && p.sectors.length > 0 && (
+            <span
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-paper px-2 py-1 text-xs font-semibold text-muted"
+              title="시장 정보가 있는 정책"
+            >
+              <ChartIcon className="h-3.5 w-3.5 text-seal" />
+              {p.sectors.slice(0, 2).join("·")}
+              {p.sectors.length > 2 && ` 외 ${p.sectors.length - 2}`}
+            </span>
+          )}
+          <CommentCount policyId={p.id} />
+        </div>
       </div>
       <h3 className="mb-1.5 line-clamp-2 break-keep text-[1.05rem] font-bold leading-[1.45] tracking-[-0.01em] text-ink transition group-hover:text-seal">
         <Highlighted text={p.title} needle={highlight} />
