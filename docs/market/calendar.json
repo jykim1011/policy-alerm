@@ -1,0 +1,443 @@
+{
+  "updated_at": "2026-11-13T22:59:17.951827+09:00",
+  "today": "2026-11-13",
+  "upcoming_days": 180,
+  "momentum_days": 28,
+  "upcoming": [
+    {
+      "effective_date": "2026-11",
+      "date_exact": false,
+      "policy_id": "중소벤처기업부-2026-11-13-00f45fcf",
+      "title": "중소기업도 메가프로젝트 공급망에 들어갈 기회가 생겨요",
+      "published_at": "2026-11-13",
+      "sectors": [
+        "반도체"
+      ],
+      "directions": {
+        "반도체": "긍정"
+      },
+      "impact": "높음",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "상생 재원",
+          "value": "2조 원"
+        },
+        {
+          "label": "지역성장펀드",
+          "value": "2조 원"
+        }
+      ]
+    },
+    {
+      "effective_date": "2026-11-13",
+      "date_exact": true,
+      "policy_id": "금융위원회-2026-07-30-b64d033b",
+      "title": "IPO, 새로운 제도 도입으로 더 합리적 돼요",
+      "published_at": "2026-07-30",
+      "sectors": [
+        "증권"
+      ],
+      "directions": {
+        "증권": "혼재"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "입법예고",
+      "figures": [
+        {
+          "label": "위탁재산",
+          "value": "300억 원 이상"
+        },
+        {
+          "label": "배정 상한",
+          "value": "코스피 20%, 코스닥 30%"
+        }
+      ]
+    },
+    {
+      "effective_date": "2026-12",
+      "date_exact": false,
+      "policy_id": "국토교통부-2026-11-04-195f7986",
+      "title": "분양가 25%만 내고 입주하는 지분적립형 주택 나와요",
+      "published_at": "2026-11-04",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "혼재"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "공급",
+          "value": "284세대"
+        },
+        {
+          "label": "분양가",
+          "value": "25%"
+        }
+      ]
+    },
+    {
+      "effective_date": "2026-12",
+      "date_exact": false,
+      "policy_id": "금융위원회-2026-07-03-ea620ac0",
+      "title": "부동산 PF 규제 완화, 연말까지 연장돼요",
+      "published_at": "2026-07-03",
+      "sectors": [
+        "건설",
+        "은행"
+      ],
+      "directions": {
+        "건설": "긍정",
+        "은행": "혼재"
+      },
+      "impact": "보통",
+      "novelty": "연장",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "PF 익스포저",
+          "value": "169.8조원"
+        },
+        {
+          "label": "연체율",
+          "value": "4.65%"
+        },
+        {
+          "label": "부실 우려 대출",
+          "value": "16.4조원"
+        }
+      ]
+    },
+    {
+      "effective_date": "2026-12",
+      "date_exact": false,
+      "policy_id": "정책브리핑-2026-10-16-3dd13db8",
+      "title": "수도권 주택 착공 늘고, 정보도 투명해져요",
+      "published_at": "2026-10-16",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "확대",
+      "stage": "검토·계획",
+      "figures": [
+        {
+          "label": "착공",
+          "value": "21만 8000~23만 5000호 이상"
+        },
+        {
+          "label": "공공주택",
+          "value": "총 10만 호"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01",
+      "date_exact": false,
+      "policy_id": "보건복지부-2026-09-01-a5e8628b",
+      "title": "내년 복지 예산 대폭 증가, 출산·돌봄 더 든든해져요",
+      "published_at": "2026-09-01",
+      "sectors": [
+        "바이오·제약"
+      ],
+      "directions": {
+        "바이오·제약": "긍정"
+      },
+      "impact": "높음",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "예산",
+          "value": "148조 7,697억 원"
+        },
+        {
+          "label": "특별회계",
+          "value": "1.26조 원"
+        },
+        {
+          "label": "기준중위소득",
+          "value": "6.7% 인상"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01",
+      "date_exact": false,
+      "policy_id": "농림축산식품부-2026-09-06-023a4ff7",
+      "title": "농촌정비사업, 신청 기준 더 쉬워져요",
+      "published_at": "2026-09-06",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "확대",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "지원금",
+          "value": "5년 평균 100억 원"
+        },
+        {
+          "label": "최대 지원",
+          "value": "150억 원"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01",
+      "date_exact": false,
+      "policy_id": "금융위원회-2026-10-23-f753044a",
+      "title": "금융회사 부동산 대출 규제 강화, 렌탈 쉬워져요",
+      "published_at": "2026-10-23",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "부정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "대출한도",
+          "value": "30%"
+        },
+        {
+          "label": "합산한도",
+          "value": "50%"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01",
+      "date_exact": false,
+      "policy_id": "정책브리핑-2026-09-17-5f82dc13",
+      "title": "2027년 예산, 결혼부터 출산까지 다양하게 지원해요",
+      "published_at": "2026-09-17",
+      "sectors": [
+        "2차전지",
+        "자동차",
+        "인터넷·플랫폼"
+      ],
+      "directions": {
+        "2차전지": "긍정",
+        "자동차": "긍정",
+        "인터넷·플랫폼": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "확대",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "보조대수",
+          "value": "43만 대"
+        },
+        {
+          "label": "보조단가",
+          "value": "300만 원"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01-01",
+      "date_exact": true,
+      "policy_id": "국토교통부-2026-08-12-0440678d",
+      "title": "청년 월세 공제 한도 1,200만원으로 늘려요",
+      "published_at": "2026-08-12",
+      "sectors": [
+        "자동차"
+      ],
+      "directions": {
+        "자동차": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "한도",
+          "value": "1,000만원→1,200만원"
+        },
+        {
+          "label": "공제율",
+          "value": "17%"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01-01",
+      "date_exact": true,
+      "policy_id": "국토교통부-2026-08-20-af3e4509",
+      "title": "낡은 건물 리모델링, 임대주택법 바뀌어요",
+      "published_at": "2026-08-20",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "의결·통과"
+    },
+    {
+      "effective_date": "2027-02",
+      "date_exact": false,
+      "policy_id": "금융위원회-2026-09-04-a133d0c9",
+      "title": "모든 증권, 토큰으로 사고팔 수 있어요",
+      "published_at": "2026-09-04",
+      "sectors": [
+        "증권"
+      ],
+      "directions": {
+        "증권": "혼재"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "거래한도",
+          "value": "연간 순매수 1억 원"
+        },
+        {
+          "label": "자기자본",
+          "value": "40억 원"
+        }
+      ]
+    }
+  ],
+  "momentum": [
+    {
+      "sector": "건설",
+      "count": 8,
+      "high": 0,
+      "positive": 6,
+      "negative": 1,
+      "mixed": 1,
+      "policies": [
+        {
+          "policy_id": "국토교통부-2026-11-12-fab86313",
+          "title": "공공재개발 수수료, 3%에서 1%로 낮아져요",
+          "published_at": "2026-11-12",
+          "impact": "보통",
+          "direction": "긍정"
+        },
+        {
+          "policy_id": "국토교통부-2026-11-04-195f7986",
+          "title": "분양가 25%만 내고 입주하는 지분적립형 주택 나와요",
+          "published_at": "2026-11-04",
+          "impact": "보통",
+          "direction": "혼재"
+        },
+        {
+          "policy_id": "국토교통부-2026-11-03-d54d7807",
+          "title": "다세대·다가구주택, 더 크고 높게 지을 수 있어요",
+          "published_at": "2026-11-03",
+          "impact": "보통",
+          "direction": "긍정"
+        },
+        {
+          "policy_id": "국토교통부-2026-10-29-7a00013a",
+          "title": "수도권 6곳에 새 주택 7만 6700호 더 지어요",
+          "published_at": "2026-10-29",
+          "impact": "보통",
+          "direction": "긍정"
+        },
+        {
+          "policy_id": "국토교통부-2026-10-26-05cb9787",
+          "title": "3기 신도시 도로 공사, 더 빨리 끝나요",
+          "published_at": "2026-10-26",
+          "impact": "보통",
+          "direction": "긍정"
+        },
+        {
+          "policy_id": "금융위원회-2026-10-23-f753044a",
+          "title": "금융회사 부동산 대출 규제 강화, 렌탈 쉬워져요",
+          "published_at": "2026-10-23",
+          "impact": "보통",
+          "direction": "부정"
+        },
+        {
+          "policy_id": "국토교통부-2026-10-20-fb4c9dfb",
+          "title": "동자동 쪽방촌, 새 아파트 2150채로 바뀝니다",
+          "published_at": "2026-10-20",
+          "impact": "보통",
+          "direction": "긍정"
+        },
+        {
+          "policy_id": "정책브리핑-2026-10-16-3dd13db8",
+          "title": "수도권 주택 착공 늘고, 정보도 투명해져요",
+          "published_at": "2026-10-16",
+          "impact": "보통",
+          "direction": "긍정"
+        }
+      ]
+    },
+    {
+      "sector": "반도체",
+      "count": 1,
+      "high": 1,
+      "positive": 1,
+      "negative": 0,
+      "mixed": 0,
+      "policies": [
+        {
+          "policy_id": "중소벤처기업부-2026-11-13-00f45fcf",
+          "title": "중소기업도 메가프로젝트 공급망에 들어갈 기회가 생겨요",
+          "published_at": "2026-11-13",
+          "impact": "높음",
+          "direction": "긍정"
+        }
+      ]
+    },
+    {
+      "sector": "인터넷·플랫폼",
+      "count": 1,
+      "high": 0,
+      "positive": 0,
+      "negative": 1,
+      "mixed": 0,
+      "policies": [
+        {
+          "policy_id": "법제처-2026-11-02-2d6029e7",
+          "title": "11월부터 미신고 숙박 중개가 금지돼요",
+          "published_at": "2026-11-02",
+          "impact": "보통",
+          "direction": "부정"
+        }
+      ]
+    },
+    {
+      "sector": "증권",
+      "count": 1,
+      "high": 0,
+      "positive": 0,
+      "negative": 0,
+      "mixed": 1,
+      "policies": [
+        {
+          "policy_id": "재정경제부-2026-11-06-5b438917",
+          "title": "증권사 담보비율 3개월 면제, 9일부터 적용돼요",
+          "published_at": "2026-11-06",
+          "impact": "보통",
+          "direction": "혼재"
+        }
+      ]
+    }
+  ]
+}

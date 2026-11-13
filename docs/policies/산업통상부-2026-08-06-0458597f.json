@@ -73,5 +73,33 @@
       }
     ],
     "easy_title": "영국과 통상 논의, 러시아 LNG 제재 우려 전달"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "철강·소재",
+        "direction": "혼재",
+        "reason": "영국의 신철강 조치가 이미 시행 중이고 한국산 철강 제품 쿼터 배정이 쟁점이라 국내 철강 수출에 직접 영향을 줘요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "005490",
+            "name": "POSCO홀딩스"
+          },
+          {
+            "code": "010130",
+            "name": "고려아연"
+          }
+        ]
+      }
+    ],
+    "policy_type": "통상·대외",
+    "novelty": "재확인",
+    "stage": "시행",
+    "effective_date": "2027-01",
+    "impact": "낮음",
+    "impact_score": 1,
+    "investor_note": "영국은 2027년 1월부터 러시아산 LNG 수입 서비스 금지를 시행하고, 영국 신철강 조치는 이미 시행 중이에요."
+  },
+  "market_version": 2
 }

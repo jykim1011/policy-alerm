@@ -83,5 +83,56 @@
       }
     ],
     "easy_title": "청년·신혼부부, 다양한 임대주택 늘어요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "LH가 지연된 PF 사업장의 신축·준공 주택을 매입해 임대주택으로 공급하므로 건설사의 미분양 부담과 주택 공급 수요가 직접 바뀌어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "확대",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "취득세 감면",
+        "value": "15%→70%"
+      },
+      {
+        "label": "토지지원금",
+        "value": "최대 80%"
+      }
+    ],
+    "effective_date": "2026-01",
+    "impact": "보통",
+    "impact_score": 3,
+    "investor_note": "2026년부터 지연된 PF 사업장을 LH가 매입하는 사업이 대상을 넓혀 본격 확대되고, 매입임대 사업자 취득세 감면은 2027년까지 70%로 늘어나요."
+  },
+  "market_version": 2
 }

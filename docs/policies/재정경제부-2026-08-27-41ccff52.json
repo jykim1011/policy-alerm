@@ -61,5 +61,38 @@
       }
     ],
     "easy_title": "한국 외환·자본시장, 외국인도 24시간 편리하게"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "증권",
+        "direction": "긍정",
+        "reason": "결제촉진대금 제도가 9월과 10월에 걸쳐 개편되어 증권 결제 시 원화 유동성 부담이 줄어들어요.",
+        "etfs": [
+          {
+            "code": "102970",
+            "name": "KODEX 증권"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "006800",
+            "name": "미래에셋증권"
+          },
+          {
+            "code": "039490",
+            "name": "키움증권"
+          }
+        ]
+      }
+    ],
+    "policy_type": "규제 완화",
+    "novelty": "재확인",
+    "stage": "시행",
+    "effective_date": "2026-09",
+    "impact": "낮음",
+    "impact_score": 1,
+    "investor_note": "증권 결제 시 원화 유동성 부담을 줄이는 결제촉진대금 제도가 2026년 9월부터 단계적으로 적용돼요."
+  },
+  "market_version": 2
 }

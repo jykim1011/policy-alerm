@@ -77,5 +77,52 @@
       }
     ],
     "easy_title": "청년·신혼부부 보금자리 더 빨리 공급돼요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "LH가 지연된 PF 사업장의 신축 주택을 매입하고 사업자에게 취득세 감면과 공사비 상승분 반영 등 인센티브를 제공해 건설사의 주택 매각과 사업 정상화가 가능해져요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "확대",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "매입 약정",
+        "value": "2,600호"
+      }
+    ],
+    "effective_date": "2026-01",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "LH가 지연된 PF 사업장의 주택을 매입해 청년·신혼부부 임대주택으로 공급하며, 올해부터 대상과 매입 유형을 확대해요."
+  },
+  "market_version": 2
 }
