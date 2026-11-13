@@ -68,5 +68,80 @@
       }
     ],
     "easy_title": "K-컬처, 1,500억 원 펀드로 더 크게 성장해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "엔터·미디어",
+        "direction": "긍정",
+        "reason": "케이-컬처 밸류업 펀드 1,500억 원이 콘텐츠 제작·유통 기업과 대규모 콘텐츠 투자에 투입돼요.",
+        "etfs": [
+          {
+            "code": "228810",
+            "name": "TIGER 미디어컨텐츠"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "352820",
+            "name": "하이브"
+          },
+          {
+            "code": "035900",
+            "name": "JYP Ent."
+          },
+          {
+            "code": "041510",
+            "name": "에스엠"
+          },
+          {
+            "code": "035760",
+            "name": "CJ ENM"
+          }
+        ]
+      },
+      {
+        "sector": "게임",
+        "direction": "긍정",
+        "reason": "게임 등 콘텐츠 지식재산을 활용하는 국내 기업이 펀드의 투자 대상에 포함돼요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "259960",
+            "name": "크래프톤"
+          },
+          {
+            "code": "036570",
+            "name": "NC"
+          },
+          {
+            "code": "251270",
+            "name": "넷마블"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "펀드 규모",
+        "value": "1,500억 원"
+      },
+      {
+        "label": "문체부 재정",
+        "value": "500억 원"
+      },
+      {
+        "label": "산업은행 등",
+        "value": "300억 원"
+      }
+    ],
+    "effective_date": "2026-09",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "케이-컬처 밸류업 펀드 1,500억 원이 2026년 9월 운용사 선정 이후 AI·IP와 콘텐츠 기업에 투자돼요."
+  },
+  "market_version": 2
 }

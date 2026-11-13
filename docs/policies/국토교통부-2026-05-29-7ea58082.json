@@ -52,5 +52,45 @@
       }
     ],
     "easy_title": "주택 공급 늘리려 불편 해소해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "주택 공급 확대와 조기 착공 집중은 건설사의 주택 사업 수요와 착공 일정에 직접 영향을 줘요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "재확인",
+    "stage": "발표",
+    "impact": "낮음",
+    "impact_score": 0,
+    "investor_note": "정부가 주택 공급 확대를 위해 사업 현장 애로 해소와 조기 착공에 역량을 집중한다는 방향을 2026-05-29에 발표했어요."
+  },
+  "market_version": 2
 }

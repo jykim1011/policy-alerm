@@ -122,5 +122,38 @@
       }
     ],
     "easy_title": "한국 중소기업 수출, 역대 최고 기록 세웠어요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "화장품",
+        "direction": "긍정",
+        "reason": "K뷰티 화장품 수출이 크게 늘어 전체 중소기업 수출 성장을 이끌었다고 본문에 나와요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "090430",
+            "name": "아모레퍼시픽"
+          },
+          {
+            "code": "051900",
+            "name": "LG생활건강"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "재확인",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "수출액",
+        "value": "640억 달러"
+      }
+    ],
+    "impact": "낮음",
+    "impact_score": 1,
+    "investor_note": "2026년 상반기 중소기업 수출액이 640억 달러로 역대 최고치를 기록했어요."
+  },
+  "market_version": 2
 }

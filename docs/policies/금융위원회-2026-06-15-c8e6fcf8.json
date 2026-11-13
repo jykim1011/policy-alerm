@@ -80,5 +80,44 @@
       }
     ],
     "easy_title": "국민성장펀드 2차, 6천억 규모로 모집해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "증권",
+        "direction": "긍정",
+        "reason": "2차 펀드 6,000억원 규모를 운용사가 맡고 후순위 출자 의무화와 성과보수 인센티브가 도입돼 자산운용사의 운용 수익과 책임 구조가 바뀌어요.",
+        "etfs": [
+          {
+            "code": "102970",
+            "name": "KODEX 증권"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "006800",
+            "name": "미래에셋증권"
+          },
+          {
+            "code": "039490",
+            "name": "키움증권"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "확대",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "예산",
+        "value": "6,000억원"
+      }
+    ],
+    "effective_date": "2026-07",
+    "impact": "낮음",
+    "impact_score": 2,
+    "investor_note": "국민참여형 국민성장펀드 2차 6,000억원 규모가 2026년 3분기 중 추진될 예정이에요."
+  },
+  "market_version": 2
 }

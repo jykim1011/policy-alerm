@@ -61,5 +61,44 @@
       }
     ],
     "easy_title": "삼성증권, 발행어음 업무 시작해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "증권",
+        "direction": "긍정",
+        "reason": "삼성증권㈜이 단기금융업 인가를 받아 발행어음 업무를 할 수 있게 되어 증권업의 영업 범위가 넓어져요.",
+        "etfs": [
+          {
+            "code": "102970",
+            "name": "KODEX 증권"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "006800",
+            "name": "미래에셋증권"
+          },
+          {
+            "code": "039490",
+            "name": "키움증권"
+          }
+        ]
+      }
+    ],
+    "policy_type": "금리·금융",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "인가사",
+        "value": "8개사"
+      }
+    ],
+    "effective_date": "2026-09-09",
+    "impact": "보통",
+    "impact_score": 5,
+    "investor_note": "삼성증권㈜이 단기금융업 인가를 받아 단기금융업무 가능 종합금융투자사업자가 총 8개사로 늘어나요."
+  },
+  "market_version": 2
 }

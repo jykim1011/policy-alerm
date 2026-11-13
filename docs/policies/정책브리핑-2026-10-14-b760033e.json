@@ -66,5 +66,52 @@
         "definition": "고령자를 위한 첨단 기술을 활용한 제품이나 서비스를 뜻하며, 돌봄이나 건강관리 등에 활용돼요."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "청년 주택 57만 1천 호 공급 계획이 주택 공급 수요를 직접 늘려요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "확대",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "57만 1천 호"
+      }
+    ],
+    "effective_date": "2026-01",
+    "impact": "낮음",
+    "impact_score": 2,
+    "investor_note": "앞으로 5년간 청년 주택 57만 1천 호 공급이 추진돼요."
+  },
+  "market_version": 2
 }

@@ -48,5 +48,51 @@
       }
     ],
     "easy_title": "우리 동네 새 아파트, 주민 제안 44곳 접수"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "도심 공공주택 복합사업 공모로 도시 지역 새 아파트 공급이 추진되어 주택 공급 수요가 생겨요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "제안",
+        "value": "44곳"
+      }
+    ],
+    "impact": "보통",
+    "impact_score": 3,
+    "investor_note": "도심 공공주택 복합사업 공모에 주민 제안 44곳이 접수되었어요."
+  },
+  "market_version": 2
 }

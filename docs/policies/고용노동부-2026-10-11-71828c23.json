@@ -57,5 +57,38 @@
         "definition": "취업한 사람이 일정 기간 동안 그 일자리를 계속 유지하는 비율을 의미합니다."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "교육",
+        "direction": "긍정",
+        "reason": "KDT 비수도권 훈련 확대와 훈련비·수당 지원 증액, 취업률 낮은 과정 배제가 직업훈련 공급 기관의 운영 여건을 바꿔요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "215200",
+            "name": "메가스터디교육"
+          },
+          {
+            "code": "019680",
+            "name": "대교"
+          }
+        ]
+      }
+    ],
+    "policy_type": "공급 확대",
+    "novelty": "확대",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "취업률",
+        "value": "55.9%"
+      }
+    ],
+    "impact": "낮음",
+    "impact_score": 2,
+    "investor_note": "비수도권 KDT 훈련 확대와 취업률 관리 강화가 2027년부터 시행될 예정이에요."
+  },
+  "market_version": 2
 }

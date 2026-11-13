@@ -66,5 +66,32 @@
         "definition": "공인중개사를 통하지 않고 부동산 매도인과 매수인이 직접 거래하는 방식을 말해요."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "인터넷·플랫폼",
+        "direction": "부정",
+        "reason": "온라인 부동산 플랫폼 사업자에게 직거래 매물 확인 의무와 책임이 새로 부과돼요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "035420",
+            "name": "NAVER"
+          },
+          {
+            "code": "035720",
+            "name": "카카오"
+          }
+        ]
+      }
+    ],
+    "policy_type": "규제 강화",
+    "novelty": "신규",
+    "stage": "의결·통과",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "부동산 플랫폼 사업자의 직거래 매물 확인 의무와 책임이 강화되며, 이 의무는 공포일로부터 1년 후 시행될 예정이에요."
+  },
+  "market_version": 2
 }

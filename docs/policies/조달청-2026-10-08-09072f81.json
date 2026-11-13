@@ -58,5 +58,51 @@
       }
     ],
     "easy_title": "공공주택 안전, 벌점 더 세게 매겨요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "부정",
+        "reason": "LH 공공주택 건설사업 관리(CM) 용역에 주요벌점 제도가 신설되어 안전 중대 위반 시 최대 5점이 부과되고 입찰참가 제한으로 이어질 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "규제 강화",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "벌점",
+        "value": "최대 5점"
+      }
+    ],
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "LH 공공주택 CM 용역에 주요벌점 제도가 추가되어 안전 중대 위반 시 최대 5점이 부과돼요."
+  },
+  "market_version": 2
 }

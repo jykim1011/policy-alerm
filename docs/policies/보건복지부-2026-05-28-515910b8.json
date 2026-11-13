@@ -79,5 +79,39 @@
       }
     ],
     "easy_title": "AI 복지서비스 7개, 국민에게 더 가까이 다가와요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "인터넷·플랫폼",
+        "direction": "긍정",
+        "reason": "복지 분야 AI 응용제품 개발 기업 컨소시엄에 118.75억 원의 예산이 2026년부터 2027년까지 지원되어 AI 서비스 기업의 매출과 사업 기회가 늘어나요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "035420",
+            "name": "NAVER"
+          },
+          {
+            "code": "035720",
+            "name": "카카오"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "예산",
+        "value": "118.75억 원"
+      }
+    ],
+    "effective_date": "2026-01",
+    "impact": "보통",
+    "impact_score": 5,
+    "investor_note": "복지 분야 AI 응용제품 개발 기업 7곳에 총 118.75억 원이 2026년부터 2027년까지 2년간 지원돼요."
+  },
+  "market_version": 2
 }

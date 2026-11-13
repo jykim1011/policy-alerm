@@ -43,5 +43,45 @@
       }
     ],
     "easy_title": "세입자 있는 주택, 토지거래허가 실거주 유예"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "부정",
+        "reason": "토지거래허가구역 내 세입자 있는 주택까지 실거주 유예가 확대되어 주택 거래와 공급 수요에 영향을 줄 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "규제 완화",
+    "novelty": "확대",
+    "stage": "발표",
+    "impact": "낮음",
+    "impact_score": 2,
+    "investor_note": "토지거래허가구역 내 세입자 있는 주택 전체로 실거주 의무 유예 대상이 확대돼요."
+  },
+  "market_version": 2
 }

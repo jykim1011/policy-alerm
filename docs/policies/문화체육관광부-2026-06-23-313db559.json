@@ -60,5 +60,42 @@
       }
     ],
     "easy_title": "K-게임 성장 돕는 1,200억 펀드 조성"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "게임",
+        "direction": "긍정",
+        "reason": "1,200억 원 규모 모태펀드 문화계정으로 케이-게임 기업의 성장 단계별 자펀드 결성이 추진돼 게임 기업에 투자 자금이 흘러가요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "259960",
+            "name": "크래프톤"
+          },
+          {
+            "code": "036570",
+            "name": "NC"
+          },
+          {
+            "code": "251270",
+            "name": "넷마블"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "예산",
+        "value": "1,200억 원"
+      }
+    ],
+    "impact": "보통",
+    "impact_score": 3,
+    "investor_note": "1,200억 원 규모 모태펀드 문화계정으로 케이-게임 분야 자펀드 결성이 추진돼요."
+  },
+  "market_version": 2
 }

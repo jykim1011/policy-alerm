@@ -60,5 +60,48 @@
       }
     ],
     "easy_title": "모든 증권, 토큰으로 사고팔 수 있어요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "증권",
+        "direction": "혼재",
+        "reason": "모든 증권의 토큰화 인프라 구축과 장외거래소 일반투자자 연간 순매수 한도 1억 원 설정이 증권사의 사업 범위와 거래 규제를 직접 바꿔요.",
+        "etfs": [
+          {
+            "code": "102970",
+            "name": "KODEX 증권"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "006800",
+            "name": "미래에셋증권"
+          },
+          {
+            "code": "039490",
+            "name": "키움증권"
+          }
+        ]
+      }
+    ],
+    "policy_type": "규제 완화",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "거래한도",
+        "value": "연간 순매수 1억 원"
+      },
+      {
+        "label": "자기자본",
+        "value": "40억 원"
+      }
+    ],
+    "effective_date": "2027-02",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "모든 증권의 토큰화 인프라가 단계적으로 구축되고, 장외거래소 일반투자자 연간 순매수 한도는 1억 원으로 설정돼요."
+  },
+  "market_version": 2
 }

@@ -61,5 +61,56 @@
       }
     ],
     "easy_title": "3기 신도시 주택, 기반시설까지 빨리 지어요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "3기 신도시 2.1만 호와 고양창릉 0.4만 호 착공 목표는 건설 업종의 주택 공급 물량을 직접 늘려요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "공급 확대",
+    "novelty": "재확인",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "2.1만 호"
+      },
+      {
+        "label": "공급",
+        "value": "0.4만 호"
+      }
+    ],
+    "effective_date": "2024-01",
+    "impact": "낮음",
+    "impact_score": 1,
+    "investor_note": "3기 신도시는 2025년까지 총 2.1만 호, 고양창릉은 0.4만 호 착공을 목표로 추진돼요."
+  },
+  "market_version": 2
 }

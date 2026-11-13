@@ -55,5 +55,56 @@
         "definition": "국민의 주택 마련과 도시 재생을 돕기 위해 조성된 정부 기금이에요."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "혼재",
+        "reason": "고양창릉 S-2블록에 1057세대 중 284세대가 지분적립형으로 새로 공급돼 주택 공급량이 늘어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "284세대"
+      },
+      {
+        "label": "분양가",
+        "value": "25%"
+      }
+    ],
+    "effective_date": "2026-12",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "고양창릉 S-2블록에서 지분적립형 주택 284세대가 2026년 12월 분양을 시작해요."
+  },
+  "market_version": 2
 }

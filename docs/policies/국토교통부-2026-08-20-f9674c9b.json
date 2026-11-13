@@ -90,5 +90,52 @@
       }
     ],
     "easy_title": "신길2 공공주택, 주민 의견 듣고 빠르게 진행"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "총 1,332세대 주택 공급과 2028년 상반기 착공 목표로 건설 업종의 주택 공급 수요가 생겨요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "공급 확대",
+    "novelty": "재확인",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "1,332세대"
+      }
+    ],
+    "effective_date": "2028-01",
+    "impact": "낮음",
+    "impact_score": 0,
+    "investor_note": "신길2 도심 공공주택 복합사업으로 1,332세대를 공급하며 2028년 상반기 착공을 목표로 해요."
+  },
+  "market_version": 2
 }

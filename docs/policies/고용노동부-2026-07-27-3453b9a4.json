@@ -77,5 +77,39 @@
       }
     ],
     "easy_title": "누구나 무료 AI 교육, 수어 통역도 돼요."
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "교육",
+        "direction": "긍정",
+        "reason": "전 국민 대상 무료 AI 교육 과정 24개가 STEP 플랫폼에 제공되어 교육 수요와 정책 방향에 영향을 줘요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "215200",
+            "name": "메가스터디교육"
+          },
+          {
+            "code": "019680",
+            "name": "대교"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "과정",
+        "value": "24개"
+      }
+    ],
+    "effective_date": "2026-07",
+    "impact": "보통",
+    "impact_score": 5,
+    "investor_note": "고용노동부와 한국기술교육대학교가 무료 AI 교육 과정 24개를 STEP 플랫폼에서 2026년 7월부터 제공해요."
+  },
+  "market_version": 2
 }

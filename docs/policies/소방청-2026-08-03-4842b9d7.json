@@ -58,5 +58,48 @@
       }
     ],
     "easy_title": "새 구급차, 응급 공간 늘어 환자 안전해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "자동차",
+        "direction": "혼재",
+        "reason": "새로 등록되는 구급차에 운전석 칸막이와 간이침대 사이 70cm 이상 응급처치 공간 확보가 의무화되어 차량 구조 변경과 제작 규격이 바뀌어요.",
+        "etfs": [
+          {
+            "code": "091180",
+            "name": "KODEX 자동차"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "005380",
+            "name": "현대차"
+          },
+          {
+            "code": "000270",
+            "name": "기아"
+          },
+          {
+            "code": "012330",
+            "name": "현대모비스"
+          }
+        ]
+      }
+    ],
+    "policy_type": "규제 강화",
+    "novelty": "신규",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "공간",
+        "value": "70cm 이상"
+      }
+    ],
+    "effective_date": "2026-04-02",
+    "impact": "보통",
+    "impact_score": 3,
+    "investor_note": "새로 등록되는 구급차는 운전석 칸막이와 간이침대 사이에 70cm 이상 응급처치 공간을 의무적으로 확보해야 해요."
+  },
+  "market_version": 2
 }

@@ -80,5 +80,43 @@
       }
     ],
     "easy_title": "중소기업 직원, 주말 훈련비 지원돼요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "교육",
+        "direction": "긍정",
+        "reason": "중소기업 직원의 주말 직업훈련에 1인당 하루 최대 5만원, 청년은 7만 5천원을 지원해 훈련 수요가 늘어나는 구조예요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "215200",
+            "name": "메가스터디교육"
+          },
+          {
+            "code": "019680",
+            "name": "대교"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "확대",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "지원금",
+        "value": "5만원"
+      },
+      {
+        "label": "청년 지원금",
+        "value": "7만 5천원"
+      }
+    ],
+    "effective_date": "2024-07-01",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "중소기업 직원 주말 직업훈련에 1인당 하루 최대 5만원(청년 7만 5천원)을 2024년 7월 1일부터 지원해요."
+  },
+  "market_version": 2
 }

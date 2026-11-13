@@ -63,5 +63,52 @@
       }
     ],
     "easy_title": "성장성 높은 소상공인, 대출 더 많이 받아요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "은행",
+        "direction": "긍정",
+        "reason": "SCB 시범 운영으로 8개 은행에서 성장성 높은 소상공인 대출 승인과 한도가 늘어나 은행 대출 수요가 확대돼요.",
+        "etfs": [
+          {
+            "code": "091170",
+            "name": "KODEX 은행"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "105560",
+            "name": "KB금융"
+          },
+          {
+            "code": "055550",
+            "name": "신한지주"
+          },
+          {
+            "code": "086790",
+            "name": "하나금융지주"
+          },
+          {
+            "code": "323410",
+            "name": "카카오뱅크"
+          }
+        ]
+      }
+    ],
+    "policy_type": "금리·금융",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "지원 규모",
+        "value": "2.2조원"
+      }
+    ],
+    "effective_date": "2026-08-31",
+    "impact": "높음",
+    "impact_score": 6,
+    "investor_note": "2026년 8월 31일부터 8개 은행에서 SCB 기반 소상공인 대출 시범 운영이 시작되고, 목표 지원 규모는 2.2조원이에요."
+  },
+  "market_version": 2
 }

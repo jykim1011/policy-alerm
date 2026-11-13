@@ -86,5 +86,52 @@
       }
     ],
     "easy_title": "국민성장펀드, 디스플레이 회사에 돈 빌려줘요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "반도체",
+        "direction": "긍정",
+        "reason": "HBM 테스트 장비 생산설비 확충에 500억원 저금리 대출이 지원되어 장비 기업의 설비투자 재원이 늘어나요.",
+        "etfs": [
+          {
+            "code": "091160",
+            "name": "KODEX 반도체"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "005930",
+            "name": "삼성전자"
+          },
+          {
+            "code": "000660",
+            "name": "SK하이닉스"
+          },
+          {
+            "code": "042700",
+            "name": "한미반도체"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "의결·통과",
+    "figures": [
+      {
+        "label": "총지원",
+        "value": "1조 3천5백억원"
+      },
+      {
+        "label": "장비지원",
+        "value": "500억원"
+      }
+    ],
+    "effective_date": "2026-07",
+    "impact": "높음",
+    "impact_score": 6,
+    "investor_note": "국민성장펀드가 HBM 테스트 장비 생산설비 확충에 500억원 저금리 대출을 2026년 7월 30일 승인했어요."
+  },
+  "market_version": 2
 }

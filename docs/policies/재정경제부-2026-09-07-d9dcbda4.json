@@ -64,5 +64,55 @@
       }
     ],
     "easy_title": "추석 물가 안정, 전통시장 할인 늘어요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "식음료",
+        "direction": "혼재",
+        "reason": "추석 성수품 18.3만 톤 공급과 1,030억 원 할인 지원이 농축수산물 가격과 수요에 영향을 줘요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "097950",
+            "name": "CJ제일제당"
+          },
+          {
+            "code": "271560",
+            "name": "오리온"
+          },
+          {
+            "code": "004370",
+            "name": "농심"
+          },
+          {
+            "code": "033780",
+            "name": "KT&G"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "재확인",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "18.3만 톤"
+      },
+      {
+        "label": "할인 지원",
+        "value": "1,030억 원"
+      },
+      {
+        "label": "환급",
+        "value": "최대 2만 원"
+      }
+    ],
+    "effective_date": "2026-09-01",
+    "impact": "낮음",
+    "impact_score": 2,
+    "investor_note": "추석 성수품 18.3만 톤 공급과 1,030억 원 할인 지원이 2026년 9월 1일부터 시행 중이에요."
+  },
+  "market_version": 2
 }

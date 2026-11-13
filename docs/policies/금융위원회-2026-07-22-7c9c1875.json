@@ -69,5 +69,60 @@
       }
     ],
     "easy_title": "국민펀드로 K-컬처 대형 콘텐츠 만들어요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "엔터·미디어",
+        "direction": "긍정",
+        "reason": "1,500억 원 규모 펀드가 콘텐츠 제작과 IP 활용 기업에 투자되어 콘텐츠 기업의 제작 재원이 늘어나요.",
+        "etfs": [
+          {
+            "code": "228810",
+            "name": "TIGER 미디어컨텐츠"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "352820",
+            "name": "하이브"
+          },
+          {
+            "code": "035900",
+            "name": "JYP Ent."
+          },
+          {
+            "code": "041510",
+            "name": "에스엠"
+          },
+          {
+            "code": "035760",
+            "name": "CJ ENM"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "예산",
+        "value": "1,500억 원"
+      },
+      {
+        "label": "AI·IP 투자",
+        "value": "1,000억 원"
+      },
+      {
+        "label": "콘텐츠 혁신 투자",
+        "value": "500억 원"
+      }
+    ],
+    "effective_date": "2024-09",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "1,500억 원 규모의 K-컬처 밸류업 펀드가 AI·IP에 1,000억 원, 콘텐츠 혁신에 500억 원을 투자해요."
+  },
+  "market_version": 2
 }

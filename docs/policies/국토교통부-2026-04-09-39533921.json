@@ -56,5 +56,52 @@
         "definition": "특정 사업이 얼마나 수익성이 있고 성공적으로 진행될 가능성이 있는지를 나타내는 지표예요."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "LH가 관악 난곡 A2 구역에 750가구 규모의 가로주택정비사업을 공공시행자로 단독 추진해요, 정비사업 물량이 늘어나는 구조예요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "공급 확대",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "750가구"
+      }
+    ],
+    "effective_date": "2026-04-09",
+    "impact": "보통",
+    "impact_score": 5,
+    "investor_note": "LH가 관악 난곡 A2 구역에 750가구를 공공시행으로 공급하며 2028년 착공을 목표로 해요."
+  },
+  "market_version": 2
 }

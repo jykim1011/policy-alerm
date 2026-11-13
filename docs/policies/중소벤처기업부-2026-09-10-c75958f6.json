@@ -56,5 +56,39 @@
       }
     ],
     "easy_title": "K-수출 혁신 기업 188곳, 세계로 나아가요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "화장품",
+        "direction": "긍정",
+        "reason": "K-수출전략품목 중 뷰티 분야 혁신 기업을 선정해 글로벌 진출 지원과 유통기업 협력 프로그램을 제공하므로 K뷰티 수출 기업에 영향을 줘요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "090430",
+            "name": "아모레퍼시픽"
+          },
+          {
+            "code": "051900",
+            "name": "LG생활건강"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "선정 기업",
+        "value": "188개"
+      }
+    ],
+    "effective_date": "2026-09-08",
+    "impact": "보통",
+    "impact_score": 5,
+    "investor_note": "K-수출전략품목 육성사업 지원 대상 188개 기업이 2026년 9월 8일 선정일부터 지원을 받아요."
+  },
+  "market_version": 2
 }

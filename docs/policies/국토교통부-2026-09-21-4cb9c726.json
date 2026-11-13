@@ -65,5 +65,56 @@
       }
     ],
     "easy_title": "2030년까지 주택 119만 호, 우리 집 마련 쉬워져요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "2030년까지 공적주택 119만 호 공급과 신축·재건축·리모델링 확대로 건설사의 공사 수요가 늘어날 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "119만 호"
+      },
+      {
+        "label": "보편형",
+        "value": "19만 호"
+      }
+    ],
+    "effective_date": "2026-10",
+    "impact": "높음",
+    "impact_score": 5,
+    "investor_note": "2030년까지 공적주택 119만 호를 공급하며 이 중 92만 호는 수도권에 집중돼요."
+  },
+  "market_version": 2
 }

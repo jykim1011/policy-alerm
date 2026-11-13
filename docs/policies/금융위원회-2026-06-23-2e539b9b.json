@@ -90,5 +90,44 @@
       }
     ],
     "easy_title": "주식 거래시간 늘고 결제 빨라져요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "증권",
+        "direction": "긍정",
+        "reason": "애프터마켓이 2026년 9월 14일부터 도입되어 거래시간이 늘고, 결제주기 단축으로 유동성 제약이 완화되어 증권사의 거래 중개 환경이 바뀌어요.",
+        "etfs": [
+          {
+            "code": "102970",
+            "name": "KODEX 증권"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "006800",
+            "name": "미래에셋증권"
+          },
+          {
+            "code": "039490",
+            "name": "키움증권"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "재확인",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "결제주기",
+        "value": "T+1"
+      }
+    ],
+    "effective_date": "2026-09-14",
+    "impact": "낮음",
+    "impact_score": 0,
+    "investor_note": "애프터마켓은 2026년 9월 14일부터 적용되고, 결제주기는 T+1로 단축될 예정이에요."
+  },
+  "market_version": 2
 }

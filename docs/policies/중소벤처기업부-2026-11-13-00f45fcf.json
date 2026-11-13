@@ -51,5 +51,52 @@
         "definition": "로봇이나 설비처럼 실제 물리적 장치에 인공지능을 접목한 기술이에요."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "반도체",
+        "direction": "긍정",
+        "reason": "반도체·AI 데이터센터 등 메가프로젝트 공급망 중소기업에 2030년까지 상생 재원 2조 원이 조성돼 반도체 공급망의 설비투자가 지원돼요.",
+        "etfs": [
+          {
+            "code": "091160",
+            "name": "KODEX 반도체"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "005930",
+            "name": "삼성전자"
+          },
+          {
+            "code": "000660",
+            "name": "SK하이닉스"
+          },
+          {
+            "code": "042700",
+            "name": "한미반도체"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "상생 재원",
+        "value": "2조 원"
+      },
+      {
+        "label": "지역성장펀드",
+        "value": "2조 원"
+      }
+    ],
+    "effective_date": "2026-11",
+    "impact": "높음",
+    "impact_score": 5,
+    "investor_note": "2030년까지 상생 재원 2조 원을 조성해 중소기업 설비투자와 제조역량 강화를 지원해요."
+  },
+  "market_version": 2
 }

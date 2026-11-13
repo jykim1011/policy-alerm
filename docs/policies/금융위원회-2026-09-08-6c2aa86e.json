@@ -69,5 +69,52 @@
       }
     ],
     "easy_title": "6천억 국민 펀드, 서민 배정 늘어요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "증권",
+        "direction": "긍정",
+        "reason": "6,000억원 규모 펀드가 증권사 온라인 판매 물량 60% 배정과 최대 1,800만원 소득공제 혜택과 함께 판매돼요.",
+        "etfs": [
+          {
+            "code": "102970",
+            "name": "KODEX 증권"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "006800",
+            "name": "미래에셋증권"
+          },
+          {
+            "code": "039490",
+            "name": "키움증권"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "펀드 규모",
+        "value": "6,000억원"
+      },
+      {
+        "label": "소득공제",
+        "value": "최대 1,800만원"
+      },
+      {
+        "label": "분리과세",
+        "value": "9.9%"
+      }
+    ],
+    "effective_date": "2026-09-30",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "2차 국민참여성장펀드 6,000억원이 2026년 9월 30일부터 10월 15일까지 판매돼요."
+  },
+  "market_version": 2
 }

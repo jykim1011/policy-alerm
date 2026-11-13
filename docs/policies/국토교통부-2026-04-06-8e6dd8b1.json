@@ -47,5 +47,51 @@
       }
     ],
     "easy_title": "전세사기 피해주택, 더 빨리 995채 매입돼요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "전세사기 피해주택을 대규모로 매입하면 주택 공급 수요와 관련 사업 물량이 늘어날 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "확대",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "매입",
+        "value": "995호"
+      }
+    ],
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "전세사기 피해주택 매입이 가속화되어 최근 3개월간 995호가 매입되었어요."
+  },
+  "market_version": 2
 }

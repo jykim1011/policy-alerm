@@ -60,5 +60,52 @@
       }
     ],
     "easy_title": "수도권 주택 부족, 정부가 미리 대비해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "수도권 주택 수요에 대비해 5,000억 원 규모의 유휴 부지를 LH가 미리 확보하는 사업이라 건설사의 토지 수요와 주택 공급 사업 기회에 영향을 줄 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "비축 규모",
+        "value": "5,000억원"
+      }
+    ],
+    "effective_date": "2026-09-08",
+    "impact": "보통",
+    "impact_score": 5,
+    "investor_note": "수도권 공동주택 건설 가능 유휴 토지 5,000억 원 규모를 2026년 9월 8일부터 LH가 선제 확보해요."
+  },
+  "market_version": 2
 }

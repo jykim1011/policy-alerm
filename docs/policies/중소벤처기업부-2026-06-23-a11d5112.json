@@ -84,5 +84,39 @@
       }
     ],
     "easy_title": "유망기업에 모태·국민펀드 대규모 투자."
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "인터넷·플랫폼",
+        "direction": "긍정",
+        "reason": "산업은행이 국내 대표 AI 기업 3사에 약 2조 원 규모의 지분투자를 승인해 AI 기업의 대규모 자금 조달이 늘어나요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "035420",
+            "name": "NAVER"
+          },
+          {
+            "code": "035720",
+            "name": "카카오"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "투자",
+        "value": "약 2조 원"
+      }
+    ],
+    "effective_date": "2026-06-23",
+    "impact": "높음",
+    "impact_score": 6,
+    "investor_note": "산업은행이 AI 기업 3사에 약 2조 원 규모의 지분투자를 승인했고, 모태펀드와 국민성장펀드 간 투자 이어달리기 체계가 2026년 6월 23일부터 가동돼요."
+  },
+  "market_version": 2
 }

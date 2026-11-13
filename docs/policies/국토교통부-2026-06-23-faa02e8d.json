@@ -68,5 +68,45 @@
       }
     ],
     "easy_title": "매입임대주택 더 많이 공급돼요."
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "매입임대주택 공급을 확대하면 주택 공급량이 늘어나 건설 업종의 수요에 영향을 줄 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "공급 확대",
+    "novelty": "재확인",
+    "stage": "검토·계획",
+    "impact": "낮음",
+    "impact_score": -1,
+    "investor_note": "정부가 매입임대주택 공급 확대를 추진할 계획이며, 구체적인 공급 목표와 시행 시점은 명시되지 않았어요."
+  },
+  "market_version": 2
 }

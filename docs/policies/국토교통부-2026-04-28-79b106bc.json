@@ -53,5 +53,51 @@
       }
     ],
     "easy_title": "도심 공공주택 3.4만 호, 빠르게 공급해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "도심 내 공공주택 3만 4천 호 공급 목표는 건설사의 주택 공사 수요를 늘리는 방향으로 작용해요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "공급 확대",
+    "novelty": "확대",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "3만 4천 호"
+      }
+    ],
+    "impact": "낮음",
+    "impact_score": 2,
+    "investor_note": "도심 내 공공주택 3만 4천 호 공급 속도를 높이는 방안이 추진되며, 시행 시점은 명시되지 않았어요."
+  },
+  "market_version": 2
 }

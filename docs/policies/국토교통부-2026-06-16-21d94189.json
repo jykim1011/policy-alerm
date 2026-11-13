@@ -47,5 +47,51 @@
       }
     ],
     "easy_title": "주택 공급 4곳, 어려움 풀어 속도 더 빨라져요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "주택공급 현장의 애로를 해소해 4개 사업장의 공급 속도를 높이므로 건설사의 공사 진행과 주택 공급 수요에 영향을 줄 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "신규",
+    "stage": "시행",
+    "figures": [
+      {
+        "label": "사업장",
+        "value": "4개"
+      }
+    ],
+    "impact": "보통",
+    "impact_score": 5,
+    "investor_note": "범정부 주택공급 현장 애로해소 지원센터가 4개 주택공급 사업장의 애로사항을 집중 해소해요."
+  },
+  "market_version": 2
 }

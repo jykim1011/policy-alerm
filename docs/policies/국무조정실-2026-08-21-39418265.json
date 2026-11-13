@@ -78,5 +78,55 @@
       }
     ],
     "easy_title": "서울 주택 공급, 속도 내서 추진해요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "8월 13일 발표된 주택 신속 공급 대책의 현장 실행을 논의해 주택 공급과 재개발 사업 속도가 높아질 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "공급 확대",
+    "novelty": "재확인",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "13만 8천 호"
+      },
+      {
+        "label": "사업",
+        "value": "97개"
+      }
+    ],
+    "impact": "낮음",
+    "impact_score": 1,
+    "investor_note": "서울 21개 자치구에서 총 97개 주택 공급 사업으로 약 13만 8천 호를 공급할 계획이거나 추진 중이에요."
+  },
+  "market_version": 2
 }

@@ -49,5 +49,43 @@
       }
     ],
     "easy_title": "국민성장펀드, 국내 해상풍력 키워요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "신재생에너지",
+        "direction": "긍정",
+        "reason": "국민성장펀드의 3.4조원 규모 신안우이 해상풍력 지원으로 국산 기자재 수요가 늘어요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "009830",
+            "name": "한화솔루션"
+          },
+          {
+            "code": "112610",
+            "name": "씨에스윈드"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "재확인",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "예산",
+        "value": "3.4조원"
+      },
+      {
+        "label": "국산화율",
+        "value": "97%"
+      }
+    ],
+    "effective_date": "2026-01",
+    "impact": "낮음",
+    "impact_score": 2,
+    "investor_note": "국민성장펀드가 3.4조원 규모의 신안우이 해상풍력 사업을 지원하며, 터빈 외 주요 기자재의 국산화율은 97%예요."
+  },
+  "market_version": 2
 }

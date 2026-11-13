@@ -44,5 +44,31 @@
         "definition": "디지털 신기술 분야의 핵심 인재를 양성하기 위한 직무 훈련 프로그램입니다."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "교육",
+        "direction": "혼재",
+        "reason": "K-뉴딜 아카데미는 대기업 등이 교육 과정을 직접 만들고 운영하는 직무 교육 사업이라 교육 업종과 관련이 있어요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "215200",
+            "name": "메가스터디교육"
+          },
+          {
+            "code": "019680",
+            "name": "대교"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "재확인",
+    "stage": "발표",
+    "impact": "낮음",
+    "impact_score": 0
+  },
+  "market_version": 2
 }

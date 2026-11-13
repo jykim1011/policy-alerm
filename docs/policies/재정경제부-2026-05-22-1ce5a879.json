@@ -58,5 +58,56 @@
         "definition": "국세청이 납세 의무자가 세금을 제대로 냈는지 확인하기 위해 조사하는 것입니다."
       }
     ]
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "2026년부터 2년간 수도권에 매입임대주택 9만호를 공급하고 공사 기간 단축으로 조기 착공을 유도해 건설 수요가 늘어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "확대",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "9만호"
+      },
+      {
+        "label": "규제지역",
+        "value": "6.6만호"
+      }
+    ],
+    "effective_date": "2026-01",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "2026년부터 2027년까지 수도권에 매입임대주택 9만호가 공급돼요."
+  },
+  "market_version": 2
 }

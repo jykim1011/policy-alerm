@@ -124,5 +124,48 @@
       }
     ],
     "easy_title": "IPO, 새로운 제도 도입으로 더 합리적 돼요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "증권",
+        "direction": "혼재",
+        "reason": "사전수요예측과 코너스톤투자자 제도가 도입되어 IPO 공모 절차와 주관 증권사의 업무 방식이 바뀌어요.",
+        "etfs": [
+          {
+            "code": "102970",
+            "name": "KODEX 증권"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "006800",
+            "name": "미래에셋증권"
+          },
+          {
+            "code": "039490",
+            "name": "키움증권"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "신규",
+    "stage": "입법예고",
+    "figures": [
+      {
+        "label": "위탁재산",
+        "value": "300억 원 이상"
+      },
+      {
+        "label": "배정 상한",
+        "value": "코스피 20%, 코스닥 30%"
+      }
+    ],
+    "effective_date": "2026-11-13",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "IPO 과정에 사전수요예측과 코너스톤투자자 제도가 도입되며, 코너스톤 배정 물량은 6개월에서 10개월의 보호예수가 걸려요."
+  },
+  "market_version": 2
 }

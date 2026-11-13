@@ -93,5 +93,47 @@
       }
     ],
     "easy_title": "아파트 정전, 24시간 안에 전력 복구돼요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "원전·전력",
+        "direction": "혼재",
+        "reason": "한국전력공사 등이 공동주택 정전 시 24시간 이내 임시전력을 공급하도록 정전 대응 체계를 마련해 전력 공급 운영이 바뀌어요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "015760",
+            "name": "한국전력"
+          },
+          {
+            "code": "034020",
+            "name": "두산에너빌리티"
+          },
+          {
+            "code": "267260",
+            "name": "HD현대일렉트릭"
+          },
+          {
+            "code": "010120",
+            "name": "LS ELECTRIC"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "신규",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "24시간 이내"
+      }
+    ],
+    "effective_date": "2026-05",
+    "impact": "보통",
+    "impact_score": 3,
+    "investor_note": "공동주택 정전 시 한국전력공사 등이 원칙적으로 24시간 이내 임시전력을 공급하는 체계가 마련돼요."
+  },
+  "market_version": 2
 }

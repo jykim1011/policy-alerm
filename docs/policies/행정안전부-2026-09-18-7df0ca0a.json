@@ -66,5 +66,51 @@
       }
     ],
     "easy_title": "수해 이재민, 추석 전까지 생활 지원돼요"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "원전·전력",
+        "direction": "긍정",
+        "reason": "단전 피해 지역의 전기 설비 복구에 60억 원이 사용되어 전력 설비 공사 수요가 발생해요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "015760",
+            "name": "한국전력"
+          },
+          {
+            "code": "034020",
+            "name": "두산에너빌리티"
+          },
+          {
+            "code": "267260",
+            "name": "HD현대일렉트릭"
+          },
+          {
+            "code": "010120",
+            "name": "LS ELECTRIC"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "발표",
+    "figures": [
+      {
+        "label": "복구비",
+        "value": "2,308억 원"
+      },
+      {
+        "label": "예산",
+        "value": "60억 원"
+      }
+    ],
+    "effective_date": "2026-09",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "2,308억 원의 복구비가 투입되며 이 중 60억 원은 단전 지역 전기 설비 복구에 쓰여요."
+  },
+  "market_version": 2
 }

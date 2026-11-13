@@ -45,5 +45,33 @@
       }
     ],
     "easy_title": "영유아 사교육 줄이고, 아이에게 놀 시간을"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "교육",
+        "direction": "혼재",
+        "reason": "영유아 사교육 부담을 줄이려는 인식 개선 홍보가 본격 추진되어 사교육 수요에 영향을 줄 수 있어요.",
+        "etfs": [],
+        "stocks": [
+          {
+            "code": "215200",
+            "name": "메가스터디교육"
+          },
+          {
+            "code": "019680",
+            "name": "대교"
+          }
+        ]
+      }
+    ],
+    "policy_type": "기타",
+    "novelty": "신규",
+    "stage": "시행",
+    "effective_date": "2026-06-30",
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "교육부가 영유아 사교육 인식 개선 홍보를 2026-06-30 발표와 함께 본격 추진해요."
+  },
+  "market_version": 2
 }

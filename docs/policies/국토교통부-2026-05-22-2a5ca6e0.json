@@ -63,5 +63,51 @@
       }
     ],
     "easy_title": "2년간 수도권 매입임대주택 6.6만호 공급"
-  }
+  },
+  "market": {
+    "sectors": [
+      {
+        "sector": "건설",
+        "direction": "긍정",
+        "reason": "공공이 2년간 수도권 규제지역에 매입임대 주택 6.6만호를 공급해 건설 수요에 영향을 줄 수 있어요.",
+        "etfs": [
+          {
+            "code": "117700",
+            "name": "KODEX 건설"
+          }
+        ],
+        "stocks": [
+          {
+            "code": "000720",
+            "name": "현대건설"
+          },
+          {
+            "code": "006360",
+            "name": "GS건설"
+          },
+          {
+            "code": "375500",
+            "name": "DL이앤씨"
+          },
+          {
+            "code": "028260",
+            "name": "삼성물산"
+          }
+        ]
+      }
+    ],
+    "policy_type": "예산·지원",
+    "novelty": "신규",
+    "stage": "검토·계획",
+    "figures": [
+      {
+        "label": "공급",
+        "value": "6.6만호"
+      }
+    ],
+    "impact": "보통",
+    "impact_score": 4,
+    "investor_note": "공공이 2년간 수도권 규제지역에 매입임대 주택 6.6만호를 공급하는 계획이에요."
+  },
+  "market_version": 2
 }
