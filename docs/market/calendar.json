@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-13T22:59:17.951827+09:00",
-  "today": "2026-11-13",
+  "updated_at": "2026-11-14T01:38:18.999538+09:00",
+  "today": "2026-11-14",
   "upcoming_days": 180,
   "momentum_days": 28,
   "upcoming": [
@@ -27,32 +27,6 @@
         {
           "label": "지역성장펀드",
           "value": "2조 원"
-        }
-      ]
-    },
-    {
-      "effective_date": "2026-11-13",
-      "date_exact": true,
-      "policy_id": "금융위원회-2026-07-30-b64d033b",
-      "title": "IPO, 새로운 제도 도입으로 더 합리적 돼요",
-      "published_at": "2026-07-30",
-      "sectors": [
-        "증권"
-      ],
-      "directions": {
-        "증권": "혼재"
-      },
-      "impact": "보통",
-      "novelty": "신규",
-      "stage": "입법예고",
-      "figures": [
-        {
-          "label": "위탁재산",
-          "value": "300억 원 이상"
-        },
-        {
-          "label": "배정 상한",
-          "value": "코스피 20%, 코스닥 30%"
         }
       ]
     },
@@ -324,9 +298,9 @@
   "momentum": [
     {
       "sector": "건설",
-      "count": 8,
+      "count": 7,
       "high": 0,
-      "positive": 6,
+      "positive": 5,
       "negative": 1,
       "mixed": 1,
       "policies": [
@@ -376,13 +350,6 @@
           "policy_id": "국토교통부-2026-10-20-fb4c9dfb",
           "title": "동자동 쪽방촌, 새 아파트 2150채로 바뀝니다",
           "published_at": "2026-10-20",
-          "impact": "보통",
-          "direction": "긍정"
-        },
-        {
-          "policy_id": "정책브리핑-2026-10-16-3dd13db8",
-          "title": "수도권 주택 착공 늘고, 정보도 투명해져요",
-          "published_at": "2026-10-16",
           "impact": "보통",
           "direction": "긍정"
         }
