@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -104,6 +105,7 @@ fun ArchiveScreen(
             }
         }
 
+        Box(modifier = Modifier.weight(1f)) {
         when {
             state.isLoading && state.sections.isEmpty() -> Box(
                 Modifier.fillMaxSize(), contentAlignment = Alignment.Center
@@ -136,6 +138,16 @@ fun ArchiveScreen(
                     }
                 }
             }
+        }
+        }
+        // 메인 탭과 같은 하단 배너. 시스템 내비게이션 바와 겹치지 않게 인셋만큼 띄운다.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(c.bgSurface)
+                .navigationBarsPadding(),
+        ) {
+            com.policyalarm.ui.components.AdBanner(modifier = Modifier.fillMaxWidth())
         }
     }
 }

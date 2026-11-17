@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -34,21 +35,28 @@ import com.policyalarm.BuildConfig
 // 개발(debug) 중에는 Google 공식 테스트 배너 ID를 써서 실광고 오클릭(정책 위반)을 방지하고,
 // 릴리스에서만 실제 광고 단위 ID로 광고를 노출한다.
 private const val TEST_BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
-private const val PROD_BANNER_AD_UNIT_ID = "ca-app-pub-4710152968528474/3100150098"
+private const val PROD_BANNER_AD_UNIT_ID = "ca-app-pub-4710152968528474/3100150098" // 배너하단
+// 인라인 300x250 전용 단위. 하단 배너와 단위를 나눠야 형식별 실적을 따로 보고 최적화할 수 있다.
+private const val PROD_INLINE_AD_UNIT_ID = "ca-app-pub-4710152968528474/7772287921" // 인라인 300x250
 
-private val BANNER_AD_UNIT_ID =
-    if (BuildConfig.DEBUG) TEST_BANNER_AD_UNIT_ID else PROD_BANNER_AD_UNIT_ID
+private fun adUnitId(inline: Boolean) = when {
+    BuildConfig.DEBUG -> TEST_BANNER_AD_UNIT_ID
+    inline -> PROD_INLINE_AD_UNIT_ID
+    else -> PROD_BANNER_AD_UNIT_ID
+}
 
 /**
+ * @param size null 이면 화면 폭에 맞춘 앵커 적응형 배너(Google 권장, 고정 320x50보다 단가가 높다).
  * @param loadWhenVisible true 면 광고 영역이 화면에 1px 이라도 들어온 뒤에 요청한다. 스크롤 아래쪽
  *   광고를 화면 진입과 동시에 요청하면 보지도 않을 광고를 받아 버려 노출률(요청 대비 노출)이 떨어진다.
  */
 @Composable
 fun AdBanner(
     modifier: Modifier = Modifier,
-    size: AdSize = AdSize.BANNER,
+    size: AdSize? = null,
     loadWhenVisible: Boolean = false,
 ) {
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
     var adView by remember { mutableStateOf<AdView?>(null) }
     var requested by remember { mutableStateOf(false) }
 
@@ -78,8 +86,10 @@ fun AdBanner(
         },
         factory = { context ->
             AdView(context).apply {
-                setAdSize(size)
-                adUnitId = BANNER_AD_UNIT_ID
+                setAdSize(
+                    size ?: AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, screenWidthDp)
+                )
+                adUnitId = adUnitId(inline = size == AdSize.MEDIUM_RECTANGLE)
                 // 실패 기록: 로드가 안 되면 원인 코드를 Firebase Analytics(ad_load_fail)로 남긴다.
                 // 0 내부 오류 · 1 잘못된 요청 · 2 네트워크 · 3 채울 광고 없음
                 adListener = object : AdListener() {
@@ -115,8 +125,7 @@ fun AdBanner(
 
 /**
  * 본문 사이에 넣는 300x250 인라인 광고. 하단 고정 배너보다 노출 단가가 높고, 사용자가
- * 실제로 시간을 보내는 상세·피드 스크롤 안에 놓인다. 같은 배너 광고 단위를 쓰므로
- * AdMob 콘솔에서 새 단위를 만들 필요가 없다. 오클릭을 줄이려고 위아래에 "광고" 라벨과
+ * 실제로 시간을 보내는 상세·피드 스크롤 안에 놓인다. 하단 배너와 별도 광고 단위를 쓴다. 오클릭을 줄이려고 위아래에 "광고" 라벨과
  * 여백을 두어 카드·버튼과 떨어뜨린다. 스크롤해서 보일 때만 요청한다.
  */
 @Composable

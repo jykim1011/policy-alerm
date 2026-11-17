@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.policyalarm.ui.components.Emoji
 import com.policyalarm.ui.components.FileChip
+import com.policyalarm.ui.components.AdBanner
 import com.policyalarm.ui.components.InlineAd
 import com.policyalarm.ui.components.PrimaryButton
 import com.policyalarm.ui.components.categoryColor
@@ -221,6 +222,10 @@ fun DetailScreen(
                     )
                     Spacer(Modifier.height(24.dp))
                 }
+
+                // 알림으로 들어와 상세만 보고 나가는 세션이 대부분인데, 하단 배너는 메인 탭에만
+                // 있어 이 세션들은 광고를 한 번도 보지 못했다. 버튼과 붙지 않게 액션 바 위에 둔다.
+                AdBanner(modifier = Modifier.fillMaxWidth())
 
                 // bottom action bar
                 Row(
