@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-20T21:23:46.260537+09:00",
-  "today": "2026-11-20",
+  "updated_at": "2026-11-21T02:23:08.959620+09:00",
+  "today": "2026-11-21",
   "upcoming_days": 180,
   "momentum_days": 28,
   "upcoming": [
@@ -320,10 +320,10 @@
   "momentum": [
     {
       "sector": "건설",
-      "count": 7,
+      "count": 6,
       "high": 0,
       "positive": 5,
-      "negative": 1,
+      "negative": 0,
       "mixed": 1,
       "policies": [
         {
@@ -367,13 +367,6 @@
           "published_at": "2026-10-26",
           "impact": "보통",
           "direction": "긍정"
-        },
-        {
-          "policy_id": "금융위원회-2026-10-23-f753044a",
-          "title": "금융회사 부동산 대출 규제 강화, 렌탈 쉬워져요",
-          "published_at": "2026-10-23",
-          "impact": "보통",
-          "direction": "부정"
         }
       ]
     },
