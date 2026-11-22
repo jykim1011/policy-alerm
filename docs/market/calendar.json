@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-22T18:14:44.448517+09:00",
-  "today": "2026-11-22",
+  "updated_at": "2026-11-23T01:44:11.918271+09:00",
+  "today": "2026-11-23",
   "upcoming_days": 180,
   "momentum_days": 28,
   "upcoming": [
@@ -145,6 +145,28 @@
       ]
     },
     {
+      "effective_date": "2027-01-01",
+      "date_exact": true,
+      "policy_id": "국토교통부-2026-11-17-a56b2a65",
+      "title": "리모델링 동의율이 75%에서 70%로 낮아져요",
+      "published_at": "2026-11-17",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "확대",
+      "stage": "의결·통과",
+      "figures": [
+        {
+          "label": "동의율",
+          "value": "75%→70%"
+        }
+      ]
+    },
+    {
       "effective_date": "2027-01",
       "date_exact": false,
       "policy_id": "정책브리핑-2026-09-17-5f82dc13",
@@ -175,6 +197,48 @@
       ]
     },
     {
+      "effective_date": "2027-01",
+      "date_exact": false,
+      "policy_id": "금융위원회-2026-10-23-f753044a",
+      "title": "금융회사 부동산 대출 규제 강화, 렌탈 쉬워져요",
+      "published_at": "2026-10-23",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "부정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "대출한도",
+          "value": "30%"
+        },
+        {
+          "label": "합산한도",
+          "value": "50%"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01-01",
+      "date_exact": true,
+      "policy_id": "국토교통부-2026-08-20-af3e4509",
+      "title": "낡은 건물 리모델링, 임대주택법 바뀌어요",
+      "published_at": "2026-08-20",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "의결·통과"
+    },
+    {
       "effective_date": "2027-01-01",
       "date_exact": true,
       "policy_id": "국토교통부-2026-08-12-0440678d",
@@ -201,44 +265,6 @@
       ]
     },
     {
-      "effective_date": "2027-01-01",
-      "date_exact": true,
-      "policy_id": "국토교통부-2026-11-17-a56b2a65",
-      "title": "리모델링 동의율이 75%에서 70%로 낮아져요",
-      "published_at": "2026-11-17",
-      "sectors": [
-        "건설"
-      ],
-      "directions": {
-        "건설": "긍정"
-      },
-      "impact": "보통",
-      "novelty": "확대",
-      "stage": "의결·통과",
-      "figures": [
-        {
-          "label": "동의율",
-          "value": "75%→70%"
-        }
-      ]
-    },
-    {
-      "effective_date": "2027-01-01",
-      "date_exact": true,
-      "policy_id": "국토교통부-2026-08-20-af3e4509",
-      "title": "낡은 건물 리모델링, 임대주택법 바뀌어요",
-      "published_at": "2026-08-20",
-      "sectors": [
-        "건설"
-      ],
-      "directions": {
-        "건설": "긍정"
-      },
-      "impact": "보통",
-      "novelty": "신규",
-      "stage": "의결·통과"
-    },
-    {
       "effective_date": "2027-01",
       "date_exact": false,
       "policy_id": "농림축산식품부-2026-09-06-023a4ff7",
@@ -261,32 +287,6 @@
         {
           "label": "최대 지원",
           "value": "150억 원"
-        }
-      ]
-    },
-    {
-      "effective_date": "2027-01",
-      "date_exact": false,
-      "policy_id": "금융위원회-2026-10-23-f753044a",
-      "title": "금융회사 부동산 대출 규제 강화, 렌탈 쉬워져요",
-      "published_at": "2026-10-23",
-      "sectors": [
-        "건설"
-      ],
-      "directions": {
-        "건설": "부정"
-      },
-      "impact": "보통",
-      "novelty": "신규",
-      "stage": "발표",
-      "figures": [
-        {
-          "label": "대출한도",
-          "value": "30%"
-        },
-        {
-          "label": "합산한도",
-          "value": "50%"
         }
       ]
     },
