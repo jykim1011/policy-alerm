@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-23T22:25:16.952060+09:00",
-  "today": "2026-11-23",
+  "updated_at": "2026-11-24T05:39:16.118871+09:00",
+  "today": "2026-11-24",
   "upcoming_days": 180,
   "momentum_days": 28,
   "upcoming": [
@@ -320,9 +320,9 @@
   "momentum": [
     {
       "sector": "건설",
-      "count": 6,
+      "count": 5,
       "high": 0,
-      "positive": 5,
+      "positive": 4,
       "negative": 0,
       "mixed": 1,
       "policies": [
@@ -358,13 +358,6 @@
           "policy_id": "국토교통부-2026-10-29-7a00013a",
           "title": "수도권 6곳에 새 주택 7만 6700호 더 지어요",
           "published_at": "2026-10-29",
-          "impact": "보통",
-          "direction": "긍정"
-        },
-        {
-          "policy_id": "국토교통부-2026-10-26-05cb9787",
-          "title": "3기 신도시 도로 공사, 더 빨리 끝나요",
-          "published_at": "2026-10-26",
           "impact": "보통",
           "direction": "긍정"
         }
