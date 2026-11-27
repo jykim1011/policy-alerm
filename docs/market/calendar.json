@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-27T17:53:56.237672+09:00",
-  "today": "2026-11-27",
+  "updated_at": "2026-11-28T03:30:51.649878+09:00",
+  "today": "2026-11-28",
   "upcoming_days": 180,
   "momentum_days": 28,
   "upcoming": [
@@ -145,6 +145,100 @@
       ]
     },
     {
+      "effective_date": "2027-01-01",
+      "date_exact": true,
+      "policy_id": "국토교통부-2026-08-12-0440678d",
+      "title": "청년 월세 공제 한도 1,200만원으로 늘려요",
+      "published_at": "2026-08-12",
+      "sectors": [
+        "자동차"
+      ],
+      "directions": {
+        "자동차": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "한도",
+          "value": "1,000만원→1,200만원"
+        },
+        {
+          "label": "공제율",
+          "value": "17%"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01-01",
+      "date_exact": true,
+      "policy_id": "국토교통부-2026-08-20-af3e4509",
+      "title": "낡은 건물 리모델링, 임대주택법 바뀌어요",
+      "published_at": "2026-08-20",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "의결·통과"
+    },
+    {
+      "effective_date": "2027-01",
+      "date_exact": false,
+      "policy_id": "금융위원회-2026-10-23-f753044a",
+      "title": "금융회사 부동산 대출 규제 강화, 렌탈 쉬워져요",
+      "published_at": "2026-10-23",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "부정"
+      },
+      "impact": "보통",
+      "novelty": "신규",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "대출한도",
+          "value": "30%"
+        },
+        {
+          "label": "합산한도",
+          "value": "50%"
+        }
+      ]
+    },
+    {
+      "effective_date": "2027-01",
+      "date_exact": false,
+      "policy_id": "농림축산식품부-2026-09-06-023a4ff7",
+      "title": "농촌정비사업, 신청 기준 더 쉬워져요",
+      "published_at": "2026-09-06",
+      "sectors": [
+        "건설"
+      ],
+      "directions": {
+        "건설": "긍정"
+      },
+      "impact": "보통",
+      "novelty": "확대",
+      "stage": "발표",
+      "figures": [
+        {
+          "label": "지원금",
+          "value": "5년 평균 100억 원"
+        },
+        {
+          "label": "최대 지원",
+          "value": "150억 원"
+        }
+      ]
+    },
+    {
       "effective_date": "2027-01",
       "date_exact": false,
       "policy_id": "정책브리핑-2026-09-17-5f82dc13",
@@ -177,32 +271,6 @@
     {
       "effective_date": "2027-01-01",
       "date_exact": true,
-      "policy_id": "국토교통부-2026-08-12-0440678d",
-      "title": "청년 월세 공제 한도 1,200만원으로 늘려요",
-      "published_at": "2026-08-12",
-      "sectors": [
-        "자동차"
-      ],
-      "directions": {
-        "자동차": "긍정"
-      },
-      "impact": "보통",
-      "novelty": "신규",
-      "stage": "발표",
-      "figures": [
-        {
-          "label": "한도",
-          "value": "1,000만원→1,200만원"
-        },
-        {
-          "label": "공제율",
-          "value": "17%"
-        }
-      ]
-    },
-    {
-      "effective_date": "2027-01-01",
-      "date_exact": true,
       "policy_id": "국토교통부-2026-11-17-a56b2a65",
       "title": "리모델링 동의율이 75%에서 70%로 낮아져요",
       "published_at": "2026-11-17",
@@ -219,74 +287,6 @@
         {
           "label": "동의율",
           "value": "75%→70%"
-        }
-      ]
-    },
-    {
-      "effective_date": "2027-01-01",
-      "date_exact": true,
-      "policy_id": "국토교통부-2026-08-20-af3e4509",
-      "title": "낡은 건물 리모델링, 임대주택법 바뀌어요",
-      "published_at": "2026-08-20",
-      "sectors": [
-        "건설"
-      ],
-      "directions": {
-        "건설": "긍정"
-      },
-      "impact": "보통",
-      "novelty": "신규",
-      "stage": "의결·통과"
-    },
-    {
-      "effective_date": "2027-01",
-      "date_exact": false,
-      "policy_id": "농림축산식품부-2026-09-06-023a4ff7",
-      "title": "농촌정비사업, 신청 기준 더 쉬워져요",
-      "published_at": "2026-09-06",
-      "sectors": [
-        "건설"
-      ],
-      "directions": {
-        "건설": "긍정"
-      },
-      "impact": "보통",
-      "novelty": "확대",
-      "stage": "발표",
-      "figures": [
-        {
-          "label": "지원금",
-          "value": "5년 평균 100억 원"
-        },
-        {
-          "label": "최대 지원",
-          "value": "150억 원"
-        }
-      ]
-    },
-    {
-      "effective_date": "2027-01",
-      "date_exact": false,
-      "policy_id": "금융위원회-2026-10-23-f753044a",
-      "title": "금융회사 부동산 대출 규제 강화, 렌탈 쉬워져요",
-      "published_at": "2026-10-23",
-      "sectors": [
-        "건설"
-      ],
-      "directions": {
-        "건설": "부정"
-      },
-      "impact": "보통",
-      "novelty": "신규",
-      "stage": "발표",
-      "figures": [
-        {
-          "label": "대출한도",
-          "value": "30%"
-        },
-        {
-          "label": "합산한도",
-          "value": "50%"
         }
       ]
     },
